@@ -112,27 +112,41 @@ a{color:inherit;}
 /* ============ App shell ============ */
 #app{min-height:100vh; display:flex;}
 .rail{
-  width:96px; flex:none; background:var(--md-surface-low); border-right:1px solid var(--md-outline-variant);
-  display:flex; flex-direction:column; align-items:center; gap:28px; padding:20px 8px; position:sticky; top:0; height:100vh;
+  width:108px; flex:none; display:flex; flex-direction:column; align-items:center; gap:6px;
+  padding:22px 10px; position:sticky; top:16px; height:calc(100vh - 32px); margin:16px 0 16px 16px;
+  border-radius:30px; box-shadow:var(--elev2); border:1px solid color-mix(in srgb, var(--md-outline-variant) 55%, transparent);
+  background:linear-gradient(165deg, var(--md-primary-container) 0%, var(--md-surface-cont) 50%, var(--md-tertiary-container) 145%);
 }
-.rail-brand{display:flex; flex-direction:column; align-items:center; gap:4px; margin-bottom:12px;}
-.rail-brand .mark{width:40px; height:40px; border-radius:var(--radius-md); background:var(--md-primary); color:var(--md-on-primary); display:flex; align-items:center; justify-content:center; overflow:hidden;}
+.rail-brand{display:flex; flex-direction:column; align-items:center; gap:6px; margin-bottom:16px;}
+.rail-brand .mark{
+  width:50px; height:50px; border-radius:20px; background:var(--md-primary); color:var(--md-on-primary);
+  display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:var(--elev1);
+}
+.rail-brand .mark .icon{width:26px; height:26px;}
+.rail-brand .wordmark{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:13px; color:var(--md-on-surface); letter-spacing:.01em;}
+.rail-items{position:relative; width:100%; display:flex; flex-direction:column; gap:6px;}
+.nav-indicator{
+  position:absolute; left:50%; width:60px; height:36px; border-radius:18px; background:var(--md-primary);
+  box-shadow:var(--elev1); transform:translate(-50%,0); pointer-events:none; z-index:0;
+  transition:top .4s cubic-bezier(.34,1.4,.4,1), opacity .2s ease;
+  opacity:0;
+}
 .rail-item{
-  display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer;
-  color:var(--md-on-surface-variant); padding:6px 0; width:100%;
+  position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer;
+  color:var(--md-on-surface-variant); padding:8px 0; width:100%; transition:color .2s ease;
 }
-.rail-item .bubble{width:56px; height:32px; border-radius:var(--radius-full); display:flex; align-items:center; justify-content:center; transition:background .15s; overflow:hidden;}
-.rail-item:hover .bubble{background:color-mix(in srgb, var(--md-on-surface) 8%, transparent);}
-.rail-item.active .bubble{background:var(--md-secondary-container); color:var(--md-on-secondary-container);}
-.rail-item.active{color:var(--md-on-surface);}
-.rail-item span.lbl{font-size:12px; font-weight:500;}
+.rail-item .bubble{width:56px; height:36px; border-radius:18px; display:flex; align-items:center; justify-content:center; overflow:hidden; transition:background .15s ease, color .2s ease;}
+.rail-item:hover:not(.active) .bubble{background:color-mix(in srgb, var(--md-on-surface) 10%, transparent);}
+.rail-item.active{color:var(--md-on-primary);}
+.rail-item.active .bubble{color:var(--md-on-primary);}
+.rail-item span.lbl{font-size:12px; font-weight:600;}
 .rail-spacer{flex:1;}
 
 .shell{flex:1; min-width:0; display:flex; flex-direction:column; min-height:100vh;}
 .topbar{
   position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:12px;
-  padding:14px 20px; background:color-mix(in srgb, var(--md-surface) 92%, transparent);
-  backdrop-filter:blur(10px); border-bottom:1px solid var(--md-outline-variant);
+  padding:20px 28px 14px; background:color-mix(in srgb, var(--md-background) 88%, transparent);
+  backdrop-filter:blur(10px);
 }
 .topbar .brand-mobile{display:none; align-items:center; gap:8px;}
 .searchfield{
@@ -213,6 +227,23 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
 .card:hover{box-shadow:var(--elev3); transform:translateY(-3px);}
 
 /* ============ Library ============ */
+.hero-panel{
+  position:relative; overflow:hidden; border-radius:32px; padding:34px 36px; margin-bottom:26px;
+  background:var(--md-surface-cont); border:1px solid var(--md-outline-variant);
+}
+.hero-panel::before{
+  content:''; position:absolute; inset:-30%; z-index:0; filter:blur(46px); opacity:.6; pointer-events:none;
+  background:
+    radial-gradient(circle at 12% 15%, color-mix(in srgb, var(--md-primary) 32%, transparent) 0%, transparent 45%),
+    radial-gradient(circle at 88% 80%, color-mix(in srgb, var(--md-tertiary) 28%, transparent) 0%, transparent 50%);
+}
+.hero-panel > *{position:relative; z-index:1;}
+.hero-stats{display:flex; flex-wrap:wrap; gap:10px; margin-top:14px;}
+.stat-pill{
+  display:inline-flex; align-items:center; gap:7px; padding:7px 15px; border-radius:999px;
+  background:var(--md-surface-lowest); color:var(--md-on-surface-variant); font-size:13px; font-weight:600; box-shadow:var(--elev1);
+}
+.stat-pill .icon{width:15px; height:15px;}
 .page-header{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px;}
 .tagbar{display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px;}
 .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:22px;}
@@ -255,21 +286,23 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
 }
 .fab:hover{box-shadow:var(--elev3); transform:translateY(-2px);}
 .fab:active{transform:translateY(0) scale(.97);}
-@media (max-width:640px){ .fab{bottom:88px; right:16px; padding:0 16px;} .fab .fab-label{display:none;} }
+@media (max-width:640px){ .fab{bottom:100px; right:16px; padding:0 16px;} .fab .fab-label{display:none;} }
 
 /* Bottom nav (mobile) */
 .bottom-nav{display:none;}
 @media (max-width:1000px){
   .rail{display:none;}
   .bottom-nav{
-    display:flex; position:fixed; bottom:0; left:0; right:0; z-index:25; height:72px;
-    background:var(--md-surface-low); border-top:1px solid var(--md-outline-variant);
+    display:flex; position:fixed; left:16px; right:16px; bottom:16px; z-index:25; height:68px;
+    border-radius:26px; padding:0 8px; box-shadow:var(--elev3);
+    border:1px solid color-mix(in srgb, var(--md-outline-variant) 55%, transparent);
+    background:linear-gradient(100deg, var(--md-primary-container) 0%, var(--md-surface-cont) 55%, var(--md-tertiary-container) 150%);
   }
-  .bn-item{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:none; border:none; color:var(--md-on-surface-variant); cursor:pointer;}
-  .bn-item .bubble{width:52px; height:28px; border-radius:var(--radius-full); display:flex; align-items:center; justify-content:center;}
-  .bn-item.active .bubble{background:var(--md-secondary-container); color:var(--md-on-secondary-container);}
-  .bn-item.active{color:var(--md-on-surface);}
-  .bn-item span.lbl{font-size:11px; font-weight:500;}
+  .bn-indicator{top:50%; left:0; transform:translate(0,-50%); width:64px; height:48px; transition:left .4s cubic-bezier(.34,1.4,.4,1), opacity .2s ease;}
+  .bn-item{position:relative; z-index:1; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:none; border:none; color:var(--md-on-surface-variant); cursor:pointer; transition:color .2s ease;}
+  .bn-item .bubble{width:48px; height:26px; border-radius:13px; display:flex; align-items:center; justify-content:center;}
+  .bn-item.active{color:var(--md-on-primary);}
+  .bn-item span.lbl{font-size:11px; font-weight:600;}
 }
 
 /* ============ Detail view ============ */
@@ -387,7 +420,7 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
 .dialog-actions{display:flex; justify-content:flex-end; gap:8px; margin-top:22px;}
 
 .snackbar-root{position:fixed; left:20px; bottom:20px; z-index:60; display:flex; flex-direction:column; gap:8px;}
-@media (max-width:1000px){ .snackbar-root{left:16px; right:16px; bottom:88px;} }
+@media (max-width:1000px){ .snackbar-root{left:16px; right:16px; bottom:96px;} }
 .snackbar{
   background:var(--md-on-surface); color:var(--md-surface); border-radius:var(--radius-sm); padding:14px 16px;
   display:flex; align-items:center; gap:16px; box-shadow:var(--elev3); font-size:14px; min-width:280px; max-width:420px;
@@ -433,15 +466,19 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
   <nav class="rail" aria-label="Primary">
     <div class="rail-brand">
       <div class="mark"><span data-icon="skillet" aria-hidden="true"></span></div>
+      <span class="wordmark">Sift</span>
     </div>
-    <button class="rail-item active" data-action="nav" data-view="library" aria-current="page">
-      <span class="bubble"><span data-icon="menu_book" aria-hidden="true"></span></span>
-      <span class="lbl">Recipes</span>
-    </button>
-    <button class="rail-item" data-action="nav" data-view="import">
-      <span class="bubble"><span data-icon="import" aria-hidden="true"></span></span>
-      <span class="lbl">Import</span>
-    </button>
+    <div class="rail-items" id="rail-items">
+      <div class="nav-indicator" id="rail-indicator"></div>
+      <button class="rail-item active" data-action="nav" data-view="library" aria-current="page">
+        <span class="bubble"><span data-icon="menu_book" aria-hidden="true"></span></span>
+        <span class="lbl">Recipes</span>
+      </button>
+      <button class="rail-item" data-action="nav" data-view="import">
+        <span class="bubble"><span data-icon="import" aria-hidden="true"></span></span>
+        <span class="lbl">Import</span>
+      </button>
+    </div>
     <div class="rail-spacer"></div>
   </nav>
 
@@ -472,6 +509,7 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
   </button>
 
   <nav class="bottom-nav" aria-label="Primary">
+    <div class="nav-indicator bn-indicator" id="bn-indicator"></div>
     <button class="bn-item active" data-action="nav" data-view="library" aria-current="page">
       <span class="bubble"><span data-icon="menu_book" aria-hidden="true"></span></span>
       <span class="lbl">Recipes</span>
@@ -668,7 +706,8 @@ const ICON_PATHS = {
   icecream: '<circle cx="12" cy="8.6" r="4.9"/><path d="M8.3 11.2 12 20.6l3.7-9.4z"/>',
   local_pizza: '<path d="M12 3.6 20.6 19Q12 21.2 3.4 19Z"/><circle cx="10.8" cy="12.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="14.4" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="9.4" cy="16.3" r="1.3" fill="currentColor" stroke="none"/>',
   egg_alt: '<path d="M12 3.6c-3.3 4.3-5.2 8.3-5.2 11.4a5.2 5.2 0 0010.4 0c0-3.1-1.9-7.1-5.2-11.4z"/>',
-  palette: '<path d="M12 3.8a8.2 8.2 0 100 16.4c1 0 1.8-.5 1.8-1.5 0-.4-.2-.7-.2-1.1 0-.7.6-1.2 1.3-1.2h1.4A3.3 3.3 0 0019.6 13 9.1 9.1 0 0012 3.8z"/><circle cx="8.2" cy="10.1" r="1.1" fill="currentColor" stroke="none"/><circle cx="11.2" cy="7.7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.7" cy="8.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.2" cy="11.9" r="1.1" fill="currentColor" stroke="none"/>'
+  palette: '<path d="M12 3.8a8.2 8.2 0 100 16.4c1 0 1.8-.5 1.8-1.5 0-.4-.2-.7-.2-1.1 0-.7.6-1.2 1.3-1.2h1.4A3.3 3.3 0 0019.6 13 9.1 9.1 0 0012 3.8z"/><circle cx="8.2" cy="10.1" r="1.1" fill="currentColor" stroke="none"/><circle cx="11.2" cy="7.7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.7" cy="8.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.2" cy="11.9" r="1.1" fill="currentColor" stroke="none"/>',
+  tag: '<path d="M11.4 4 19 11.6a1.7 1.7 0 010 2.4l-5 5a1.7 1.7 0 01-2.4 0L4 11.4V6a2 2 0 012-2z"/><circle cx="8.6" cy="8.6" r="1.15" fill="currentColor" stroke="none"/>'
 };
 function iconMarkup(name, cls, style){
   return `<svg class="icon ${cls||''}" ${style?`style="${style}"`:''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name]||''}</svg>`;
@@ -722,6 +761,16 @@ function allTags(){
   const s = new Set();
   recipes.forEach(r => r.tags.forEach(t => s.add(t)));
   return Array.from(s).sort();
+}
+const TAG_PALETTE = [
+  ['var(--md-primary-container)','var(--md-on-primary-container)'],
+  ['var(--md-secondary-container)','var(--md-on-secondary-container)'],
+  ['var(--md-tertiary-container)','var(--md-on-tertiary-container)']
+];
+function tagColorStyle(tag){
+  let h = 0; for(let i=0;i<tag.length;i++) h = (h*31 + tag.charCodeAt(i)) >>> 0;
+  const [bg,fg] = TAG_PALETTE[h % TAG_PALETTE.length];
+  return `background:${bg};color:${fg};`;
 }
 
 function persistAndRender(){ persist(recipes); render(); }
@@ -890,6 +939,29 @@ function setActiveNav(){
     if(isActive) el.setAttribute('aria-current','page'); else el.removeAttribute('aria-current');
   });
   document.getElementById('fab-new').style.display = (view === 'library') ? 'flex' : 'none';
+  positionNavIndicators();
+}
+function positionNavIndicator(container, itemSelector, indicator, axis){
+  if(!container || !indicator) return;
+  const active = container.querySelector(itemSelector + '.active .bubble');
+  if(!active){ indicator.style.opacity = '0'; return; }
+  const cRect = container.getBoundingClientRect();
+  const aRect = active.getBoundingClientRect();
+  if(aRect.width === 0 && aRect.height === 0) return; // container currently hidden (responsive breakpoint) — leave as-is
+  if(axis === 'vertical'){
+    indicator.style.top = (aRect.top - cRect.top) + 'px';
+    indicator.style.height = aRect.height + 'px';
+    indicator.style.width = aRect.width + 'px';
+  } else {
+    indicator.style.left = (aRect.left - cRect.left) + 'px';
+    indicator.style.width = aRect.width + 'px';
+    indicator.style.height = aRect.height + 'px';
+  }
+  indicator.style.opacity = '1';
+}
+function positionNavIndicators(){
+  positionNavIndicator(document.getElementById('rail-items'), '.rail-item', document.getElementById('rail-indicator'), 'vertical');
+  positionNavIndicator(document.querySelector('.bottom-nav'), '.bn-item', document.getElementById('bn-indicator'), 'horizontal');
 }
 
 function render(animate){
@@ -920,11 +992,14 @@ function filteredRecipes(){
 function renderLibrary(){
   const list = filteredRecipes();
   const tags = allTags();
+  const totalTime = recipes.reduce((sum,r) => sum + totalRecipeTime(r), 0);
   let html = `
-    <div class="page-header">
-      <div>
-        <h1 class="type-display">Your recipes</h1>
-        <p class="type-body-md" style="color:var(--md-on-surface-variant); margin-top:6px;">${recipes.length} saved &middot; ${tags.length} tags</p>
+    <div class="hero-panel">
+      <h1 class="type-display">Your recipes</h1>
+      <div class="hero-stats">
+        <span class="stat-pill">${iconMarkup('menu_book','icon-sm')}${recipes.length} recipe${recipes.length===1?'':'s'}</span>
+        <span class="stat-pill">${iconMarkup('tag','icon-sm')}${tags.length} tag${tags.length===1?'':'s'}</span>
+        ${totalTime ? `<span class="stat-pill">${iconMarkup('schedule','icon-sm')}${formatMinutes(totalTime)} of cooking, in total</span>` : ''}
       </div>
     </div>`;
   if(tags.length){
@@ -959,7 +1034,7 @@ function renderLibrary(){
         </div>
         <div class="recipe-body">
           <h3 class="recipe-title">${escapeHtml(r.title)}</h3>
-          <div class="card-tags">${r.tags.slice(0,3).map(t=>`<span class="mini-tag">${escapeHtml(t)}</span>`).join('')}${r.tags.length>3?`<span class="mini-tag">+${r.tags.length-3}</span>`:''}</div>
+          <div class="card-tags">${r.tags.slice(0,3).map(t=>`<span class="mini-tag" style="${tagColorStyle(t)}">${escapeHtml(t)}</span>`).join('')}${r.tags.length>3?`<span class="mini-tag">+${r.tags.length-3}</span>`:''}</div>
           <div class="meta-row">
             <span class="item">${iconMarkup('schedule')}${time ? formatMinutes(time) : '&mdash;'}</span>
             <span class="item">${iconMarkup('group')}${r.baseServings} servings</span>
@@ -999,7 +1074,7 @@ function renderDetail(){
       <span class="chip static">${iconMarkup('schedule','icon-sm')}${time ? formatMinutes(time) + ' active' : 'No timing set'}</span>
       <span class="chip static">${iconMarkup('group','icon-sm')}${formatQty(detailState.servings)} servings</span>
     </div>
-    <div class="detail-tags">${recipe.tags.map(t=>`<span class="chip static">${escapeHtml(t)}</span>`).join('')}</div>
+    <div class="detail-tags">${recipe.tags.map(t=>`<span class="chip static" style="${tagColorStyle(t)}border-color:transparent;">${escapeHtml(t)}</span>`).join('')}</div>
 
     <div class="detail-grid">
       <section aria-labelledby="ing-heading">
@@ -1682,6 +1757,11 @@ if(window.matchMedia){
 applyTheme();
 hydrateStaticIcons();
 render();
+let resizeTick = null;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTick);
+  resizeTick = setTimeout(positionNavIndicators, 120);
+});
 </script>
 </body>
 </html>
