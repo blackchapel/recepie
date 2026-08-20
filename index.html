@@ -95,8 +95,8 @@ a{color:inherit;}
 .icon-xl{width:44px; height:44px;}
 
 /* Type scale */
-.type-display{font-family:var(--font-display); font-weight:600; font-size:clamp(28px,4vw,40px); line-height:1.15; text-wrap:balance;}
-.type-headline{font-family:var(--font-display); font-weight:600; font-size:26px; line-height:1.25; text-wrap:balance;}
+.type-display{font-family:var(--font-display); font-weight:600; font-size:clamp(30px,4.5vw,44px); line-height:1.1; letter-spacing:-.015em; text-wrap:balance;}
+.type-headline{font-family:var(--font-display); font-weight:600; font-size:28px; line-height:1.2; letter-spacing:-.01em; text-wrap:balance;}
 .type-title-lg{font-family:var(--font-ui); font-weight:500; font-size:20px; line-height:1.3;}
 .type-title-md{font-family:var(--font-ui); font-weight:500; font-size:16px; line-height:1.4;}
 .type-title-sm{font-family:var(--font-ui); font-weight:500; font-size:14px; line-height:1.4;}
@@ -107,7 +107,7 @@ a{color:inherit;}
 .tnum{font-variant-numeric:tabular-nums;}
 
 /* Focus */
-:focus-visible{outline:2px solid var(--md-primary); outline-offset:2px; border-radius:4px;}
+:focus-visible{outline:2px solid var(--md-primary); outline-offset:2px; border-radius:4px; box-shadow:0 0 0 5px color-mix(in srgb, var(--md-primary) 18%, transparent);}
 
 /* ============ App shell ============ */
 #app{min-height:100vh; display:flex;}
@@ -138,8 +138,9 @@ a{color:inherit;}
 .searchfield{
   flex:1; max-width:520px; display:flex; align-items:center; gap:10px;
   background:var(--md-surface-high); border-radius:var(--radius-full); padding:0 16px; height:44px;
-  color:var(--md-on-surface-variant);
+  color:var(--md-on-surface-variant); border:1px solid transparent; transition:border-color .15s ease, background .15s ease;
 }
+.searchfield:focus-within{border-color:var(--md-primary); background:var(--md-surface-lowest);}
 .searchfield input{
   border:none; background:none; outline:none; flex:1; font:inherit; font-size:15px; color:var(--md-on-surface);
 }
@@ -148,24 +149,34 @@ a{color:inherit;}
 .icon-btn{
   width:40px; height:40px; border-radius:var(--radius-full); border:none; background:none; cursor:pointer;
   display:flex; align-items:center; justify-content:center; color:var(--md-on-surface-variant); position:relative; flex:none;
-  overflow:hidden;
+  overflow:hidden; transition:background .15s ease, transform .1s ease;
 }
 .icon-btn:hover{background:color-mix(in srgb, var(--md-on-surface) 8%, transparent);}
+.icon-btn:active{transform:scale(.9);}
 .icon-btn.tonal{background:var(--md-secondary-container); color:var(--md-on-secondary-container);}
 .icon-btn.tonal:hover{background:color-mix(in srgb, var(--md-secondary-container) 85%, var(--md-on-secondary-container));}
 
 main{flex:1; padding:24px 28px 100px; max-width:1180px; width:100%; margin:0 auto;}
+main.view-anim > *{animation:view-in .28s ease both;}
+@keyframes view-in{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;}}
+@media (prefers-reduced-motion: reduce){ main.view-anim > *{animation:none;} }
+::-webkit-scrollbar{width:12px; height:12px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--md-outline-variant); border-radius:var(--radius-full); border:3px solid var(--md-background);}
+::-webkit-scrollbar-thumb:hover{background:var(--md-outline);}
+html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin;}
 @media (max-width:640px){ main{padding:16px 16px 96px;} }
 
 /* ============ Buttons ============ */
 .btn{
   display:inline-flex; align-items:center; justify-content:center; gap:8px; border:none; cursor:pointer;
   font-family:var(--font-ui); font-weight:500; font-size:14px; border-radius:var(--radius-full);
-  height:40px; padding:0 24px; transition:box-shadow .15s, background .15s; white-space:nowrap;
+  height:40px; padding:0 24px; transition:box-shadow .18s ease, background .15s ease, transform .1s ease; white-space:nowrap;
 }
 .btn .icon{width:20px; height:20px;}
-.btn-filled{background:var(--md-primary); color:var(--md-on-primary);}
-.btn-filled:hover{box-shadow:var(--elev1);}
+.btn:active:not(:disabled){transform:scale(.97);}
+.btn-filled{background:var(--md-primary); color:var(--md-on-primary); box-shadow:var(--elev1);}
+.btn-filled:hover{box-shadow:var(--elev2);}
 .btn-tonal{background:var(--md-secondary-container); color:var(--md-on-secondary-container);}
 .btn-tonal:hover{box-shadow:var(--elev1);}
 .btn-outlined{background:none; color:var(--md-primary); border:1px solid var(--md-outline);}
@@ -180,8 +191,10 @@ main{flex:1; padding:24px 28px 100px; max-width:1180px; width:100%; margin:0 aut
 .chip{
   display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 14px; border-radius:var(--radius-full);
   border:1px solid var(--md-outline-variant); background:var(--md-surface); color:var(--md-on-surface-variant);
-  font-size:13px; font-weight:500; cursor:pointer; user-select:none;
+  font-size:13px; font-weight:500; cursor:pointer; user-select:none; transition:background .15s ease, box-shadow .15s ease, transform .1s ease;
 }
+.chip:not(.static):hover{box-shadow:var(--elev1);}
+.chip:not(.static):active{transform:scale(.96);}
 .chip .icon{width:16px; height:16px;}
 .chip.selected{background:var(--md-secondary-container); color:var(--md-on-secondary-container); border-color:transparent;}
 .chip.static{cursor:default;}
@@ -192,28 +205,32 @@ main{flex:1; padding:24px 28px 100px; max-width:1180px; width:100%; margin:0 aut
 .chip.remove-x button{background:none;border:none;color:inherit;display:flex;cursor:pointer;padding:0;margin-left:2px;}
 
 /* ============ Cards / surfaces ============ */
-.surface{background:var(--md-surface-cont); border-radius:var(--radius-lg);}
+.surface{background:var(--md-surface-cont); border-radius:var(--radius-lg); border:1px solid var(--md-outline-variant);}
 .card{
   background:var(--md-surface-low); border-radius:var(--radius-lg); overflow:hidden; box-shadow:var(--elev1);
-  display:flex; flex-direction:column; transition:box-shadow .15s;
+  display:flex; flex-direction:column; transition:box-shadow .22s ease, transform .22s ease;
 }
-.card:hover{box-shadow:var(--elev2);}
+.card:hover{box-shadow:var(--elev3); transform:translateY(-3px);}
 
 /* ============ Library ============ */
 .page-header{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px;}
 .tagbar{display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px;}
-.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:20px;}
+.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:22px;}
 .recipe-card{cursor:pointer; position:relative;}
 .recipe-photo{
   aspect-ratio:16/10; width:100%; position:relative; overflow:hidden; background:var(--md-surface-variant);
 }
-.recipe-photo img{width:100%; height:100%; object-fit:cover;}
+.recipe-photo img{width:100%; height:100%; object-fit:cover; transition:transform .35s ease;}
+.recipe-card:hover .recipe-photo img{transform:scale(1.06);}
 .placeholder-photo{
   width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:inherit;
 }
-.recipe-body{padding:16px; display:flex; flex-direction:column; gap:10px; flex:1;}
-.recipe-title{font-family:var(--font-display); font-weight:600; font-size:19px; line-height:1.3;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.placeholder-photo svg{transition:transform .3s ease;}
+.recipe-card:hover .placeholder-photo svg{transform:scale(1.08) rotate(0deg) !important;}
+.recipe-body{padding:16px 18px 18px; display:flex; flex-direction:column; gap:10px; flex:1;}
+.recipe-title{font-family:var(--font-display); font-weight:600; font-size:19px; line-height:1.3; letter-spacing:-.01em;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; transition:color .15s ease;}
+.recipe-card:hover .recipe-title{color:var(--md-primary);}
 .card-tags{display:flex; flex-wrap:wrap; gap:6px;}
 .mini-tag{font-size:11px; font-weight:600; letter-spacing:.02em; padding:3px 9px; border-radius:var(--radius-full); background:var(--md-surface-high); color:var(--md-on-surface-variant);}
 .meta-row{display:flex; align-items:center; gap:16px; color:var(--md-on-surface-variant); font-size:13px; margin-top:auto;}
@@ -222,15 +239,22 @@ main{flex:1; padding:24px 28px 100px; max-width:1180px; width:100%; margin:0 aut
 .card-actions{position:absolute; top:10px; right:10px; display:flex; gap:6px;}
 .card-actions .icon-btn{background:color-mix(in srgb, var(--md-surface-lowest) 78%, transparent); backdrop-filter:blur(4px); width:36px; height:36px;}
 .empty-state{text-align:center; padding:70px 20px; color:var(--md-on-surface-variant);}
-.empty-state .icon{width:56px; height:56px; opacity:.55; margin-bottom:12px;}
+.empty-state .icon-wrap{
+  width:96px; height:96px; border-radius:var(--radius-full); margin:0 auto 18px;
+  background:radial-gradient(circle, var(--md-primary-container) 0%, transparent 72%);
+  display:flex; align-items:center; justify-content:center;
+}
+.empty-state .icon{width:44px; height:44px; color:var(--md-on-primary-container); opacity:.8;}
 
 /* FAB */
 .fab{
   position:fixed; right:28px; bottom:28px; z-index:30; height:56px; border-radius:var(--radius-lg);
   background:var(--md-primary-container); color:var(--md-on-primary-container); border:none; cursor:pointer;
   display:flex; align-items:center; gap:10px; padding:0 20px; box-shadow:var(--elev2); font-weight:500; font-size:14px;
+  transition:box-shadow .2s ease, transform .15s ease;
 }
-.fab:hover{box-shadow:var(--elev3);}
+.fab:hover{box-shadow:var(--elev3); transform:translateY(-2px);}
+.fab:active{transform:translateY(0) scale(.97);}
 @media (max-width:640px){ .fab{bottom:88px; right:16px; padding:0 16px;} .fab .fab-label{display:none;} }
 
 /* Bottom nav (mobile) */
@@ -250,7 +274,7 @@ main{flex:1; padding:24px 28px 100px; max-width:1180px; width:100%; margin:0 aut
 
 /* ============ Detail view ============ */
 .detail-back{display:flex; align-items:center; gap:6px; margin-bottom:16px;}
-.detail-hero{border-radius:var(--radius-xl); overflow:hidden; position:relative; background:var(--md-surface-variant); aspect-ratio:21/9; margin-bottom:22px;}
+.detail-hero{border-radius:var(--radius-xl); overflow:hidden; position:relative; background:var(--md-surface-variant); aspect-ratio:21/9; margin-bottom:22px; box-shadow:var(--elev2);}
 .detail-hero img{width:100%; height:100%; object-fit:cover;}
 .detail-hero .placeholder-photo{aspect-ratio:auto; height:100%;}
 .detail-heading{display:flex; flex-wrap:wrap; gap:18px; justify-content:space-between; align-items:flex-start; margin-bottom:6px;}
@@ -264,9 +288,14 @@ main{flex:1; padding:24px 28px 100px; max-width:1180px; width:100%; margin:0 aut
 @media (max-width:860px){ .detail-grid{grid-template-columns:1fr;} }
 
 .section-title{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
-.servings-control{display:flex; align-items:center; gap:14px; background:var(--md-surface-cont); border-radius:var(--radius-lg); padding:12px 16px; margin-bottom:18px;}
-.stepper-btn{width:36px; height:36px; border-radius:var(--radius-full); border:1px solid var(--md-outline); background:var(--md-surface-lowest); color:var(--md-on-surface); cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none; overflow:hidden;}
-.stepper-btn:hover{background:var(--md-surface-high);}
+.servings-control{
+  display:flex; align-items:center; gap:14px; padding:14px 18px; margin-bottom:18px; border-radius:var(--radius-lg);
+  background:linear-gradient(135deg, var(--md-primary-container) 0%, var(--md-surface-cont) 72%);
+  border:1px solid var(--md-outline-variant);
+}
+.stepper-btn{width:36px; height:36px; border-radius:var(--radius-full); border:1px solid var(--md-outline); background:var(--md-surface-lowest); color:var(--md-on-surface); cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none; overflow:hidden; transition:background .15s ease, transform .1s ease, border-color .15s ease;}
+.stepper-btn:hover{background:var(--md-primary); border-color:var(--md-primary); color:var(--md-on-primary);}
+.stepper-btn:active{transform:scale(.9);}
 .servings-num{font-size:22px; font-weight:600; min-width:2ch; text-align:center;}
 .scale-note{font-size:12px; color:var(--md-on-surface-variant);}
 
@@ -347,8 +376,11 @@ main{flex:1; padding:24px 28px 100px; max-width:1180px; width:100%; margin:0 aut
 @media (prefers-reduced-motion: reduce){ .spinner{animation:none; border-top-color:var(--md-outline-variant); border-right-color:var(--md-primary);} }
 
 /* ============ Dialog & Snackbar ============ */
-.scrim{position:fixed; inset:0; background:color-mix(in srgb, var(--md-scrim) 40%, transparent); z-index:50; display:flex; align-items:center; justify-content:center; padding:20px;}
-.dialog{background:var(--md-surface-cont); border-radius:var(--radius-xl); padding:24px; max-width:420px; width:100%; box-shadow:var(--elev3);}
+.scrim{position:fixed; inset:0; background:color-mix(in srgb, var(--md-scrim) 42%, transparent); backdrop-filter:blur(2px); z-index:50; display:flex; align-items:center; justify-content:center; padding:20px; animation:scrim-in .15s ease both;}
+@keyframes scrim-in{from{opacity:0;} to{opacity:1;}}
+.dialog{background:var(--md-surface-cont); border-radius:var(--radius-xl); padding:24px; max-width:420px; width:100%; box-shadow:var(--elev3); animation:dialog-in .2s cubic-bezier(.2,.9,.3,1.2) both;}
+@keyframes dialog-in{from{opacity:0; transform:scale(.95) translateY(8px);} to{opacity:1; transform:none;}}
+@media (prefers-reduced-motion: reduce){ .scrim, .dialog{animation:none;} }
 .dialog .icon-lead{width:28px; height:28px; color:var(--md-error); margin-bottom:12px;}
 .dialog h3{font-family:var(--font-ui); font-size:20px; font-weight:500; margin-bottom:10px;}
 .dialog p{color:var(--md-on-surface-variant); font-size:14px; line-height:1.5;}
@@ -735,8 +767,12 @@ function placeholderPhoto(seedStr, big){
   ];
   const [bg,fg] = palettes[h % palettes.length];
   const iconName = PLACEHOLDER_ICONS[h % PLACEHOLDER_ICONS.length];
-  const size = big ? 64 : 40;
-  return `<div class="placeholder-photo" style="background:${bg};color:${fg};">${iconMarkup(iconName, '', `width:${size}px;height:${size}px;`)}</div>`;
+  const size = big ? 68 : 42;
+  const glowX = 22 + (h % 56), glowY = 18 + ((h >> 4) % 44);
+  const rotate = -7 + (h % 15);
+  const bgStyle = `background:radial-gradient(circle at ${glowX}% ${glowY}%, color-mix(in srgb, ${fg} 24%, transparent) 0%, transparent 58%), linear-gradient(135deg, ${bg} 0%, color-mix(in srgb, ${bg} 74%, var(--md-surface-lowest)) 100%); color:${fg};`;
+  const iconStyle = `width:${size}px;height:${size}px;transform:rotate(${rotate}deg);filter:drop-shadow(0 3px 8px color-mix(in srgb, ${fg} 30%, transparent));opacity:.88;`;
+  return `<div class="placeholder-photo" style="${bgStyle}">${iconMarkup(iconName, '', iconStyle)}</div>`;
 }
 
 /* ============================================================
@@ -856,12 +892,13 @@ function setActiveNav(){
   document.getElementById('fab-new').style.display = (view === 'library') ? 'flex' : 'none';
 }
 
-function render(){
+function render(animate){
   const root = document.getElementById('view-root');
   if(view === 'library') root.innerHTML = renderLibrary();
   else if(view === 'detail') root.innerHTML = renderDetail();
   else if(view === 'editor') root.innerHTML = renderEditor();
   else if(view === 'import') root.innerHTML = renderImport();
+  if(animate){ root.classList.remove('view-anim'); void root.offsetWidth; root.classList.add('view-anim'); }
   setActiveNav();
   applyThemeIcon();
   document.getElementById('search-input').value = searchQuery;
@@ -901,12 +938,12 @@ function renderLibrary(){
   }
   if(!list.length){
     html += `<div class="empty-state">
-      ${iconMarkup('soup_kitchen')}
+      <div class="icon-wrap">${iconMarkup('soup_kitchen')}</div>
       <h2 class="type-title-lg" style="margin-bottom:8px;">No recipes match yet</h2>
       <p class="type-body-md" style="margin-bottom:20px;">Try clearing filters, or add something new.</p>
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button class="btn btn-filled" data-action="new-recipe">${iconMarkup('add')}New recipe</button>
-        <button class="btn btn-outlined" data-action="nav" data-view="import">${iconMarkup('content_paste_go')}Import one</button>
+        <button class="btn btn-outlined" data-action="nav" data-view="import">${iconMarkup('import')}Import one</button>
       </div>
     </div>`;
   } else {
@@ -1137,7 +1174,10 @@ function renderImport(){
   } else if(s.parsed){
     const p = s.parsed;
     html += `<div class="parse-preview surface" style="padding:20px;">
-      <div class="section-title"><h2 class="type-title-lg">Looks like&hellip;</h2></div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+        <div style="width:32px;height:32px;border-radius:999px;background:var(--md-primary-container);color:var(--md-on-primary-container);display:flex;align-items:center;justify-content:center;flex:none;">${iconMarkup('check','icon-sm')}</div>
+        <h2 class="type-title-lg">Looks like&hellip;</h2>
+      </div>
       <div class="preview-row"><span class="k">Title</span><span>${escapeHtml(p.title)}</span></div>
       <div class="preview-row"><span class="k">Servings</span><span>${p.baseServings}</span></div>
       <div class="preview-row"><span class="k">Ingredients</span><span>${p.ingredients.map(i => escapeHtml((i.qty>0?formatQty(i.qty)+' ':'')+(i.unit?i.unit+' ':'')+i.name)).join(', ') || '&mdash;'}</span></div>
@@ -1374,14 +1414,14 @@ function ensureTicker(){
 /* ============================================================
    Navigation / actions
    ============================================================ */
-function goLibrary(){ view = 'library'; currentRecipeId = null; render(); }
-function openRecipe(id){ currentRecipeId = id; view = 'detail'; render(); window.scrollTo({top:0}); }
+function goLibrary(){ view = 'library'; currentRecipeId = null; render(true); }
+function openRecipe(id){ currentRecipeId = id; view = 'detail'; render(true); window.scrollTo({top:0}); }
 function startNewRecipe(origin){
   editorOrigin = origin || 'library';
   editorError = '';
   editorDraft = { id: uid(), title:'', description:'', photo:null, tags:[], baseServings:4,
     ingredients:[{name:'',qty:0,unit:''}], instructions:[{text:'',timeMinutes:null}] };
-  view = 'editor'; render(); window.scrollTo({top:0});
+  view = 'editor'; render(true); window.scrollTo({top:0});
 }
 function startEditRecipe(id, origin){
   const r = recipes.find(x => x.id === id);
@@ -1389,7 +1429,7 @@ function startEditRecipe(id, origin){
   editorOrigin = origin || 'detail';
   editorError = '';
   editorDraft = JSON.parse(JSON.stringify(r));
-  view = 'editor'; render(); window.scrollTo({top:0});
+  view = 'editor'; render(true); window.scrollTo({top:0});
 }
 function loadDraftFromParsed(parsed){
   editorOrigin = 'import';
@@ -1398,7 +1438,7 @@ function loadDraftFromParsed(parsed){
     tags:parsed.tags.slice(), baseServings:parsed.baseServings,
     ingredients: parsed.ingredients.map(i=>({name:i.name,qty:i.qty,unit:i.unit||''})),
     instructions: parsed.instructions.map(s=>({text:s.text,timeMinutes:s.timeMinutes||null})) };
-  view = 'editor'; render(); window.scrollTo({top:0});
+  view = 'editor'; render(true); window.scrollTo({top:0});
 }
 
 function confirmDeleteRecipe(id){
@@ -1444,7 +1484,7 @@ function saveRecipe(){
   currentRecipeId = d.id;
   view = 'detail';
   editorDraft = null; editorError = '';
-  render(); window.scrollTo({top:0});
+  render(true); window.scrollTo({top:0});
   showSnackbar(existingIdx === -1 ? 'Recipe created' : 'Recipe saved');
 }
 function cancelEdit(){
@@ -1453,7 +1493,7 @@ function cancelEdit(){
   if(backTo === 'detail' && currentRecipeId){ view = 'detail'; }
   else if(backTo === 'import'){ view = 'import'; }
   else { view = 'library'; }
-  render();
+  render(true);
 }
 
 function runImport(){
@@ -1484,7 +1524,7 @@ document.addEventListener('click', (e) => {
     case 'nav': {
       const v = el.dataset.view;
       if(v === 'library') goLibrary();
-      else { view = 'import'; importState.parsed=null; importState.loading=false; render(); }
+      else { view = 'import'; importState.parsed=null; importState.loading=false; render(true); }
       break;
     }
     case 'open-recipe': openRecipe(el.dataset.id); break;
