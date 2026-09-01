@@ -7,7 +7,7 @@
 <meta name="description" content="A Material Design 3 mockup for managing recipes: add, edit, scale ingredients live, time your steps, tag, import from text or a link, and attach photos." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
 /* ============ Design tokens (Material 3 style) ============ */
 :root{
@@ -27,14 +27,13 @@
   --md-surface-lowest:#FFFFFF; --md-surface-low:#F0F4EB;
   --md-surface-cont:#EAEEE3; --md-surface-high:#E4E9DC;
   --md-surface-highest:#DEE3D6;
-  --md-hero-a:#2E9650; --md-hero-b:#2E8F8A; --md-hero-c:#7A8F2E;
   --md-shadow-color:150 25% 15%;
   --elev1:0 1px 2px hsl(var(--md-shadow-color)/0.25), 0 1px 3px 1px hsl(var(--md-shadow-color)/0.12);
   --elev2:0 1px 2px hsl(var(--md-shadow-color)/0.25), 0 2px 6px 2px hsl(var(--md-shadow-color)/0.15);
   --elev3:0 1px 3px hsl(var(--md-shadow-color)/0.3), 0 4px 8px 3px hsl(var(--md-shadow-color)/0.15);
   --radius-xs:4px; --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-xl:28px; --radius-full:999px;
-  --font-ui:"Roboto",system-ui,sans-serif;
-  --font-display:"Fraunces",Georgia,serif;
+  --font-ui:"Nunito",system-ui,sans-serif;
+  --font-display:"Nunito",system-ui,sans-serif;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
@@ -53,8 +52,7 @@
     --md-surface-lowest:#0C0F0A; --md-surface-low:#1A1D16;
     --md-surface-cont:#1E211A; --md-surface-high:#282B24;
     --md-surface-highest:#33362E;
-    --md-hero-a:#2E9650; --md-hero-b:#2E8F8A; --md-hero-c:#7A8F2E;
-    --md-shadow-color:150 40% 2%;
+      --md-shadow-color:150 40% 2%;
   }
 }
 :root[data-theme="dark"]{
@@ -73,7 +71,6 @@
   --md-surface-lowest:#0C0F0A; --md-surface-low:#1A1D16;
   --md-surface-cont:#1E211A; --md-surface-high:#282B24;
   --md-surface-highest:#33362E;
-  --md-hero-a:#2E9650; --md-hero-b:#2E8F8A; --md-hero-c:#7A8F2E;
   --md-shadow-color:150 40% 2%;
 }
 
@@ -98,11 +95,11 @@ a{color:inherit;}
 .icon-xl{width:44px; height:44px;}
 
 /* Type scale */
-.type-display{font-family:var(--font-display); font-weight:600; font-size:clamp(30px,4.5vw,44px); line-height:1.1; letter-spacing:-.015em; text-wrap:balance;}
-.type-headline{font-family:var(--font-display); font-weight:600; font-size:28px; line-height:1.2; letter-spacing:-.01em; text-wrap:balance;}
-.type-title-lg{font-family:var(--font-ui); font-weight:500; font-size:20px; line-height:1.3;}
-.type-title-md{font-family:var(--font-ui); font-weight:500; font-size:16px; line-height:1.4;}
-.type-title-sm{font-family:var(--font-ui); font-weight:500; font-size:14px; line-height:1.4;}
+.type-display{font-family:var(--font-display); font-weight:800; font-size:clamp(26px,4vw,36px); line-height:1.18; letter-spacing:-.01em; text-wrap:balance;}
+.type-headline{font-family:var(--font-display); font-weight:800; font-size:24px; line-height:1.22; letter-spacing:-.01em; text-wrap:balance;}
+.type-title-lg{font-family:var(--font-ui); font-weight:800; font-size:19px; line-height:1.3;}
+.type-title-md{font-family:var(--font-ui); font-weight:700; font-size:16px; line-height:1.4;}
+.type-title-sm{font-family:var(--font-ui); font-weight:700; font-size:14px; line-height:1.4;}
 .type-body-lg{font-size:16px; line-height:1.55;}
 .type-body-md{font-size:14px; line-height:1.5;}
 .type-body-sm{font-size:12px; line-height:1.5;}
@@ -117,33 +114,32 @@ a{color:inherit;}
 .rail{
   width:108px; flex:none; display:flex; flex-direction:column; align-items:center; gap:6px;
   padding:22px 10px; position:sticky; top:16px; height:calc(100vh - 32px); margin:16px 0 16px 16px;
-  border-radius:30px; box-shadow:var(--elev3);
-  background:linear-gradient(165deg, var(--md-hero-a) 0%, var(--md-hero-b) 55%, var(--md-hero-c) 145%);
+  border-radius:30px; box-shadow:var(--elev2); background:var(--md-surface-low); border:1px solid var(--md-outline-variant);
 }
 .rail-brand{display:flex; flex-direction:column; align-items:center; gap:7px; margin-bottom:18px;}
 .rail-brand .mark{
-  width:50px; height:50px; border-radius:20px; background:#fff; color:var(--md-hero-a);
-  display:flex; align-items:center; justify-content:center; overflow:hidden; box-shadow:var(--elev2);
+  width:48px; height:48px; border-radius:18px; background:var(--md-primary); color:var(--md-on-primary);
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
 }
-.rail-brand .mark .icon{width:26px; height:26px;}
-.rail-brand .wordmark{font-family:var(--font-display); font-style:italic; font-weight:600; font-size:13px; color:#fff; letter-spacing:.01em;}
+.rail-brand .mark .icon{width:24px; height:24px;}
+.rail-brand .wordmark{font-family:var(--font-display); font-weight:800; font-size:13px; color:var(--md-on-surface); letter-spacing:-.01em;}
 .rail-items{position:relative; width:100%; display:flex; flex-direction:column; gap:6px;}
 .nav-indicator{
-  position:absolute; left:50%; width:60px; height:36px; border-radius:18px; background:#fff;
-  box-shadow:var(--elev2); transform:translate(-50%,0); pointer-events:none; z-index:0;
+  position:absolute; left:50%; width:60px; height:36px; border-radius:18px; background:var(--md-primary);
+  transform:translate(-50%,0); pointer-events:none; z-index:0;
   transition:top .4s cubic-bezier(.34,1.4,.4,1), opacity .2s ease;
   opacity:0;
 }
 .rail-item{
   position:relative; z-index:1; display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; cursor:pointer;
-  color:color-mix(in srgb, #fff 75%, transparent); padding:8px 0; width:100%; transition:color .2s ease;
+  color:var(--md-on-surface-variant); padding:8px 0; width:100%; transition:color .2s ease;
 }
 .rail-item .bubble{width:56px; height:36px; border-radius:18px; display:flex; align-items:center; justify-content:center; overflow:hidden; transition:background .15s ease, color .2s ease;}
-.rail-item:hover:not(.active) .bubble{background:color-mix(in srgb, #fff 16%, transparent);}
-.rail-item:hover:not(.active){color:#fff;}
-.rail-item.active .bubble{color:var(--md-hero-a);}
-.rail-item span.lbl{font-size:12px; font-weight:700; color:color-mix(in srgb, #fff 80%, transparent);}
-.rail-item.active span.lbl, .rail-item:hover span.lbl{color:#fff;}
+.rail-item:hover:not(.active) .bubble{background:var(--md-surface-high);}
+.rail-item:hover:not(.active){color:var(--md-on-surface);}
+.rail-item.active .bubble{color:var(--md-on-primary);}
+.rail-item span.lbl{font-size:12px; font-weight:700; color:var(--md-on-surface-variant);}
+.rail-item.active span.lbl, .rail-item:hover span.lbl{color:var(--md-on-surface);}
 .rail-spacer{flex:1;}
 
 .shell{flex:1; min-width:0; display:flex; flex-direction:column; min-height:100vh;}
@@ -193,7 +189,7 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
 }
 .btn .icon{width:20px; height:20px;}
 .btn:active:not(:disabled){transform:scale(.97);}
-.btn-filled{background:linear-gradient(120deg, var(--md-hero-a), var(--md-hero-c)); color:#fff; box-shadow:var(--elev1);}
+.btn-filled{background:var(--md-primary); color:var(--md-on-primary); box-shadow:var(--elev1);}
 .btn-filled:hover{box-shadow:var(--elev2);}
 .btn-tonal{background:var(--md-secondary-container); color:var(--md-on-secondary-container);}
 .btn-tonal:hover{box-shadow:var(--elev1);}
@@ -207,18 +203,18 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
 
 /* ============ Chips ============ */
 .chip{
-  display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 14px; border-radius:var(--radius-full);
+  display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 15px; border-radius:var(--radius-full);
   border:1px solid var(--md-outline-variant); background:var(--md-surface); color:var(--md-on-surface-variant);
-  font-size:13px; font-weight:500; cursor:pointer; user-select:none; transition:background .15s ease, box-shadow .15s ease, transform .1s ease;
+  font-size:13px; font-weight:700; cursor:pointer; user-select:none; transition:background .15s ease, box-shadow .15s ease, transform .1s ease;
 }
 .chip:not(.static):hover{box-shadow:var(--elev1);}
 .chip:not(.static):active{transform:scale(.96);}
 .chip .icon{width:16px; height:16px;}
-.chip.selected{background:var(--md-secondary-container); color:var(--md-on-secondary-container); border-color:transparent;}
-.chip.static{cursor:default;}
-.chip.time{background:var(--md-tertiary-container); color:var(--md-on-tertiary-container); border-color:transparent;}
+.chip.selected{background:var(--md-primary); color:var(--md-on-primary); border-color:transparent;}
+.chip.static{cursor:default; background:var(--md-surface-high); border-color:transparent;}
+.chip.time{background:var(--md-primary-container); color:var(--md-on-primary-container); border-color:transparent;}
 .chip.time.running{background:var(--md-primary); color:var(--md-on-primary);}
-.chip.time.done{background:var(--md-primary-container); color:var(--md-on-primary-container);}
+.chip.time.done{background:var(--md-surface-high); color:var(--md-on-surface-variant);}
 .chip.remove-x{padding-right:8px;}
 .chip.remove-x button{background:none;border:none;color:inherit;display:flex;cursor:pointer;padding:0;margin-left:2px;}
 
@@ -231,63 +227,53 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
 .card:hover{box-shadow:var(--elev3); transform:translateY(-3px);}
 
 /* ============ Library ============ */
-.hero-panel{
-  position:relative; overflow:hidden; border-radius:36px; padding:42px 40px; margin-bottom:28px;
-  background:linear-gradient(122deg, var(--md-hero-a) 0%, var(--md-hero-b) 52%, var(--md-hero-c) 100%);
-  box-shadow:var(--elev3);
-}
-.hero-panel::before, .hero-panel::after{
-  content:''; position:absolute; z-index:0; border-radius:50%; pointer-events:none; filter:blur(2px);
-}
-.hero-panel::before{ width:340px; height:340px; right:-90px; top:-140px; background:radial-gradient(circle, color-mix(in srgb, #fff 22%, transparent) 0%, transparent 70%); }
-.hero-panel::after{ width:220px; height:220px; left:8%; bottom:-120px; background:radial-gradient(circle, color-mix(in srgb, #fff 16%, transparent) 0%, transparent 70%); }
-.hero-panel > *{position:relative; z-index:1;}
-.hero-panel h1{color:#fff; text-shadow:0 2px 18px color-mix(in srgb, var(--md-hero-c) 55%, transparent);}
-.hero-panel .type-body-lg{color:color-mix(in srgb, #fff 88%, transparent);}
-.hero-stats{display:flex; flex-wrap:wrap; gap:10px; margin-top:16px;}
-.stat-pill{
-  display:inline-flex; align-items:center; gap:7px; padding:8px 16px; border-radius:999px;
-  background:color-mix(in srgb, #fff 20%, transparent); color:#fff; font-size:13px; font-weight:700;
-  border:1px solid color-mix(in srgb, #fff 30%, transparent); backdrop-filter:blur(8px);
-}
-.stat-pill .icon{width:15px; height:15px;}
-.page-header{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:20px;}
-.tagbar{display:flex; flex-wrap:wrap; gap:8px; margin:18px 0 22px;}
-.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:22px;}
+.lib-header{margin-bottom:6px;}
+.lib-header h1{color:var(--md-on-background);}
+.lib-header .accent-word{color:var(--md-primary);}
+.lib-meta{color:var(--md-on-surface-variant); margin-top:10px; font-size:14px; font-weight:600;}
+.section-heading{margin:28px 0 16px;}
+.tagbar{display:flex; flex-wrap:wrap; gap:8px; margin:20px 0 6px;}
+.grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(210px,1fr)); gap:26px 20px;}
 .recipe-card{cursor:pointer; position:relative;}
 .recipe-photo{
-  aspect-ratio:16/10; width:100%; position:relative; overflow:hidden; background:var(--md-surface-variant);
+  aspect-ratio:1/1.06; width:100%; position:relative; overflow:hidden; background:var(--md-surface-variant);
+  border-radius:26px; box-shadow:var(--elev1); transition:box-shadow .22s ease, transform .22s ease;
 }
+.recipe-card:hover .recipe-photo{box-shadow:var(--elev3); transform:translateY(-3px);}
 .recipe-photo img{width:100%; height:100%; object-fit:cover; transition:transform .35s ease;}
 .recipe-card:hover .recipe-photo img{transform:scale(1.06);}
 .placeholder-photo{
   width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:inherit;
 }
 .placeholder-photo svg{transition:transform .3s ease;}
-.recipe-card:hover .placeholder-photo svg{transform:scale(1.08) rotate(0deg) !important;}
-.recipe-body{padding:16px 18px 18px; display:flex; flex-direction:column; gap:10px; flex:1;}
-.recipe-title{font-family:var(--font-display); font-weight:600; font-size:19px; line-height:1.3; letter-spacing:-.01em;
+.recipe-card:hover .placeholder-photo svg{transform:scale(1.08);}
+.card-badge{
+  position:absolute; z-index:2; display:inline-flex; align-items:center; gap:5px; padding:6px 12px;
+  border-radius:999px; font-size:12px; font-weight:800;
+}
+.card-badge .icon{width:13px; height:13px;}
+.card-badge-time{top:12px; left:12px; background:color-mix(in srgb, #000 55%, transparent); color:#fff; backdrop-filter:blur(3px);}
+.card-badge-accent{bottom:12px; right:12px; background:var(--md-primary); color:var(--md-on-primary);}
+.recipe-body{padding:14px 2px 0; display:flex; flex-direction:column; gap:3px;}
+.recipe-title{font-family:var(--font-display); font-weight:800; font-size:16px; line-height:1.3; letter-spacing:-.005em;
   display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; transition:color .15s ease;}
 .recipe-card:hover .recipe-title{color:var(--md-primary);}
-.card-tags{display:flex; flex-wrap:wrap; gap:6px;}
-.mini-tag{font-size:11px; font-weight:600; letter-spacing:.02em; padding:3px 9px; border-radius:var(--radius-full); background:var(--md-surface-high); color:var(--md-on-surface-variant);}
-.meta-row{display:flex; align-items:center; gap:16px; color:var(--md-on-surface-variant); font-size:13px; margin-top:auto;}
-.meta-row .item{display:flex; align-items:center; gap:5px;}
-.meta-row .icon{width:17px; height:17px;}
-.card-actions{position:absolute; top:10px; right:10px; display:flex; gap:6px;}
-.card-actions .icon-btn{background:color-mix(in srgb, var(--md-surface-lowest) 78%, transparent); backdrop-filter:blur(4px); width:36px; height:36px;}
+.recipe-subtitle{font-size:13px; font-weight:600; color:var(--md-on-surface-variant); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.card-actions{position:absolute; top:10px; right:10px; z-index:2; display:flex; gap:6px;}
+.card-actions .icon-btn{background:color-mix(in srgb, #fff 82%, transparent); color:#1a1a1a; backdrop-filter:blur(3px); width:32px; height:32px;}
+.card-actions .icon-btn:hover{background:#fff;}
 .empty-state{text-align:center; padding:70px 20px; color:var(--md-on-surface-variant);}
 .empty-state .icon-wrap{
   width:100px; height:100px; border-radius:var(--radius-full); margin:0 auto 18px;
-  background:linear-gradient(140deg, var(--md-hero-a), var(--md-hero-c));
-  display:flex; align-items:center; justify-content:center; box-shadow:var(--elev2);
+  background:var(--md-primary);
+  display:flex; align-items:center; justify-content:center;
 }
-.empty-state .icon{width:46px; height:46px; color:#fff;}
+.empty-state .icon{width:46px; height:46px; color:var(--md-on-primary);}
 
 /* FAB */
 .fab{
   position:fixed; right:28px; bottom:28px; z-index:30; height:56px; border-radius:var(--radius-lg);
-  background:linear-gradient(120deg, var(--md-hero-a), var(--md-hero-b) 60%, var(--md-hero-c)); color:#fff; border:none; cursor:pointer;
+  background:var(--md-primary); color:var(--md-on-primary); border:none; cursor:pointer;
   display:flex; align-items:center; gap:10px; padding:0 22px; box-shadow:var(--elev2); font-weight:700; font-size:14px;
   transition:box-shadow .2s ease, transform .15s ease;
 }
@@ -301,67 +287,89 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
   .rail{display:none;}
   .bottom-nav{
     display:flex; position:fixed; left:16px; right:16px; bottom:16px; z-index:25; height:68px;
-    border-radius:26px; padding:0 8px; box-shadow:var(--elev3);
-    background:linear-gradient(100deg, var(--md-hero-a) 0%, var(--md-hero-b) 55%, var(--md-hero-c) 150%);
+    border-radius:26px; padding:0 8px; box-shadow:var(--elev2);
+    background:var(--md-surface-low); border:1px solid var(--md-outline-variant);
   }
-  .bn-indicator{top:50%; left:0; transform:translate(0,-50%); width:64px; height:48px; background:#fff; transition:left .4s cubic-bezier(.34,1.4,.4,1), opacity .2s ease;}
-  .bn-item{position:relative; z-index:1; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:none; border:none; color:color-mix(in srgb, #fff 75%, transparent); cursor:pointer; transition:color .2s ease;}
+  .bn-indicator{top:50%; left:0; transform:translate(0,-50%); width:64px; height:48px; background:var(--md-primary); transition:left .4s cubic-bezier(.34,1.4,.4,1), opacity .2s ease;}
+  .bn-item{position:relative; z-index:1; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; background:none; border:none; color:var(--md-on-surface-variant); cursor:pointer; transition:color .2s ease;}
   .bn-item .bubble{width:48px; height:26px; border-radius:13px; display:flex; align-items:center; justify-content:center;}
-  .bn-item.active .bubble{color:var(--md-hero-a);}
-  .bn-item span.lbl{font-size:11px; font-weight:700; color:color-mix(in srgb, #fff 80%, transparent);}
-  .bn-item.active span.lbl{color:#fff;}
+  .bn-item.active .bubble{color:var(--md-on-primary);}
+  .bn-item span.lbl{font-size:11px; font-weight:700; color:var(--md-on-surface-variant);}
+  .bn-item.active span.lbl{color:var(--md-on-surface);}
 }
 
 /* ============ Detail view ============ */
 .detail-back{display:flex; align-items:center; gap:6px; margin-bottom:16px;}
-.detail-hero{border-radius:var(--radius-xl); overflow:hidden; position:relative; background:var(--md-surface-variant); aspect-ratio:21/9; margin-bottom:22px; box-shadow:var(--elev2);}
+.detail-hero{border-radius:32px; overflow:hidden; position:relative; background:var(--md-surface-variant); aspect-ratio:16/10; box-shadow:var(--elev1);}
 .detail-hero img{width:100%; height:100%; object-fit:cover;}
 .detail-hero .placeholder-photo{aspect-ratio:auto; height:100%;}
-.detail-heading{display:flex; flex-wrap:wrap; gap:18px; justify-content:space-between; align-items:flex-start; margin-bottom:6px;}
-.detail-titlewrap{max-width:640px;}
-.detail-desc{color:var(--md-on-surface-variant); margin-top:8px;}
-.detail-actions{display:flex; gap:8px; flex:none;}
-.detail-meta{display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 6px;}
-.detail-tags{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 26px;}
+.detail-hero-actions{position:absolute; top:16px; left:16px; right:16px; display:flex; justify-content:space-between; z-index:2;}
+.detail-hero-actions .icon-btn{background:color-mix(in srgb, #000 45%, transparent); color:#fff; backdrop-filter:blur(3px);}
+.detail-hero-actions .icon-btn:hover{background:color-mix(in srgb, #000 60%, transparent);}
+.detail-hero-actions .right-group{display:flex; gap:8px;}
 
-.detail-grid{display:grid; grid-template-columns:minmax(280px,380px) 1fr; gap:36px; align-items:start;}
+.detail-sheet{
+  position:relative; background:var(--md-surface-low); border-radius:32px; margin:-40px 12px 0; padding:26px 24px 8px;
+  box-shadow:var(--elev2); z-index:1;
+}
+@media (max-width:640px){ .detail-sheet{margin:-32px 0 0; padding:22px 18px 4px;} }
+.sheet-handle{width:44px; height:5px; border-radius:999px; background:var(--md-outline-variant); margin:0 auto 18px;}
+.detail-heading{display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between; align-items:flex-start; margin-bottom:2px;}
+.detail-titlewrap{max-width:640px; flex:1;}
+.detail-desc{color:var(--md-on-surface-variant); margin-top:6px;}
+.detail-actions{display:flex; gap:8px; flex:none;}
+.detail-actions .icon-btn{background:var(--md-surface-high);}
+.detail-tags{display:flex; flex-wrap:wrap; gap:8px; margin:14px 0 4px;}
+
+.stat-row{display:flex; gap:10px; margin:22px 0 8px;}
+.stat-cap{
+  position:relative; flex:1; min-width:0; background:var(--md-primary); color:var(--md-on-primary);
+  border-radius:22px; padding:14px 6px 11px; display:flex; flex-direction:column; align-items:center; gap:2px; text-align:center;
+}
+.stat-cap-icon{width:32px; height:32px; border-radius:50%; background:#fff; color:var(--md-primary); display:flex; align-items:center; justify-content:center; margin-bottom:4px; flex:none;}
+.stat-cap-icon .icon{width:16px; height:16px;}
+.stat-cap strong{font-size:17px; font-weight:800; line-height:1.1;}
+.stat-cap .stat-label{font-size:10.5px; font-weight:700; opacity:.92; text-transform:uppercase; letter-spacing:.02em;}
+.stat-cap-servings{padding-left:24px; padding-right:24px;}
+.stat-cap-btn{
+  position:absolute; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:50%; border:none;
+  background:#fff; color:var(--md-primary); display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:var(--elev1);
+  transition:transform .1s ease;
+}
+.stat-cap-btn:active{transform:translateY(-50%) scale(.88);}
+.stat-cap-btn .icon{width:12px; height:12px;}
+.stat-cap-btn.dec{left:3px;}
+.stat-cap-btn.inc{right:3px;}
+
+.detail-grid{display:grid; grid-template-columns:minmax(280px,380px) 1fr; gap:8px 40px; align-items:start; margin-top:8px;}
 @media (max-width:860px){ .detail-grid{grid-template-columns:1fr;} }
 
-.section-title{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
-.servings-control{
-  display:flex; align-items:center; gap:14px; padding:14px 18px; margin-bottom:18px; border-radius:var(--radius-lg);
-  background:linear-gradient(120deg, var(--md-hero-a), var(--md-hero-b) 130%); box-shadow:var(--elev1);
-}
-.servings-control .scale-note, .servings-control .servings-num{color:#fff;}
-.servings-control .stepper-btn{background:color-mix(in srgb, #fff 88%, transparent); border-color:transparent;}
-.stepper-btn{width:36px; height:36px; border-radius:var(--radius-full); border:1px solid var(--md-outline); background:var(--md-surface-lowest); color:var(--md-on-surface); cursor:pointer; display:flex; align-items:center; justify-content:center; flex:none; overflow:hidden; transition:background .15s ease, transform .1s ease, border-color .15s ease;}
-.stepper-btn:hover{background:var(--md-primary); border-color:var(--md-primary); color:var(--md-on-primary);}
-.stepper-btn:active{transform:scale(.9);}
-.servings-num{font-size:22px; font-weight:600; min-width:2ch; text-align:center;}
-.scale-note{font-size:12px; color:var(--md-on-surface-variant);}
+.section-title{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+.scale-note{font-size:12px; color:var(--md-on-surface-variant); margin-bottom:12px; display:block;}
 
 .ing-list{list-style:none; margin:0; padding:0; display:flex; flex-direction:column;}
-.ing-row{display:flex; align-items:center; gap:12px; padding:11px 4px; border-bottom:1px solid var(--md-outline-variant);}
+.ing-row{display:flex; align-items:baseline; gap:11px; padding:11px 2px; border-bottom:1px solid var(--md-outline-variant);}
 .ing-row:last-child{border-bottom:none;}
+.ing-dot{width:7px; height:7px; border-radius:50%; background:var(--md-primary); flex:none; align-self:center;}
 .ing-qty-field{
-  width:76px; flex:none; height:38px; border-radius:var(--radius-sm); border:1px solid var(--md-outline);
-  background:var(--md-surface-lowest); color:var(--md-on-surface); text-align:right; padding:0 10px; font:inherit; font-weight:600;
-  font-variant-numeric:tabular-nums;
+  flex:none; width:auto; min-width:1.5ch; max-width:70px; border:none; background:none;
+  color:var(--md-on-surface); padding:2px 5px; font:inherit; font-weight:800; font-size:15px;
+  font-variant-numeric:tabular-nums; border-radius:7px;
 }
-.ing-qty-field:focus{border-color:var(--md-primary); border-width:2px; padding:0 9px;}
-.ing-unit{width:52px; flex:none; color:var(--md-on-surface-variant); font-size:13px;}
-.ing-name{flex:1;}
+.ing-qty-field:focus{background:var(--md-surface-high); outline:2px solid var(--md-primary); outline-offset:0;}
+.ing-unit{flex:none; color:var(--md-on-surface-variant); font-size:13px; font-weight:600;}
+.ing-name{flex:1; font-weight:500;}
 .ing-note{color:var(--md-on-surface-variant); font-size:12px; display:block;}
 
 .steps-list{list-style:none; margin:0; padding:0; counter-reset:step; display:flex; flex-direction:column; gap:4px;}
-.step-row{display:flex; gap:14px; padding:14px 4px; border-bottom:1px solid var(--md-outline-variant);}
+.step-row{display:flex; gap:14px; padding:14px 2px; border-bottom:1px solid var(--md-outline-variant);}
 .step-row:last-child{border-bottom:none;}
-.step-check{width:30px; height:30px; border-radius:var(--radius-full); border:2px solid var(--md-outline); background:none; color:transparent; flex:none; cursor:pointer; display:flex; align-items:center; justify-content:center; margin-top:2px; overflow:hidden;}
+.step-check{width:28px; height:28px; border-radius:var(--radius-full); border:2px solid var(--md-outline-variant); background:none; color:transparent; flex:none; cursor:pointer; display:flex; align-items:center; justify-content:center; margin-top:2px; overflow:hidden; transition:background .15s ease, border-color .15s ease;}
 .step-check.done{background:var(--md-primary); border-color:var(--md-primary); color:var(--md-on-primary);}
 .step-body{flex:1;}
 .step-text{margin-bottom:8px;}
 .step-row.done .step-text{color:var(--md-on-surface-variant); text-decoration:line-through;}
-.step-num{font-family:var(--font-display); font-weight:600; color:var(--md-on-surface-variant); font-size:15px; width:22px; flex:none; text-align:right;}
+.step-num{font-family:var(--font-display); font-weight:800; color:var(--md-primary); font-size:15px; width:22px; flex:none; text-align:right;}
 
 /* ============ Forms (editor) ============ */
 .field{display:flex; flex-direction:column; gap:6px; margin-bottom:18px;}
@@ -405,7 +413,7 @@ html{scrollbar-color:var(--md-outline-variant) transparent; scrollbar-width:thin
 /* ============ Import ============ */
 .segmented{display:inline-flex; border:1px solid var(--md-outline); border-radius:var(--radius-full); padding:3px; margin-bottom:20px;}
 .segmented button{border:none; background:none; padding:8px 20px; border-radius:var(--radius-full); font-weight:500; font-size:14px; color:var(--md-on-surface-variant); cursor:pointer; display:flex; align-items:center; gap:6px;}
-.segmented button.active{background:var(--md-secondary-container); color:var(--md-on-secondary-container);}
+.segmented button.active{background:var(--md-primary); color:var(--md-on-primary);}
 .banner{display:flex; gap:12px; align-items:flex-start; background:var(--md-tertiary-container); color:var(--md-on-tertiary-container); border-radius:var(--radius-md); padding:14px 16px; margin:16px 0; font-size:13px;}
 .banner .icon{flex:none;}
 .parse-preview{margin-top:26px;}
@@ -715,7 +723,8 @@ const ICON_PATHS = {
   local_pizza: '<path d="M12 3.6 20.6 19Q12 21.2 3.4 19Z"/><circle cx="10.8" cy="12.2" r="1.3" fill="currentColor" stroke="none"/><circle cx="14.4" cy="15" r="1.3" fill="currentColor" stroke="none"/><circle cx="9.4" cy="16.3" r="1.3" fill="currentColor" stroke="none"/>',
   egg_alt: '<path d="M12 3.6c-3.3 4.3-5.2 8.3-5.2 11.4a5.2 5.2 0 0010.4 0c0-3.1-1.9-7.1-5.2-11.4z"/>',
   palette: '<path d="M12 3.8a8.2 8.2 0 100 16.4c1 0 1.8-.5 1.8-1.5 0-.4-.2-.7-.2-1.1 0-.7.6-1.2 1.3-1.2h1.4A3.3 3.3 0 0019.6 13 9.1 9.1 0 0012 3.8z"/><circle cx="8.2" cy="10.1" r="1.1" fill="currentColor" stroke="none"/><circle cx="11.2" cy="7.7" r="1.1" fill="currentColor" stroke="none"/><circle cx="14.7" cy="8.6" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.2" cy="11.9" r="1.1" fill="currentColor" stroke="none"/>',
-  tag: '<path d="M11.4 4 19 11.6a1.7 1.7 0 010 2.4l-5 5a1.7 1.7 0 01-2.4 0L4 11.4V6a2 2 0 012-2z"/><circle cx="8.6" cy="8.6" r="1.15" fill="currentColor" stroke="none"/>'
+  tag: '<path d="M11.4 4 19 11.6a1.7 1.7 0 010 2.4l-5 5a1.7 1.7 0 01-2.4 0L4 11.4V6a2 2 0 012-2z"/><circle cx="8.6" cy="8.6" r="1.15" fill="currentColor" stroke="none"/>',
+  layers: '<path d="M12 4.2 4 9l8 4.8L20 9z"/><path d="M4 13l8 4.8L20 13"/>'
 };
 function iconMarkup(name, cls, style){
   return `<svg class="icon ${cls||''}" ${style?`style="${style}"`:''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON_PATHS[name]||''}</svg>`;
@@ -770,11 +779,6 @@ function allTags(){
   recipes.forEach(r => r.tags.forEach(t => s.add(t)));
   return Array.from(s).sort();
 }
-function tagColorStyle(tag){
-  const c = vividColor(tag);
-  return `background:${c.bg};color:${c.fg};`;
-}
-
 function persistAndRender(){ persist(recipes); render(); }
 
 function showSnackbar(message, actionLabel, actionFn){
@@ -811,19 +815,15 @@ function closeDialog(){
 const PLACEHOLDER_ICONS = ['skillet','ramen_dining','bakery_dining','icecream','local_pizza','egg_alt'];
 function placeholderPhoto(seedStr, big){
   let h = 0; for(let i=0;i<seedStr.length;i++) h = (h*31 + seedStr.charCodeAt(i)) >>> 0;
-  const dark = effectiveDark();
-  const hue1 = VIVID_HUES[h % VIVID_HUES.length];
-  const hue2 = VIVID_HUES[(h >>> 3) % VIVID_HUES.length];
-  const l1 = dark ? 44 : 58, l2 = dark ? 34 : 44;
-  const bg1 = hslToHex(hue1, 80, l1), bg2 = hslToHex(hue2, 82, l2);
+  const palettes = [
+    ['var(--md-primary-container)','var(--md-on-primary-container)'],
+    ['var(--md-secondary-container)','var(--md-on-secondary-container)'],
+    ['var(--md-tertiary-container)','var(--md-on-tertiary-container)']
+  ];
+  const [bg,fg] = palettes[h % palettes.length];
   const iconName = PLACEHOLDER_ICONS[h % PLACEHOLDER_ICONS.length];
-  const size = big ? 72 : 44;
-  const glowX = 20 + (h % 60), glowY = 15 + ((h >>> 4) % 50);
-  const angle = 100 + (h % 60);
-  const rotate = -8 + (h % 17);
-  const bgStyle = `background:radial-gradient(circle at ${glowX}% ${glowY}%, color-mix(in srgb, #fff 24%, transparent) 0%, transparent 60%), linear-gradient(${angle}deg, ${bg1} 0%, ${bg2} 100%);`;
-  const iconStyle = `width:${size}px;height:${size}px;transform:rotate(${rotate}deg);filter:drop-shadow(0 4px 10px rgba(0,0,0,.28));color:#fff;`;
-  return `<div class="placeholder-photo" style="${bgStyle}">${iconMarkup(iconName, '', iconStyle)}</div>`;
+  const size = big ? 60 : 38;
+  return `<div class="placeholder-photo" style="background:${bg};color:${fg};">${iconMarkup(iconName, '', `width:${size}px;height:${size}px;`)}</div>`;
 }
 
 /* ============================================================
@@ -994,15 +994,10 @@ function filteredRecipes(){
 function renderLibrary(){
   const list = filteredRecipes();
   const tags = allTags();
-  const totalTime = recipes.reduce((sum,r) => sum + totalRecipeTime(r), 0);
   let html = `
-    <div class="hero-panel">
-      <h1 class="type-display">Your recipes</h1>
-      <div class="hero-stats">
-        <span class="stat-pill">${iconMarkup('menu_book','icon-sm')}${recipes.length} recipe${recipes.length===1?'':'s'}</span>
-        <span class="stat-pill">${iconMarkup('tag','icon-sm')}${tags.length} tag${tags.length===1?'':'s'}</span>
-        ${totalTime ? `<span class="stat-pill">${iconMarkup('schedule','icon-sm')}${formatMinutes(totalTime)} of cooking, in total</span>` : ''}
-      </div>
+    <div class="lib-header">
+      <h1 class="type-display">Your recipes,<br>all in <span class="accent-word">one place</span></h1>
+      <p class="lib-meta">${recipes.length} recipe${recipes.length===1?'':'s'} &middot; ${tags.length} tag${tags.length===1?'':'s'}</p>
     </div>`;
   if(tags.length){
     html += `<div class="tagbar" role="group" aria-label="Filter by tag">`;
@@ -1024,23 +1019,24 @@ function renderLibrary(){
       </div>
     </div>`;
   } else {
-    html += `<div class="grid">`;
+    html += `<div class="section-heading"><h2 class="type-title-lg">All recipes</h2></div><div class="grid">`;
     list.forEach(r => {
       const time = totalRecipeTime(r);
+      const subtitle = r.tags.slice(0,3).map(t=>escapeHtml(t)).join(' &middot; ');
       html += `
-      <article class="card recipe-card" data-action="open-recipe" data-id="${r.id}" tabindex="0" role="button" aria-label="Open ${escapeHtml(r.title)}">
-        <div class="recipe-photo">${r.photo ? `<img src="${r.photo}" alt="">` : placeholderPhoto(r.id)}</div>
-        <div class="card-actions">
-          <button class="icon-btn" data-action="edit-recipe" data-id="${r.id}" aria-label="Edit ${escapeHtml(r.title)}" title="Edit">${iconMarkup('edit','icon-sm')}</button>
-          <button class="icon-btn" data-action="delete-recipe" data-id="${r.id}" aria-label="Delete ${escapeHtml(r.title)}" title="Delete">${iconMarkup('delete','icon-sm')}</button>
+      <article class="recipe-card" data-action="open-recipe" data-id="${r.id}" tabindex="0" role="button" aria-label="Open ${escapeHtml(r.title)}">
+        <div class="recipe-photo">
+          ${r.photo ? `<img src="${r.photo}" alt="">` : placeholderPhoto(r.id)}
+          ${time ? `<span class="card-badge card-badge-time">${iconMarkup('schedule','icon-sm')}${formatMinutes(time)}</span>` : ''}
+          <span class="card-badge card-badge-accent">${iconMarkup('group','icon-sm')}${r.baseServings}</span>
+          <div class="card-actions">
+            <button class="icon-btn" data-action="edit-recipe" data-id="${r.id}" aria-label="Edit ${escapeHtml(r.title)}" title="Edit">${iconMarkup('edit','icon-sm')}</button>
+            <button class="icon-btn" data-action="delete-recipe" data-id="${r.id}" aria-label="Delete ${escapeHtml(r.title)}" title="Delete">${iconMarkup('delete','icon-sm')}</button>
+          </div>
         </div>
         <div class="recipe-body">
           <h3 class="recipe-title">${escapeHtml(r.title)}</h3>
-          <div class="card-tags">${r.tags.slice(0,3).map(t=>`<span class="mini-tag" style="${tagColorStyle(t)}">${escapeHtml(t)}</span>`).join('')}${r.tags.length>3?`<span class="mini-tag">+${r.tags.length-3}</span>`:''}</div>
-          <div class="meta-row">
-            <span class="item">${iconMarkup('schedule')}${time ? formatMinutes(time) : '&mdash;'}</span>
-            <span class="item">${iconMarkup('group')}${r.baseServings} servings</span>
-          </div>
+          ${subtitle ? `<p class="recipe-subtitle">${subtitle}</p>` : ''}
         </div>
       </article>`;
     });
@@ -1060,68 +1056,89 @@ function renderDetail(){
   const time = totalRecipeTime(recipe);
 
   let html = `
-    <button class="btn btn-text detail-back" data-action="back-to-library">${iconMarkup('arrow_back')}All recipes</button>
-    <div class="detail-hero">${recipe.photo ? `<img src="${recipe.photo}" alt="">` : placeholderPhoto(recipe.id, true)}</div>
-    <div class="detail-heading">
-      <div class="detail-titlewrap">
-        <h1 class="type-headline">${escapeHtml(recipe.title)}</h1>
-        ${recipe.description ? `<p class="type-body-lg detail-desc">${escapeHtml(recipe.description)}</p>` : ''}
-      </div>
-      <div class="detail-actions">
-        <button class="btn btn-outlined" data-action="edit-recipe" data-id="${recipe.id}">${iconMarkup('edit')}Edit</button>
-        <button class="btn btn-tonal" data-action="delete-recipe" data-id="${recipe.id}">${iconMarkup('delete')}Delete</button>
-      </div>
-    </div>
-    <div class="detail-meta">
-      <span class="chip static">${iconMarkup('schedule','icon-sm')}${time ? formatMinutes(time) + ' active' : 'No timing set'}</span>
-      <span class="chip static">${iconMarkup('group','icon-sm')}${formatQty(detailState.servings)} servings</span>
-    </div>
-    <div class="detail-tags">${recipe.tags.map(t=>`<span class="chip static" style="${tagColorStyle(t)}border-color:transparent;">${escapeHtml(t)}</span>`).join('')}</div>
-
-    <div class="detail-grid">
-      <section aria-labelledby="ing-heading">
-        <div class="section-title"><h2 id="ing-heading" class="type-title-lg">Ingredients</h2></div>
-        <div class="servings-control">
-          <button class="stepper-btn" data-action="servings-dec" aria-label="Fewer servings">${iconMarkup('remove')}</button>
-          <div style="flex:1; text-align:center;">
-            <div class="servings-num tnum">${formatQty(detailState.servings)}</div>
-            <div class="scale-note">servings</div>
-          </div>
-          <button class="stepper-btn" data-action="servings-inc" aria-label="More servings">${iconMarkup('add')}</button>
+    <div class="detail-hero">
+      ${recipe.photo ? `<img src="${recipe.photo}" alt="">` : placeholderPhoto(recipe.id, true)}
+      <div class="detail-hero-actions">
+        <button class="icon-btn" data-action="back-to-library" aria-label="Back to all recipes">${iconMarkup('arrow_back','icon-sm')}</button>
+        <div class="right-group">
+          <button class="icon-btn" data-action="edit-recipe" data-id="${recipe.id}" aria-label="Edit recipe">${iconMarkup('edit','icon-sm')}</button>
+          <button class="icon-btn" data-action="delete-recipe" data-id="${recipe.id}" aria-label="Delete recipe">${iconMarkup('delete','icon-sm')}</button>
         </div>
-        <p class="scale-note" style="margin-bottom:10px;">Edit any quantity below and the rest of the list rescales to match.</p>
-        <ul class="ing-list">
-          ${recipe.ingredients.map((ing, idx) => {
-            const scaledQty = ing.qty > 0 ? ing.qty * scale : 0;
-            return `<li class="ing-row">
-              <input class="ing-qty-field tnum" type="text" inputmode="decimal" value="${ing.qty>0?formatQty(scaledQty):''}" data-action-input="scale-ingredient" data-idx="${idx}" aria-label="Quantity for ${escapeHtml(ing.name)}" ${ing.qty>0?'':'placeholder="&mdash;" disabled'} />
-              <span class="ing-unit">${escapeHtml(ing.unit)}</span>
-              <span class="ing-name">${escapeHtml(ing.name)}${ing.note?`<span class="ing-note">${escapeHtml(ing.note)}</span>`:''}</span>
-            </li>`;
-          }).join('')}
-        </ul>
-      </section>
+      </div>
+    </div>
+    <div class="detail-sheet">
+      <div class="sheet-handle"></div>
+      <div class="detail-heading">
+        <div class="detail-titlewrap">
+          <h1 class="type-headline">${escapeHtml(recipe.title)}</h1>
+          ${recipe.description ? `<p class="type-body-md detail-desc">${escapeHtml(recipe.description)}</p>` : ''}
+        </div>
+      </div>
+      <div class="detail-tags">${recipe.tags.map(t=>`<span class="chip static">${escapeHtml(t)}</span>`).join('')}</div>
 
-      <section aria-labelledby="steps-heading">
-        <div class="section-title"><h2 id="steps-heading" class="type-title-lg">Instructions</h2></div>
-        <ol class="steps-list">
-          ${recipe.instructions.map((step, idx) => {
-            const done = detailState.completedSteps.has(idx);
-            const key = recipe.id + '-' + idx;
-            const timerHtml = step.timeMinutes ? renderTimerChip(key, step.timeMinutes, idx) : '';
-            return `<li class="step-row ${done?'done':''}">
-              <span class="step-num">${idx+1}</span>
-              <button class="step-check ${done?'done':''}" data-action="toggle-step" data-idx="${idx}" aria-label="Mark step ${idx+1} ${done?'incomplete':'complete'}" aria-pressed="${done}">
-                ${iconMarkup('check','icon-sm')}
-              </button>
-              <div class="step-body">
-                <p class="step-text type-body-lg">${escapeHtml(step.text)}</p>
-                ${timerHtml}
-              </div>
-            </li>`;
-          }).join('')}
-        </ol>
-      </section>
+      <div class="stat-row">
+        <div class="stat-cap">
+          <span class="stat-cap-icon">${iconMarkup('schedule')}</span>
+          <strong class="tnum">${time ? formatMinutes(time) : '&mdash;'}</strong>
+          <span class="stat-label">Active</span>
+        </div>
+        <div class="stat-cap stat-cap-servings">
+          <button class="stat-cap-btn dec" data-action="servings-dec" aria-label="Fewer servings">${iconMarkup('remove')}</button>
+          <span class="stat-cap-icon">${iconMarkup('group')}</span>
+          <strong class="tnum servings-num">${formatQty(detailState.servings)}</strong>
+          <span class="stat-label">Servings</span>
+          <button class="stat-cap-btn inc" data-action="servings-inc" aria-label="More servings">${iconMarkup('add')}</button>
+        </div>
+        <div class="stat-cap">
+          <span class="stat-cap-icon">${iconMarkup('tag')}</span>
+          <strong class="tnum">${recipe.tags.length}</strong>
+          <span class="stat-label">Tags</span>
+        </div>
+        <div class="stat-cap">
+          <span class="stat-cap-icon">${iconMarkup('layers')}</span>
+          <strong class="tnum">${recipe.instructions.length}</strong>
+          <span class="stat-label">Steps</span>
+        </div>
+      </div>
+
+      <div class="detail-grid">
+        <section aria-labelledby="ing-heading">
+          <div class="section-title"><h2 id="ing-heading" class="type-title-lg">Ingredients</h2></div>
+          <span class="scale-note">Edit any quantity below and the rest of the list rescales to match.</span>
+          <ul class="ing-list">
+            ${recipe.ingredients.map((ing, idx) => {
+              const scaledQty = ing.qty > 0 ? ing.qty * scale : 0;
+              return `<li class="ing-row">
+                <span class="ing-dot" aria-hidden="true"></span>
+                <input class="ing-qty-field tnum" type="text" inputmode="decimal" value="${ing.qty>0?formatQty(scaledQty):''}" data-action-input="scale-ingredient" data-idx="${idx}" aria-label="Quantity for ${escapeHtml(ing.name)}" ${ing.qty>0?'':'placeholder="&mdash;" disabled'} />
+                <span class="ing-unit">${escapeHtml(ing.unit)}</span>
+                <span class="ing-name">${escapeHtml(ing.name)}${ing.note?`<span class="ing-note">${escapeHtml(ing.note)}</span>`:''}</span>
+              </li>`;
+            }).join('')}
+          </ul>
+        </section>
+
+        <section aria-labelledby="steps-heading">
+          <div class="section-title"><h2 id="steps-heading" class="type-title-lg">Directions</h2></div>
+          <ol class="steps-list">
+            ${recipe.instructions.map((step, idx) => {
+              const done = detailState.completedSteps.has(idx);
+              const key = recipe.id + '-' + idx;
+              const timerHtml = step.timeMinutes ? renderTimerChip(key, step.timeMinutes, idx) : '';
+              return `<li class="step-row ${done?'done':''}">
+                <span class="step-num">${idx+1}</span>
+                <button class="step-check ${done?'done':''}" data-action="toggle-step" data-idx="${idx}" aria-label="Mark step ${idx+1} ${done?'incomplete':'complete'}" aria-pressed="${done}">
+                  ${iconMarkup('check','icon-sm')}
+                </button>
+                <div class="step-body">
+                  <p class="step-text type-body-lg">${escapeHtml(step.text)}</p>
+                  ${timerHtml}
+                </div>
+              </li>`;
+            }).join('')}
+          </ol>
+        </section>
+      </div>
     </div>`;
   return html;
 }
@@ -1321,39 +1338,34 @@ function buildPalette(seedHex, dark){
   const seedRgb = hexToRgb(seedHex);
   const seedHsl = rgbToHsl(seedRgb.r, seedRgb.g, seedRgb.b);
   const H = seedHsl.h, H2 = H + 55, H3 = H - 50;
-  const S = Math.max(seedHsl.s, 45);
-  const primaryS = clamp(S,60,92), secondaryS = clamp(S*0.85,45,85), tertiaryS = clamp(S,55,90);
-  const neutralS = clamp(S*0.12,7,16), neutralVariantS = clamp(S*0.24,12,30);
+  const S = Math.max(seedHsl.s, 55);
+  const primaryS = clamp(S,75,97), secondaryS = clamp(S*0.7,40,80), tertiaryS = clamp(S*0.85,45,85);
+  const neutralS = clamp(S*0.03,1,3.5), neutralVariantS = clamp(S*0.07,2,7);
   const mk = (hue,sat,light) => hslToHex(hue,sat,light);
 
   const roles = !dark ? {
-    primary: mk(H,primaryS,45), primaryContainer: mk(H,primaryS*0.7,88),
-    secondary: mk(H2,secondaryS,50), secondaryContainer: mk(H2,secondaryS*0.65,87),
-    tertiary: mk(H3,tertiaryS,48), tertiaryContainer: mk(H3,tertiaryS*0.7,88),
+    primary: mk(H,primaryS,57), primaryContainer: mk(H,primaryS*0.55,92),
+    secondary: mk(H2,secondaryS,48), secondaryContainer: mk(H2,secondaryS*0.55,90),
+    tertiary: mk(H3,tertiaryS,50), tertiaryContainer: mk(H3,tertiaryS*0.55,91),
     error: '#BA1A1A', errorContainer: '#FFDAD6',
-    background: mk(H,neutralS,97), surface: mk(H,neutralS,97),
-    surfaceVariant: mk(H,neutralVariantS,88), outline: mk(H,neutralVariantS*1.1,46), outlineVariant: mk(H,neutralVariantS,80),
-    surfaceLowest: mk(H,neutralS*0.5,100), surfaceLow: mk(H,neutralS,95),
-    surfaceCont: mk(H,neutralS,92.5), surfaceHigh: mk(H,neutralS,90), surfaceHighest: mk(H,neutralS,87.5),
-    onBackground: mk(H,neutralVariantS*0.5,12), onSurface: mk(H,neutralVariantS*0.5,12), onSurfaceVariant: mk(H,neutralVariantS*1.1,30),
-    shadow: `${Math.round(H)} 35% 15%`
+    background: mk(H,neutralS,99), surface: mk(H,neutralS,99),
+    surfaceVariant: mk(H,neutralVariantS,93), outline: mk(H,neutralVariantS*1.4,55), outlineVariant: mk(H,neutralVariantS,87),
+    surfaceLowest: mk(H,0,100), surfaceLow: mk(H,neutralS,97.5),
+    surfaceCont: mk(H,neutralS,96), surfaceHigh: mk(H,neutralS,94), surfaceHighest: mk(H,neutralS,92),
+    onBackground: mk(H,neutralVariantS*0.6,14), onSurface: mk(H,neutralVariantS*0.6,14), onSurfaceVariant: mk(H,neutralVariantS,38),
+    shadow: `${Math.round(H)} 30% 20%`
   } : {
-    primary: mk(H,primaryS,74), primaryContainer: mk(H,primaryS*0.65,26),
-    secondary: mk(H2,secondaryS,72), secondaryContainer: mk(H2,secondaryS*0.6,25),
-    tertiary: mk(H3,tertiaryS,76), tertiaryContainer: mk(H3,tertiaryS*0.65,26),
+    primary: mk(H,primaryS,63), primaryContainer: mk(H,primaryS*0.55,24),
+    secondary: mk(H2,secondaryS,68), secondaryContainer: mk(H2,secondaryS*0.5,23),
+    tertiary: mk(H3,tertiaryS,70), tertiaryContainer: mk(H3,tertiaryS*0.55,24),
     error: '#FFB4AB', errorContainer: '#93000A',
-    background: mk(H,neutralS*1.6,7), surface: mk(H,neutralS*1.6,7),
-    surfaceVariant: mk(H,neutralVariantS,27), outline: mk(H,neutralVariantS*1.1,58), outlineVariant: mk(H,neutralVariantS,29),
-    surfaceLowest: mk(H,neutralS*1.6,4), surfaceLow: mk(H,neutralS*1.6,10),
-    surfaceCont: mk(H,neutralS*1.6,12.5), surfaceHigh: mk(H,neutralS*1.6,17.5), surfaceHighest: mk(H,neutralS*1.6,22.5),
-    onBackground: mk(H,neutralVariantS*0.4,90), onSurface: mk(H,neutralVariantS*0.4,90), onSurfaceVariant: mk(H,neutralVariantS,79),
-    shadow: `${Math.round(H)} 45% 2%`
+    background: mk(H,neutralS*2.2,8), surface: mk(H,neutralS*2.2,8),
+    surfaceVariant: mk(H,neutralVariantS*1.4,26), outline: mk(H,neutralVariantS*1.6,56), outlineVariant: mk(H,neutralVariantS*1.4,28),
+    surfaceLowest: mk(H,neutralS*2.2,5), surfaceLow: mk(H,neutralS*2.2,11),
+    surfaceCont: mk(H,neutralS*2.2,13.5), surfaceHigh: mk(H,neutralS*2.2,18.5), surfaceHighest: mk(H,neutralS*2.2,23.5),
+    onBackground: mk(H,neutralVariantS,92), onSurface: mk(H,neutralVariantS,92), onSurfaceVariant: mk(H,neutralVariantS*1.4,80),
+    shadow: `${Math.round(H)} 40% 2%`
   };
-
-  // Fixed-vividness swatches for decorative gradient surfaces (hero, nav rail) —
-  // deliberately independent of light/dark tone so they stay punchy in both,
-  // always dark/saturated enough for white text.
-  const heroA = mk(H,primaryS,44), heroB = mk(H2,secondaryS,46), heroC = mk(H3,tertiaryS,42);
 
   return {
     '--md-primary':roles.primary, '--md-on-primary':pickOnColor(roles.primary),
@@ -1370,32 +1382,17 @@ function buildPalette(seedHex, dark){
     '--md-outline':roles.outline, '--md-outline-variant':roles.outlineVariant,
     '--md-surface-lowest':roles.surfaceLowest, '--md-surface-low':roles.surfaceLow,
     '--md-surface-cont':roles.surfaceCont, '--md-surface-high':roles.surfaceHigh, '--md-surface-highest':roles.surfaceHighest,
-    '--md-shadow-color':roles.shadow,
-    '--md-hero-a':heroA, '--md-hero-b':heroB, '--md-hero-c':heroC
+    '--md-shadow-color':roles.shadow
   };
 }
 
-/* A wide rotating set of vivid, always-legible colors for tags & card art —
-   independent of the theme seed so the app reads as colorful regardless of
-   which single accent the user picked. */
-const VIVID_HUES = [6, 28, 46, 100, 152, 178, 200, 230, 262, 300, 330, 350];
-function vividColor(str, satBoost){
-  let h = 0; for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0;
-  const hue = VIVID_HUES[h % VIVID_HUES.length];
-  const dark = effectiveDark();
-  const sat = clamp(72 + (satBoost||0), 0, 96);
-  const light = dark ? 58 : 52;
-  const bg = hslToHex(hue, sat, light);
-  return { hue, bg, fg: pickOnColor(bg) };
-}
-
 const THEME_PRESETS = [
-  {name:'Basil', hex:'#2F6B3F'},
-  {name:'Ocean', hex:'#1B6EC2'},
-  {name:'Plum', hex:'#83447A'},
-  {name:'Saffron', hex:'#C77800'},
-  {name:'Clay', hex:'#A6543A'},
-  {name:'Slate', hex:'#55617A'}
+  {name:'Golden', hex:'#FFC736'},
+  {name:'Coral', hex:'#FF6F59'},
+  {name:'Ocean', hex:'#2E86DE'},
+  {name:'Mint', hex:'#2ECC91'},
+  {name:'Berry', hex:'#C2469E'},
+  {name:'Slate', hex:'#5B6B82'}
 ];
 const DEFAULT_SEED = THEME_PRESETS[0].hex;
 
