@@ -1,4 +1,4 @@
-# Mise -- known gaps
+# RecipAI -- known gaps
 
 Open limitations and unresolved risks, stated plainly so nothing gets
 silently forgotten. Update this file (add, resolve, or re-open items) as
@@ -12,7 +12,7 @@ part of the change that touches them -- see `CLAUDE.md`.
 - **The pipeline has never run.** The workflows are adapted from
   RideLink's, which have run, but these copies are unexercised. Expect
   one fix-up round after the first real run.
-- **Proposed identifiers are unconfirmed:** `com.blackchapel.mise`,
+- **Proposed identifiers are unconfirmed:** `com.blackchapel.recipai`,
   minSdk 26, targetSdk 35.
 
 ## Release pipeline

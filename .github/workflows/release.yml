@@ -128,7 +128,7 @@ jobs:
           path: app/build/outputs/apk/release/
 
       - name: Name the APK for the release
-        run: mv app/build/outputs/apk/release/app-release.apk "app/build/outputs/apk/release/mise-${{ needs.build.outputs.tag_name }}.apk"
+        run: mv app/build/outputs/apk/release/app-release.apk "app/build/outputs/apk/release/recipai-${{ needs.build.outputs.tag_name }}.apk"
 
       - name: Create GitHub Release
         id: release
@@ -137,7 +137,7 @@ jobs:
           tag_name: ${{ needs.build.outputs.tag_name }}
           name: ${{ needs.build.outputs.tag_name }}
           generate_release_notes: true
-          files: app/build/outputs/apk/release/mise-${{ needs.build.outputs.tag_name }}.apk
+          files: app/build/outputs/apk/release/recipai-${{ needs.build.outputs.tag_name }}.apk
 
   notify:
     needs: [build, release]
@@ -159,13 +159,13 @@ jobs:
             exit 0
           fi
           if [ "$BUILD_RESULT" = "success" ] && [ "$RELEASE_RESULT" = "success" ]; then
-            TITLE="🚀 Mise production release published"
+            TITLE="🚀 RecipAI production release published"
             COLOR=3066993
           elif [ "$BUILD_RESULT" != "success" ]; then
-            TITLE="❌ Mise production release failed (build)"
+            TITLE="❌ RecipAI production release failed (build)"
             COLOR=15158332
           else
-            TITLE="❌ Mise production release failed (release creation)"
+            TITLE="❌ RecipAI production release failed (release creation)"
             COLOR=15158332
           fi
           PAYLOAD=$(jq -n \

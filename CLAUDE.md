@@ -1,6 +1,6 @@
-# Working on Mise
+# Working on RecipAI
 
-Mise is a native Android recipe app (Kotlin + Jetpack Compose). No
+RecipAI is a native Android recipe app (Kotlin + Jetpack Compose). No
 cross-platform frameworks: no React Native, no Flutter.
 
 ## Branch / PR / merge workflow
@@ -35,7 +35,7 @@ or repeating work already flagged as a gap:
   deliberate trade-off rather than an oversight.
 - `docs/DESIGN.md` -- the approved UI/UX: screens, navigation,
   gestures, haptics, tokens. The interactive reference is
-  `docs/design/mise-prototype.html`. Match it; don't redesign silently.
+  `docs/design/recipai-prototype.html`. Match it; don't redesign silently.
 - `docs/RELEASING.md` -- signing secrets and how to cut a release. Only
   needs a read when touching the pipeline.
 

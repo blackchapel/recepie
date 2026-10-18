@@ -1,4 +1,4 @@
-# Mise -- system state
+# RecipAI -- system state
 
 A technical snapshot of what actually exists in this repo right now.
 `README.md` is the user/build-facing doc; this one is for picking up
@@ -7,7 +7,7 @@ the codebase quickly. Keep it current alongside every change (see
 
 ## What exists today
 
-- The approved UI prototype: `docs/design/mise-prototype.html`
+- The approved UI prototype: `docs/design/recipai-prototype.html`
   (single self-contained HTML file, no build step). It is a design
   reference, **not** shipped code. Its JavaScript also contains working
   reference implementations of the scaling engine and the text importer,
@@ -30,7 +30,7 @@ backend: Google Drive is the only network dependency besides fetching a
 recipe page the user asked to import.
 
 Proposed identifiers (confirm before the scaffold PR): `applicationId` /
-namespace `com.blackchapel.mise`, minSdk 26, target/compile SDK 35, JDK 17.
+namespace `com.blackchapel.recipai`, minSdk 26, target/compile SDK 35, JDK 17.
 
 | Concern | Choice |
 |---|---|
@@ -47,7 +47,7 @@ namespace `com.blackchapel.mise`, minSdk 26, target/compile SDK 35, JDK 17.
 
 ## Planned module map
 
-`app/src/main/java/com/blackchapel/mise/` (none of this exists yet)
+`app/src/main/java/com/blackchapel/recipai/` (none of this exists yet)
 
 - `MainActivity.kt`, `MiseApplication.kt` -- single activity; app-level
   setup, notification channels (timers, backup).
@@ -98,7 +98,7 @@ Neither runs automatically; merging to `main` releases nothing.
   commit count of that branch.
 - Runs `testDebugUnitTest`, then `assembleRelease`.
 - Uploads the APK as a workflow artifact named
-  `mise-test-<branch>-<version>`. Does not tag or publish.
+  `recipai-test-<branch>-<version>`. Does not tag or publish.
 
 **Production Release** -- `.github/workflows/release.yml`
 - Fails immediately unless run on `main`.
@@ -107,7 +107,7 @@ Neither runs automatically; merging to `main` releases nothing.
   an existing tag. Version code: the commit count of `main`.
 - Runs `testDebugUnitTest`, `assembleRelease`, then creates the GitHub
   Release `v<version>` with generated notes (grouped by PR label via
-  `.github/release.yml`) and the APK `mise-v<version>.apk` attached.
+  `.github/release.yml`) and the APK `recipai-v<version>.apk` attached.
 
 Both post a Discord embed if `DISCORD_WEBHOOK_URL` is set, and skip it
 silently if not.
@@ -124,7 +124,7 @@ silently if not.
 Differences from RideLink's pipeline: the production workflow refuses to
 run off `main`; both run unit tests first; both skip Discord when the
 webhook secret is absent; the Test Release job has read-only permissions;
-the released APK is named `mise-v<version>.apk` rather than
+the released APK is named `recipai-v<version>.apk` rather than
 `app-release.apk`.
 
 Signing and secrets: see `RELEASING.md`.

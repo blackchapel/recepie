@@ -1,7 +1,7 @@
-# Mise -- design
+# RecipAI -- design
 
 The approved UI. The interactive reference is
-`docs/design/mise-prototype.html`: open it in a browser (on a desktop it
+`docs/design/recipai-prototype.html`: open it in a browser (on a desktop it
 sits inside a phone frame beside a short gesture guide; on a phone it runs
 full screen). Where this file and the prototype disagree, the prototype
 wins; fix this file.

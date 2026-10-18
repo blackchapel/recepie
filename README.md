@@ -1,4 +1,4 @@
-# Mise
+# RecipAI
 
 A native Android recipe app. Save recipes with ingredients, quantities
 and timed steps, then **scale any ingredient and the whole recipe
@@ -22,8 +22,8 @@ your own Google Drive.
   run at once and keep running with the screen off.
 - **Cook mode:** one step at a time, large text, screen kept on, with the
   scaled amounts that step uses.
-- **Import:** paste copied recipe text, or share a recipe link to Mise
-  from the browser's share sheet. Mise converts it into its own format.
+- **Import:** paste copied recipe text, or share a recipe link to RecipAI
+  from the browser's share sheet. RecipAI converts it into its own format.
 - **Google Drive backup:** connect a Google account, back up daily,
   weekly or only on demand, restore from earlier backups.
 - Light and dark themes, haptic feedback, offline-first.
@@ -31,7 +31,7 @@ your own Google Drive.
 ## Design
 
 The approved UI is an interactive prototype:
-`docs/design/mise-prototype.html` (open it in a browser; on a desktop it
+`docs/design/recipai-prototype.html` (open it in a browser; on a desktop it
 renders inside a phone frame). `docs/DESIGN.md` describes it in words.
 
 ## Tech

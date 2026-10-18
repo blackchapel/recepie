@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <!--ARTIFACT-START-->
-<title>Mise Recipe Box</title>
+<title>RecipAI Recipe Box</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="theme-color" content="#0D0C0B" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F4F2EE" media="(prefers-color-scheme: light)">
-<meta name="description" content="Mise: a mobile recipe app prototype with live ingredient scaling, step timers, tags, photos, import from pasted text or shared links, and Google Drive backup.">
+<meta name="description" content="RecipAI: a mobile recipe app prototype with live ingredient scaling, step timers, tags, photos, import from pasted text or shared links, and Google Drive backup.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Geist:wght@400..700&family=Geist+Mono:wght@400..600&display=swap">
@@ -105,7 +105,7 @@ button{cursor:pointer;background:none;border:0;padding:0;-webkit-tap-highlight-c
 .stage-copy{width:340px;display:grid;gap:18px;color:var(--mute)}
 .stage-copy .brand-row{display:flex;align-items:center;gap:12px}
 .stage-copy .brand-row svg{width:44px;height:44px}
-.stage-copy .stage-name{font:800 44px/1 var(--f-display);color:var(--ink);letter-spacing:-.04em;font-stretch:90%}
+.stage-copy .stage-name{font:800 44px/1 var(--f-display);color:var(--ink);letter-spacing:-.035em;font-stretch:90%}
 .stage-copy p{font-size:15px;line-height:1.6}
 .stage-tips{list-style:none;margin:0;padding:0;display:grid;gap:10px}
 .stage-tips li{display:flex;gap:12px;align-items:flex-start;font-size:14px}
@@ -800,7 +800,7 @@ button.qty:active{transform:scale(.94)}
 <div class="stage" id="stage">
   <aside class="stage-copy" aria-label="About this prototype">
     <div class="brand-row"><svg viewBox="0 0 40 40" aria-hidden="true"><use href="#i-logo"/></svg><span class="eyebrow">Interactive prototype</span></div>
-    <p class="stage-name" translate="no">mise</p>
+    <p class="stage-name" translate="no">RecipAI</p>
     <p>A recipe box for your phone. Scale any ingredient and the whole recipe follows, time each step, and pull recipes in from anywhere.</p>
     <ul class="stage-tips">
       <li><span class="ti"><svg class="i" aria-hidden="true"><use href="#i-left"/></svg></span><span><b>Swipe from the left edge</b> of the screen to go back.</span></li>
@@ -1413,7 +1413,7 @@ const coverOf = r => (r.photos && r.photos.length) ? { src: r.photos[Math.min(r.
 /* =========================================================
    State and persistence
    ========================================================= */
-const KEY = 'mise.recipes.v1';
+const KEY = 'recipai.recipes.v1';
 const withIds = r => ({ ...r, ingredients: r.ingredients.map(i => ({ id: uid(), ...i })), steps: r.steps.map(s => ({ id: uid(), ...s })) });
 function seedRecipes() {
   const now = Date.now();
@@ -1425,7 +1425,7 @@ function persist() {
   if (!store.set(KEY, recipes) && !storageWarned) { storageWarned = true; toast('Storage is full. New changes last until you close the app.', { icon: 'image' }); }
 }
 const byId = id => recipes.find(r => r.id === id);
-const S = { view: 'library', id: null, tag: null, q: '', sq: '', sort: 'recent', factor: 1, anchor: null, checked: new Set(), done: new Set(), photo: 0, draft: null, banner: store.get('mise.banner', true), theme: store.get('mise.theme', 'system'), layout: store.get('mise.layout', 'grid'), pref: Object.assign({ wake: true, sound: true, haptics: true }, store.get('mise.prefs', {})) };
+const S = { view: 'library', id: null, tag: null, q: '', sq: '', sort: 'recent', factor: 1, anchor: null, checked: new Set(), done: new Set(), photo: 0, draft: null, banner: store.get('recipai.banner', true), theme: store.get('recipai.theme', 'system'), layout: store.get('recipai.layout', 'grid'), pref: Object.assign({ wake: true, sound: true, haptics: true }, store.get('recipai.prefs', {})) };
 let main = null;
 /* Haptics. Each interaction names a feedback type; the native app maps these to the platform
    haptic engines (iOS UIFeedbackGenerator, Android HapticFeedbackConstants). Here they fall back to
@@ -1707,7 +1707,7 @@ function renderSettings(rec) {
   setNav(rec, `<div class="nb-left"></div><div class="nb-title">Settings</div><div class="nb-right"></div>`);
   const sw = (k, ic, c, label, sub) => `<button class="cell" role="switch" aria-checked="${!!S.pref[k]}" data-action="pref" data-k="${k}"><span class="ci" style="--c:var(--${c})">${icon(ic)}</span><span class="t"><b>${label}</b>${sub ? `<small>${sub}</small>` : ''}</span><span class="sw"></span></button>`;
   rec.el.querySelector('.scroller').innerHTML = `<div class="lib-stack" style="gap:8px">
-    <div class="lt"><div class="eyebrow">Mise</div><h1 class="large-title">Settings</h1></div>
+    <div class="lt"><div class="eyebrow">RecipAI</div><h1 class="large-title">Settings</h1></div>
     <div class="group-label">Backup</div>
     <div class="group"><button class="cell" data-action="backup"><span class="ci" style="--c:var(--ocean)">${icon('cloud')}</span><span class="t"><b>Google Drive</b><small id="set-bk-sub">${esc(backupSubtitle())}</small></span>${icon('right', 'chev')}</button>
       ${BK.connected ? `<button class="cell" data-action="bk-now"><span class="ci" style="--c:var(--basil)">${icon('cloud-up')}</span><span class="t"><b>Back up now</b></span></button>` : ''}</div>
@@ -1722,7 +1722,7 @@ function renderSettings(rec) {
       <button class="cell" data-action="reset-demo"><span class="ci" style="--c:var(--basil)">${icon('reset')}</span><span class="t"><b>Restore example recipes</b><small>Adds the 8 examples back</small></span></button>
     </div>
     <div class="group-label" style="margin-top:14px">About</div>
-    <div class="group"><div class="cell"><span class="ci" style="--c:var(--faint)">${icon('info')}</span><span class="t"><b translate="no">Mise</b><small>Interactive prototype. Nothing leaves this device.</small></span><span class="val">1.0</span></div></div>
+    <div class="group"><div class="cell"><span class="ci" style="--c:var(--faint)">${icon('info')}</span><span class="t"><b translate="no">RecipAI</b><small>Interactive prototype. Nothing leaves this device.</small></span><span class="val">1.0</span></div></div>
   </div>`;
 }
 
@@ -2240,7 +2240,7 @@ function openImport(tab = 'text', preset = '', autorun = false) {
   if (tab === 'text') { IMP.text = preset || IMP.text; IMP.parsed = IMP.text.trim() ? parseRecipeText(IMP.text) : null; }
   else { IMP.url = preset || IMP.url; IMP.parsed = null; }
   IMP.keys = new Set();
-  const L = openLayer(`<div class="imp-top"><p class="ed-help">Mise reads it and turns it into a recipe you can scale and time.</p>
+  const L = openLayer(`<div class="imp-top"><p class="ed-help">RecipAI reads it and turns it into a recipe you can scale and time.</p>
       <div class="seg" id="imp-seg" style="--n:2;--idx:${tab === 'link' ? 1 : 0}" role="tablist" aria-label="Import source"><button role="tab" data-action="imp-tab" data-tab="text" aria-pressed="${tab === 'text'}" aria-selected="${tab === 'text'}">${icon('clip', 'i-sm')}Paste text</button><button role="tab" data-action="imp-tab" data-tab="link" aria-pressed="${tab === 'link'}" aria-selected="${tab === 'link'}">${icon('link', 'i-sm')}From a link</button></div></div>
     <section class="imp-src" id="imp-src"></section><section class="imp-out" id="imp-out" aria-live="polite"></section>`,
     { cls: 'import', label: 'Import a recipe', large: true, head: 'Import a recipe', foot: `<span class="grow" id="imp-status"></span><button class="btn" data-action="imp-edit" id="imp-edit" disabled>${icon('pencil')}Review</button><button class="btn btn-flame" data-action="imp-save" id="imp-save" disabled>${icon('check')}Save</button>` });
@@ -2258,14 +2258,14 @@ function drawImpSrc() {
         <div class="imp-row" style="justify-content:space-between"><label class="flabel" for="imp-text">Recipe text</label><span class="imp-row"><button class="btn btn-sm btn-ghost" data-action="imp-sample">${icon('spark', 'i-sm')}Try a sample</button>${IMP.text ? `<button class="btn btn-sm btn-ghost" data-action="imp-clear">${icon('x', 'i-sm')}Clear</button>` : ''}</span></div>
         <textarea class="textarea" id="imp-text" placeholder="Paste a recipe here, straight from a website, a message or your notes. Headings like Ingredients and Method help, but they’re optional…" autofocus>${esc(IMP.text)}</textarea>
       </div>
-      <p class="ed-help">Tip: paste anywhere in Mise and this opens on its own.</p>`;
+      <p class="ed-help">Tip: paste anywhere in RecipAI and this opens on its own.</p>`;
     $('#imp-text').addEventListener('input', debounce(e => { IMP.text = e.target.value; IMP.parsed = IMP.text.trim() ? parseRecipeText(IMP.text) : null; drawImpOut(); }, 180));
   } else {
     src.innerHTML = `<form class="url-box" data-form="imp-url">${icon('link')}<label class="sr" for="imp-url">Recipe link</label><input id="imp-url" type="url" inputmode="url" placeholder="https://…" value="${esc(IMP.url)}" autocomplete="off" autofocus><button class="btn btn-flame btn-sm" type="submit" ${IMP.busy ? 'disabled' : ''}>${icon('spark', 'i-sm')}Convert</button></form>
       <div class="imp-row"><span class="label">Demo links</span>${DEMO_LINKS.map(u => `<button class="chip" data-action="imp-demo" data-url="${u}">${icon('link', 'i-sm')}${esc(u.split('/').pop().replace(/-/g, ' '))}</button>`).join('')}</div>
       <ol class="pipeline" id="imp-pipe"></ol>
       ${IMP.msg ? `<div class="msg">${IMP.msg}</div>` : ''}
-      <div class="share-card"><h3>${icon('share')}Share links straight to Mise</h3><p>Tap Share in your browser or any app and pick Mise. The link arrives here and converts on its own. This prototype can open only the two demo pages.</p><div><button class="btn btn-sm" data-action="simulate-share">${icon('share', 'i-sm')}Simulate a shared link</button></div></div>`;
+      <div class="share-card"><h3>${icon('share')}Share links straight to RecipAI</h3><p>Tap Share in your browser or any app and pick RecipAI. The link arrives here and converts on its own. This prototype can open only the two demo pages.</p><div><button class="btn btn-sm" data-action="simulate-share">${icon('share', 'i-sm')}Simulate a shared link</button></div></div>`;
     drawPipe(IMP.pipe || []);
   }
 }
@@ -2293,7 +2293,7 @@ function drawImpOut() {
   const p = IMP.parsed, ready = p && p.title && (p.ingredients.length || p.steps.length);
   $('#imp-save').disabled = !ready; $('#imp-edit').disabled = !p || !(p.title || p.ingredients.length || p.steps.length);
   if (!p) {
-    out.innerHTML = IMP.busy ? `<div class="pv-empty"><span class="ic" style="animation:spin2 1.4s linear infinite">${icon('spark', 'i-lg')}</span><b>Reading the page…</b></div>` : `<div class="pv-empty"><span class="ic">${icon('chef', 'i-lg')}</span><b>Your recipe appears here</b><p style="max-width:34ch">Mise finds the title, servings, each ingredient with its amount and unit, and the steps with their timings.</p></div>`;
+    out.innerHTML = IMP.busy ? `<div class="pv-empty"><span class="ic" style="animation:spin2 1.4s linear infinite">${icon('spark', 'i-lg')}</span><b>Reading the page…</b></div>` : `<div class="pv-empty"><span class="ic">${icon('chef', 'i-lg')}</span><b>Your recipe appears here</b><p style="max-width:34ch">RecipAI finds the title, servings, each ingredient with its amount and unit, and the steps with their timings.</p></div>`;
     $('#imp-status').textContent = '';
     return;
   }
@@ -2321,7 +2321,7 @@ function parsedToRecipe(p) {
 function simulateShare(url = DEMO_LINKS[0]) {
   const el = document.createElement('div');
   el.className = 'incoming'; el.setAttribute('role', 'status');
-  el.innerHTML = `<span class="ic">${icon('share', 'i-lg')}</span><div style="min-width:0"><b>Link shared to Mise</b><small>${esc(url.replace(/^https?:\/\//, ''))}</small></div><span class="bar"><i></i></span>`;
+  el.innerHTML = `<span class="ic">${icon('share', 'i-lg')}</span><div style="min-width:0"><b>Link shared to RecipAI</b><small>${esc(url.replace(/^https?:\/\//, ''))}</small></div><span class="bar"><i></i></span>`;
   $('#screen').appendChild(el); haptic('medium');
   setTimeout(() => { el.classList.add('leaving'); setTimeout(() => el.remove(), 340); while (layers.length) closeLayer(); setTimeout(() => openImport('link', url, true), 120); }, reduced.matches ? 300 : 1700);
 }
@@ -2332,7 +2332,7 @@ function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTi
 /* =========================================================
    Google Drive backup (simulated in this mockup: no network, no real account)
    ========================================================= */
-const BK_KEY = 'mise.backup.v1', BK_KEEP = 6;
+const BK_KEY = 'recipai.backup.v1', BK_KEEP = 6;
 const BK = Object.assign({ connected: false, account: null, freq: 'weekly', day: 0, time: 'night', wifi: true, photos: true, last: null, changed: null, history: [] }, store.get(BK_KEY, {}));
 const saveBK = () => store.set(BK_KEY, BK);
 const bkSnaps = new Map();
@@ -2371,7 +2371,7 @@ function nextBackupAt() {
   else { d.setDate(d.getDate() + (BK.day - d.getDay() + 7) % 7); if (d <= now) d.setDate(d.getDate() + 7); }
   return d.getTime();
 }
-const backupPayload = () => ({ app: 'mise', version: 1, exported: new Date().toISOString(), recipes: BK.photos ? recipes : recipes.map(r => ({ ...r, photos: [], cover: 0 })) });
+const backupPayload = () => ({ app: 'recipai', version: 1, exported: new Date().toISOString(), recipes: BK.photos ? recipes : recipes.map(r => ({ ...r, photos: [], cover: 0 })) });
 const photoCount = () => recipes.reduce((a, r) => a + (r.photos || []).length, 0);
 const unsaved = () => BK.connected && BK.changed && (!BK.last || BK.changed > BK.last);
 
@@ -2406,10 +2406,10 @@ function drawBackup() {
     const covers = recipes.slice(0, 3).map(r => coverOf(r).src);
     body.innerHTML = `<div class="bk-hero" aria-hidden="true"><div class="bk-cloud">${icon('cloud')}</div>${covers.map((c, i) => `<img class="bk-float" style="--i:${i}" src="${c}" alt="">`).join('')}</div>
       <h3 class="bk-title">Keep your recipes safe in Google Drive</h3>
-      <p class="bk-lede">Mise saves a copy of your recipes, photos and tags to your own Google Drive. If you switch phones, you can bring everything back.</p>
+      <p class="bk-lede">RecipAI saves a copy of your recipes, photos and tags to your own Google Drive. If you switch phones, you can bring everything back.</p>
       <ul class="bk-points">
-        <li>${icon('folder')}<span><b>Saved in a “Mise Backups” folder</b> in your Drive, using your Drive storage.</span></li>
-        <li>${icon('shield')}<span><b>Private to you.</b> Mise can open only the files it creates, not the rest of your Drive.</span></li>
+        <li>${icon('folder')}<span><b>Saved in a “RecipAI Backups” folder</b> in your Drive, using your Drive storage.</span></li>
+        <li>${icon('shield')}<span><b>Private to you.</b> RecipAI can open only the files it creates, not the rest of your Drive.</span></li>
         <li>${icon('calendar')}<span><b>On your schedule.</b> Back up daily, weekly, or only when you tap Back up.</span></li>
       </ul>
       <button class="btn btn-cta bk-connect" data-action="bk-connect">${icon('cloud')}Connect Google account</button>
@@ -2432,7 +2432,7 @@ function drawBackup() {
       <div class="bk-freq" role="radiogroup" aria-labelledby="bk-auto-h">${FREQ.map(([k, l, s]) => `<button role="radio" aria-checked="${BK.freq === k}" data-action="bk-freq" data-v="${k}"><span class="radio"></span><b>${l}</b><small>${s}</small></button>`).join('')}</div>
       ${BK.freq === 'weekly' ? `<div class="bk-row"><span class="flabel">Day of the week</span><div class="bk-days" role="radiogroup" aria-label="Day of the week">${WEEKDAYS.map((d, i) => `<button role="radio" aria-checked="${BK.day === i}" data-action="bk-day" data-v="${i}">${d}</button>`).join('')}</div></div>` : ''}
       ${BK.freq !== 'manual' ? `<div class="bk-row"><label class="flabel" for="bk-time">Time</label><select class="select-pill" id="bk-time">${Object.entries(BK_TIMES).map(([k, [, l]]) => `<option value="${k}" ${BK.time === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
-        <p class="bk-next">${icon('clock', 'i-sm')}Next backup <b>${fmtWhen(nx)}</b>${BK.wifi ? ' on Wi-Fi' : ''}</p>` : `<p class="bk-next">${icon('cloud-up', 'i-sm')}Mise backs up only when you tap <b>Back up now</b>.</p>`}
+        <p class="bk-next">${icon('clock', 'i-sm')}Next backup <b>${fmtWhen(nx)}</b>${BK.wifi ? ' on Wi-Fi' : ''}</p>` : `<p class="bk-next">${icon('cloud-up', 'i-sm')}RecipAI backs up only when you tap <b>Back up now</b>.</p>`}
     </section>
     <section class="bk-sec" aria-labelledby="bk-opt-h"><h3 id="bk-opt-h">Options</h3><div class="bk-toggles">
       <button class="bk-toggle" role="switch" aria-checked="${BK.photos}" data-action="bk-opt" data-k="photos"><span class="t"><b>Include photos</b><small>Photos make backups larger.</small></span><span class="sw"></span></button>
@@ -2441,7 +2441,7 @@ function drawBackup() {
     <section class="bk-sec" aria-labelledby="bk-hist-h">
       <h3 id="bk-hist-h">Backups in your Drive <span class="n">${BK.history.length}</span></h3>
       ${BK.history.length ? `<ul class="bk-hist">${BK.history.map((h, i) => `<li class="${i === 0 && h.fresh ? 'fresh' : ''}"><span class="hic">${icon(h.note ? 'shield' : h.auto ? 'clock' : 'cloud-up', 'i-sm')}</span><span class="t"><b>${fmtWhen(h.at)}</b><small>${h.recipes} recipes · ${h.photos} photos · ${fmtBytes(h.bytes)} · ${h.note || (h.auto ? 'Automatic' : 'Manual')}</small></span><button class="btn btn-sm" data-action="bk-restore" data-id="${h.id}">${icon('reset', 'i-sm')}Restore</button></li>`).join('')}</ul>
-      <p class="ed-help">Mise keeps your ${BK_KEEP} most recent backups and removes older ones from the folder.</p>`
+      <p class="ed-help">RecipAI keeps your ${BK_KEEP} most recent backups and removes older ones from the folder.</p>`
       : `<p class="bk-empty">No backups yet. Tap <b>Back up now</b> to make your first one.</p>`}
     </section>`;
   BK.history.forEach(h => delete h.fresh);
@@ -2470,9 +2470,9 @@ async function runBackup({ auto = false, note = '' } = {}) {
   }
   const entry = { id: uid(), at: Date.now(), recipes: payload.recipes.length, photos, bytes, auto, note, fresh: true };
   BK.history.unshift(entry);
-  for (const old of BK.history.splice(BK_KEEP)) { bkSnaps.delete(old.id); try { localStorage.removeItem('mise.backup.snap.' + old.id); } catch (e) { } }
+  for (const old of BK.history.splice(BK_KEEP)) { bkSnaps.delete(old.id); try { localStorage.removeItem('recipai.backup.snap.' + old.id); } catch (e) { } }
   bkSnaps.set(entry.id, json);
-  try { localStorage.setItem('mise.backup.snap.' + entry.id, json); } catch (e) { }
+  try { localStorage.setItem('recipai.backup.snap.' + entry.id, json); } catch (e) { }
   BK.last = entry.at; saveBK();
   bkRun = null; refreshBackupUI(); if (!note) haptic('success');
   if (!note) toast(auto ? 'Backed up to Google Drive automatically' : `Backed up ${entry.recipes} recipes to Google Drive`, { icon: 'cloud' });
@@ -2490,11 +2490,11 @@ function confirmDisconnect() {
 }
 function confirmRestore(id) {
   const h = BK.history.find(x => x.id === id); if (!h) return;
-  openLayer(`<div class="dlg-pad"><div class="confirm-ic" style="background:color-mix(in oklab,var(--ocean) 16%,transparent);color:var(--ocean)">${icon('reset', 'i-lg')}</div><div class="dlg-head"><h2>Restore the backup from ${fmtWhen(h.at).replace(/^./, c => c.toLowerCase())}?</h2></div><p style="margin-top:8px;color:var(--mute)">Your recipe box is replaced with the ${h.recipes} recipes in this backup${h.photos ? '' : ', without photos'}. Mise backs up what you have now first, so you can undo this from the list.</p><div class="dlg-foot"><button class="btn" data-action="close" autofocus>Cancel</button><button class="btn btn-cta" data-action="bk-restore-yes" data-id="${id}">${icon('reset')}Restore backup</button></div></div>`, { label: 'Restore backup' });
+  openLayer(`<div class="dlg-pad"><div class="confirm-ic" style="background:color-mix(in oklab,var(--ocean) 16%,transparent);color:var(--ocean)">${icon('reset', 'i-lg')}</div><div class="dlg-head"><h2>Restore the backup from ${fmtWhen(h.at).replace(/^./, c => c.toLowerCase())}?</h2></div><p style="margin-top:8px;color:var(--mute)">Your recipe box is replaced with the ${h.recipes} recipes in this backup${h.photos ? '' : ', without photos'}. RecipAI backs up what you have now first, so you can undo this from the list.</p><div class="dlg-foot"><button class="btn" data-action="close" autofocus>Cancel</button><button class="btn btn-cta" data-action="bk-restore-yes" data-id="${id}">${icon('reset')}Restore backup</button></div></div>`, { label: 'Restore backup' });
 }
 async function doRestore(id) {
   let json = bkSnaps.get(id);
-  if (!json) { try { json = localStorage.getItem('mise.backup.snap.' + id); } catch (e) { } }
+  if (!json) { try { json = localStorage.getItem('recipai.backup.snap.' + id); } catch (e) { } }
   closeLayer();
   if (!json) { toast('This backup’s data isn’t available in this browser demo.'); return; }
   await runBackup({ auto: true, note: 'Before restore' });
@@ -2531,7 +2531,7 @@ function backupBoot() {
    Theme
    ========================================================= */
 function setTheme(v) {
-  S.theme = v; store.set('mise.theme', v); haptic('selection');
+  S.theme = v; store.set('recipai.theme', v); haptic('selection');
   const apply = () => { applyTheme(); const t = topRec(); if (t.kind === 'settings') renderRec(t); };
   if (document.startViewTransition && !reduced.matches) document.startViewTransition(apply); else apply();
 }
@@ -2578,10 +2578,10 @@ const ACT = {
   'import-sample': () => openImport('text', DEMO_PAGES[pageKey(DEMO_LINKS[0])]),
   'simulate-share': () => simulateShare(DEMO_LINKS[S.shareN = ((S.shareN ?? -1) + 1) % 2]),
   theme: b => setTheme(b.dataset.v),
-  layout: b => { S.layout = b.dataset.v; store.set('mise.layout', S.layout); NAV.roots.lib.renders = 0; renderRec(NAV.roots.lib); haptic('selection'); },
-  'dismiss-banner': () => { S.banner = false; store.set('mise.banner', false); const el = $('.banner'); if (el) el.remove(); },
+  layout: b => { S.layout = b.dataset.v; store.set('recipai.layout', S.layout); NAV.roots.lib.renders = 0; renderRec(NAV.roots.lib); haptic('selection'); },
+  'dismiss-banner': () => { S.banner = false; store.set('recipai.banner', false); const el = $('.banner'); if (el) el.remove(); },
   'reset-demo': () => { const mine = recipes.filter(r => !r.sample); recipes = [...mine, ...seedRecipes()]; persist(); render(); toast('Example recipes restored', { icon: 'reset' }); },
-  pref: b => { const k = b.dataset.k; S.pref[k] = !S.pref[k]; store.set('mise.prefs', S.pref); b.setAttribute('aria-checked', S.pref[k]); haptic('selection'); },
+  pref: b => { const k = b.dataset.k; S.pref[k] = !S.pref[k]; store.set('recipai.prefs', S.pref); b.setAttribute('aria-checked', S.pref[k]); haptic('selection'); },
   run: b => { const fn = searchRuns[+b.dataset.k]; fn && fn(); },
   // Detail
   scale: b => setFactor(+b.dataset.f),

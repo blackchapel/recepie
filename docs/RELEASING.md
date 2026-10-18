@@ -1,4 +1,4 @@
-# Releasing Mise
+# Releasing RecipAI
 
 How signing works, the secrets the workflows need, and how a release is
 cut. See `SYSTEM_STATE.md` for what the workflows do step by step.
@@ -11,15 +11,15 @@ You do these; Claude cannot create keys or set repository secrets.
 
 ```sh
 keytool -genkeypair -v \
-  -keystore mise-release.jks \
-  -alias mise \
+  -keystore recipai-release.jks \
+  -alias recipai \
   -keyalg RSA -keysize 4096 -validity 10000
 ```
 
 Choose a strong store password and key password (they may be the same).
 Fill in the name fields however you like.
 
-**Back it up.** Keep `mise-release.jks` and both passwords in a password
+**Back it up.** Keep `recipai-release.jks` and both passwords in a password
 manager or other offline storage. If you lose this key, you can never
 publish an update that installs over existing copies. **Never commit
 it** (`.gitignore` blocks `*.jks`).
@@ -31,16 +31,16 @@ New repository secret:
 
 | Secret | Value |
 |---|---|
-| `KEYSTORE_BASE64` | the keystore, base64-encoded: `base64 -w0 mise-release.jks` (macOS: `base64 -i mise-release.jks`) |
+| `KEYSTORE_BASE64` | the keystore, base64-encoded: `base64 -w0 recipai-release.jks` (macOS: `base64 -i recipai-release.jks`) |
 | `KEYSTORE_PASSWORD` | the store password |
-| `KEY_ALIAS` | `mise` (or whatever you passed to `-alias`) |
+| `KEY_ALIAS` | `recipai` (or whatever you passed to `-alias`) |
 | `KEY_PASSWORD` | the key password |
 | `DISCORD_WEBHOOK_URL` | optional: a Discord channel webhook; omit it to skip notifications |
 
 With the GitHub CLI:
 
 ```sh
-base64 -w0 mise-release.jks | gh secret set KEYSTORE_BASE64
+base64 -w0 recipai-release.jks | gh secret set KEYSTORE_BASE64
 gh secret set KEYSTORE_PASSWORD
 gh secret set KEY_ALIAS
 gh secret set KEY_PASSWORD
@@ -49,18 +49,18 @@ gh secret set KEY_PASSWORD
 ### 3. Get the signing key's SHA-1 (needed for Google Drive backup)
 
 ```sh
-keytool -list -v -keystore mise-release.jks -alias mise | grep SHA1
+keytool -list -v -keystore recipai-release.jks -alias recipai | grep SHA1
 ```
 
 ### 4. Google Cloud project (needed for Drive backup)
 
 1. console.cloud.google.com -> create a project -> enable the **Google
    Drive API**.
-2. OAuth consent screen: app name Mise, your support email; add the
+2. OAuth consent screen: app name RecipAI, your support email; add the
    `.../auth/drive.file` scope. (This scope only lets the app see files
    it created.)
 3. Credentials -> Create credentials -> OAuth client ID -> **Android**:
-   package name `com.blackchapel.mise` (confirm in the scaffold PR) and
+   package name `com.blackchapel.recipai` (confirm in the scaffold PR) and
    the SHA-1 from step 3.
 4. While the consent screen is in "Testing", add your Google account as
    a test user.
@@ -87,7 +87,7 @@ selected as the branch. It:
    plus the next patch for that line (`0.1.0`, then `0.1.1`, ...).
 2. Runs the unit tests and builds the signed APK.
 3. Creates the tag `v<version>` and a GitHub Release with
-   auto-generated notes and `mise-v<version>.apk` attached.
+   auto-generated notes and `recipai-v<version>.apk` attached.
 4. Posts to Discord if configured.
 
 Changing MAJOR.MINOR is done in the PR that earns it (see `CLAUDE.md`),

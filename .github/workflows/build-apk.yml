@@ -93,7 +93,7 @@ jobs:
         id: upload
         uses: actions/upload-artifact@v4
         with:
-          name: mise-test-${{ steps.version.outputs.safe_branch }}-${{ steps.version.outputs.version_name }}
+          name: recipai-test-${{ steps.version.outputs.safe_branch }}-${{ steps.version.outputs.version_name }}
           path: app/build/outputs/apk/release/app-release.apk
           if-no-files-found: error
 
@@ -117,10 +117,10 @@ jobs:
             exit 0
           fi
           if [ "$BUILD_RESULT" = "success" ]; then
-            TITLE="✅ Mise test release built"
+            TITLE="✅ RecipAI test release built"
             COLOR=3066993
           else
-            TITLE="❌ Mise test release failed"
+            TITLE="❌ RecipAI test release failed"
             COLOR=15158332
           fi
           PAYLOAD=$(jq -n \
