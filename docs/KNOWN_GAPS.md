@@ -1,4 +1,4 @@
-# RecipAI -- known gaps
+# Recipai -- known gaps
 
 Open limitations and unresolved risks, stated plainly so nothing gets
 silently forgotten. Update this file (add, resolve, or re-open items) as

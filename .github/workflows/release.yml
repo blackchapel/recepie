@@ -159,13 +159,13 @@ jobs:
             exit 0
           fi
           if [ "$BUILD_RESULT" = "success" ] && [ "$RELEASE_RESULT" = "success" ]; then
-            TITLE="🚀 RecipAI production release published"
+            TITLE="🚀 Recipai production release published"
             COLOR=3066993
           elif [ "$BUILD_RESULT" != "success" ]; then
-            TITLE="❌ RecipAI production release failed (build)"
+            TITLE="❌ Recipai production release failed (build)"
             COLOR=15158332
           else
-            TITLE="❌ RecipAI production release failed (release creation)"
+            TITLE="❌ Recipai production release failed (release creation)"
             COLOR=15158332
           fi
           PAYLOAD=$(jq -n \

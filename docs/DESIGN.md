@@ -1,4 +1,4 @@
-# RecipAI -- design
+# Recipai -- design
 
 The approved UI. The interactive reference is
 `docs/design/recipai-prototype.html`: open it in a browser (on a desktop it

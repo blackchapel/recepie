@@ -117,10 +117,10 @@ jobs:
             exit 0
           fi
           if [ "$BUILD_RESULT" = "success" ]; then
-            TITLE="✅ RecipAI test release built"
+            TITLE="✅ Recipai test release built"
             COLOR=3066993
           else
-            TITLE="❌ RecipAI test release failed"
+            TITLE="❌ Recipai test release failed"
             COLOR=15158332
           fi
           PAYLOAD=$(jq -n \

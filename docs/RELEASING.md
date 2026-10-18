@@ -1,4 +1,4 @@
-# Releasing RecipAI
+# Releasing Recipai
 
 How signing works, the secrets the workflows need, and how a release is
 cut. See `SYSTEM_STATE.md` for what the workflows do step by step.
@@ -56,7 +56,7 @@ keytool -list -v -keystore recipai-release.jks -alias recipai | grep SHA1
 
 1. console.cloud.google.com -> create a project -> enable the **Google
    Drive API**.
-2. OAuth consent screen: app name RecipAI, your support email; add the
+2. OAuth consent screen: app name Recipai, your support email; add the
    `.../auth/drive.file` scope. (This scope only lets the app see files
    it created.)
 3. Credentials -> Create credentials -> OAuth client ID -> **Android**:

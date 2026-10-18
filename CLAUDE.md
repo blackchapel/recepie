@@ -1,6 +1,6 @@
-# Working on RecipAI
+# Working on Recipai
 
-RecipAI is a native Android recipe app (Kotlin + Jetpack Compose). No
+Recipai is a native Android recipe app (Kotlin + Jetpack Compose). No
 cross-platform frameworks: no React Native, no Flutter.
 
 ## Branch / PR / merge workflow

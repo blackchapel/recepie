@@ -1,4 +1,4 @@
-# RecipAI -- system state
+# Recipai -- system state
 
 A technical snapshot of what actually exists in this repo right now.
 `README.md` is the user/build-facing doc; this one is for picking up
