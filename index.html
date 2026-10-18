@@ -229,16 +229,6 @@ button.tag:active{transform:scale(.95)}
 
 /* ---------- Library ---------- */
 .lib-stack{display:grid;gap:16px;padding-bottom:8px}
-.import-card{position:relative;isolation:isolate;margin:0 var(--gutter);border-radius:24px;padding:18px;background:var(--surface);overflow:hidden;display:grid;gap:12px}
-.import-card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--ang),transparent 0deg,transparent 50deg,var(--saffron) 120deg,var(--paprika) 180deg,var(--sumac) 230deg,transparent 300deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:spin 7s linear infinite;pointer-events:none}
-@property --ang{syntax:"<angle>";initial-value:0deg;inherits:false}
-.import-card .glow{position:absolute;z-index:-1;width:260px;height:260px;border-radius:50%;filter:blur(60px);opacity:.35;background:var(--paprika);left:-90px;top:-150px;animation:drift 14s ease-in-out infinite alternate;pointer-events:none}
-.import-card h2{font:750 21px/1.15 var(--f-display);color:var(--ink);letter-spacing:-.02em;font-stretch:94%}
-.import-card p{font-size:13.5px;color:var(--mute)}
-.ic-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.ic-row .btn{height:46px}
-.ic-try{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -18px;padding:0 18px}
-.ic-try::-webkit-scrollbar{display:none}
 .banner{display:flex;align-items:center;gap:10px;margin:0 var(--gutter);padding:10px 8px 10px 14px;border-radius:16px;background:var(--surface);border:1px dashed var(--line-strong);font-size:13px;color:var(--mute)}
 .banner b{color:var(--ink);font-weight:600}
 .banner .grow{flex:1;min-width:0}
@@ -505,6 +495,12 @@ button.qty:active{transform:scale(.94)}
 .mini-timer{position:absolute;z-index:45;left:50%;bottom:calc(var(--sb) + var(--tab-h) + 12px);transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;border-radius:999px;background:var(--cta);color:var(--on-cta);box-shadow:var(--shadow-lg);animation:pill-in .55s var(--ease-spring);transition:bottom .45s var(--ease-nav)}
 .screen.pushed .mini-timer{bottom:calc(var(--sb) + 84px)}
 .screen.on-detail .mini-timer{display:none}
+.fab-add{position:absolute;z-index:46;right:var(--gutter);bottom:calc(var(--sb) + var(--tab-h) + 14px);width:58px;height:58px;border-radius:20px;display:grid;place-items:center;background:var(--cta);color:var(--on-cta);box-shadow:0 16px 32px -12px rgba(0,0,0,.55),0 0 0 .5px var(--line-strong);transform:scale(.2) rotate(-90deg);opacity:0;pointer-events:none;transition:transform .5s var(--ease-spring),opacity .2s}
+.screen.has-fab .fab-add{transform:none;opacity:1;pointer-events:auto}
+.screen.has-fab .fab-add:active{transform:scale(.9)}
+.fab-add .i{width:26px;height:26px;stroke-width:2.3}
+.screen.has-fab .mini-timer{left:var(--gutter);transform:none;animation-name:pill-in-left;max-width:calc(100% - var(--gutter) * 2 - 72px)}
+.screen.has-fab .page.root .scroller{padding-bottom:calc(var(--sb) + var(--tab-h) + 96px)}
 .screen.has-timer .scroller{padding-bottom:calc(var(--sb) + var(--tab-h) + 88px)}
 .screen.has-timer .page.no-tabs .scroller{padding-bottom:calc(var(--sb) + 110px)}
 .bottombar [data-timers-btn]{width:auto;min-width:52px;padding:0 14px;gap:6px}
@@ -703,7 +699,6 @@ button.qty:active{transform:scale(.94)}
 [data-state="off"] .bk-dot{display:none}
 
 /* ---------- Keyframes ---------- */
-@keyframes spin{to{--ang:360deg}}
 @keyframes spin2{to{transform:rotate(360deg)}}
 @keyframes drift{from{transform:translate(0,0) scale(1)}to{transform:translate(80px,40px) scale(1.25)}}
 @keyframes rise{from{opacity:0;transform:translateY(16px) scale(.98)}to{opacity:1;transform:none}}
@@ -721,6 +716,7 @@ button.qty:active{transform:scale(.94)}
 @keyframes sheet-in{from{transform:translateY(100%)}to{transform:none}}
 @keyframes sheet-out{to{transform:translateY(100%)}}
 @keyframes dlg-in{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@keyframes pill-in-left{from{opacity:0;transform:translateY(20px) scale(.8)}to{opacity:1;transform:none}}
 @keyframes pill-in{from{opacity:0;transform:translate(-50%,20px) scale(.8)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes drop-in{from{opacity:0;transform:translateY(-30px) scale(.92)}to{opacity:1;transform:none}}
 @keyframes drop-out{to{opacity:0;transform:translateY(-24px) scale(.95)}}
@@ -796,6 +792,7 @@ button.qty:active{transform:scale(.94)}
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></symbol>
   <symbol id="i-list" viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="1.5"/><rect x="3" y="14" width="6" height="6" rx="1.5"/><path d="M13 6h8M13 9h5M13 16h8M13 19h5"/></symbol>
   <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></symbol>
+  <symbol id="i-vibrate" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M3 9v6M21 9v6M11 18h2"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></symbol>
 </svg>
 
@@ -809,6 +806,7 @@ button.qty:active{transform:scale(.94)}
       <li><span class="ti"><svg class="i" aria-hidden="true"><use href="#i-left"/></svg></span><span><b>Swipe from the left edge</b> of the screen to go back.</span></li>
       <li><span class="ti"><svg class="i" aria-hidden="true"><use href="#i-list"/></svg></span><span><b>Swipe a row left</b> in list view for Favorite and Delete.</span></li>
       <li><span class="ti"><svg class="i" aria-hidden="true"><use href="#i-dots"/></svg></span><span><b>Press and hold a card</b> for quick actions.</span></li>
+      <li><span class="ti"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></span><span><b>Tap +</b> to write a recipe, or the <b>center button</b> to import one.</span></li>
       <li><span class="ti"><svg class="i" aria-hidden="true"><use href="#i-clip"/></svg></span><span><b>Paste a recipe or link</b> anywhere to import it.</span></li>
       <li><span class="ti"><svg class="i" aria-hidden="true"><use href="#i-down"/></svg></span><span><b>Drag a sheet down</b> to dismiss it.</span></li>
     </ul>
@@ -819,6 +817,7 @@ button.qty:active{transform:scale(.94)}
         <div class="statusbar" id="statusbar" aria-hidden="true"><span id="sb-time">9:41</span><span class="sb-cam"></span><span class="sb-icons"><svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg><svg viewBox="0 0 16 12"><path d="M8 2.2c2.4 0 4.6.9 6.2 2.5l1.3-1.3A10.6 10.6 0 0 0 8 .4 10.6 10.6 0 0 0 .5 3.4l1.3 1.3A8.7 8.7 0 0 1 8 2.2Zm0 3.6c1.4 0 2.7.5 3.7 1.5l1.3-1.3A7 7 0 0 0 8 4a7 7 0 0 0-5 2l1.3 1.3c1-.9 2.3-1.5 3.7-1.5Zm0 3.6c-.5 0-1 .2-1.3.5L8 11.2l1.3-1.3A1.9 1.9 0 0 0 8 9.4Z"/></svg><svg viewBox="0 0 27 12"><rect x=".5" y=".5" width="22" height="11" rx="3.2" fill="none" stroke="currentColor" opacity=".45"/><rect x="2" y="2" width="17" height="8" rx="2"/><rect x="24" y="4" width="2" height="4" rx="1" opacity=".45"/></svg></span></div>
         <main class="pages" id="pages" tabindex="-1"></main>
         <nav class="tabbar" id="tabbar" aria-label="Primary"></nav>
+        <button class="fab-add" id="fab" data-action="new" aria-label="New recipe"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg></button>
         <div id="timers" aria-live="polite"></div>
         <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
         <div id="layer"></div>
@@ -1426,9 +1425,17 @@ function persist() {
   if (!store.set(KEY, recipes) && !storageWarned) { storageWarned = true; toast('Storage is full. New changes last until you close the app.', { icon: 'image' }); }
 }
 const byId = id => recipes.find(r => r.id === id);
-const S = { view: 'library', id: null, tag: null, q: '', sq: '', sort: 'recent', factor: 1, anchor: null, checked: new Set(), done: new Set(), photo: 0, draft: null, banner: store.get('mise.banner', true), theme: store.get('mise.theme', 'system'), layout: store.get('mise.layout', 'grid'), pref: Object.assign({ wake: true, sound: true }, store.get('mise.prefs', {})) };
+const S = { view: 'library', id: null, tag: null, q: '', sq: '', sort: 'recent', factor: 1, anchor: null, checked: new Set(), done: new Set(), photo: 0, draft: null, banner: store.get('mise.banner', true), theme: store.get('mise.theme', 'system'), layout: store.get('mise.layout', 'grid'), pref: Object.assign({ wake: true, sound: true, haptics: true }, store.get('mise.prefs', {})) };
 let main = null;
-const haptic = (ms = 8) => { try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate(ms); } catch (e) { } };
+/* Haptics. Each interaction names a feedback type; the native app maps these to the platform
+   haptic engines (iOS UIFeedbackGenerator, Android HapticFeedbackConstants). Here they fall back to
+   short vibration patterns where the browser supports it. */
+const HAPTIC = { selection: 6, light: 10, medium: 16, heavy: 26, success: [10, 50, 16], warning: [18, 70, 18], error: [24, 60, 24, 60, 24] };
+const haptic = (type = 'light') => {
+  if (!S.pref.haptics) return;
+  const p = typeof type === 'number' ? type : HAPTIC[type] || HAPTIC.light;
+  try { if (navigator.vibrate && (!navigator.userActivation || navigator.userActivation.hasBeenActive)) navigator.vibrate(p); } catch (e) { }
+};
 
 /* =========================================================
    Theme
@@ -1504,6 +1511,7 @@ function syncState() {
   main = r.el.querySelector('.scroller');
   screenEl.classList.toggle('pushed', NAV.stack.length > 0);
   screenEl.classList.toggle('on-detail', r.kind === 'detail');
+  screenEl.classList.toggle('has-fab', !NAV.stack.length && (NAV.tab === 'lib' || NAV.tab === 'fav'));
   renderTabbar(); statusTone();
 }
 function renderRec(rec, keepScroll = true) {
@@ -1536,7 +1544,7 @@ function switchTab(tab) {
   if (!NAV.roots[tab]) NAV.roots[tab] = createPage(tab, null, true);
   const rec = NAV.roots[tab];
   rec.el.classList.remove('hidden'); rec.el.classList.remove('tab-in'); void rec.el.offsetWidth; rec.el.classList.add('tab-in');
-  renderRec(rec); syncState(); haptic(5);
+  renderRec(rec); syncState(); haptic('selection');
   if (tab === 'search') setTimeout(() => { const q = $('#s-q'); if (q && !document.documentElement.classList.contains('native')) q.focus(); }, 60);
 }
 function push(kind, id = null) {
@@ -1593,6 +1601,7 @@ const renderChrome = () => { renderTabbar(); refreshBackupUI(); };
 /* =========================================================
    Library and favorites
    ========================================================= */
+// (Backup lives in Settings.)
 const backupNavBtn = () => `<button class="nb-btn" id="bk-top" data-action="backup" aria-label="Google Drive backup" data-state="${bkRun ? 'run' : BK.connected ? (unsaved() ? 'warn' : 'ok') : 'off'}">${icon(bkRun ? 'cloud-up' : 'cloud')}<i class="bk-dot"></i></button>`;
 function card(r, i) {
   const c = coverOf(r), tt = totalTime(r);
@@ -1621,14 +1630,11 @@ function collectionHtml(list, fav, calm) {
 function renderLib(rec) {
   const fav = rec.kind === 'fav', list = filtered(fav), tags = allTags(), calm = rec.renders > 0;
   const title = fav ? 'Favorites' : 'Recipes';
-  setNav(rec, `<div class="nb-left">${fav ? '' : backupNavBtn()}</div><div class="nb-title">${title}</div><div class="nb-right"><button class="nb-btn" data-action="new" aria-label="New recipe">${icon('plus', 'i-lg')}</button></div>`);
+  setNav(rec, `<div class="nb-left"></div><div class="nb-title">${title}</div><div class="nb-right"></div>`);
   const sortSel = `<label><span class="sr">Sort</span><select class="select-pill" data-sort>${[['recent', 'Recent'], ['az', 'A to Z'], ['quick', 'Quickest']].map(([v, l]) => `<option value="${v}" ${S.sort === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>`;
   rec.el.querySelector('.scroller').innerHTML = `<div class="lib-stack">
     <div class="lt"><div class="eyebrow">${fav ? 'Saved for later' : greeting()}</div><h1 class="large-title">${title}</h1></div>
     ${fav ? '' : `<label class="searchfield">${icon('search', 'i-sm')}<span class="sr">Filter recipes</span><input id="lib-q" type="search" placeholder="Search recipes or ingredients…" value="${esc(S.q)}" autocomplete="off" enterkeyhint="search"></label>`}
-    ${!fav && !S.q && !S.tag ? `<section class="import-card"><span class="glow"></span><div class="eyebrow">Import</div><h2>Bring in a recipe from anywhere</h2><p>Paste text from a blog, a message or your notes, or share a link to Mise. Ingredients, amounts, steps and timers are picked out for you.</p>
-      <div class="ic-row"><button class="btn btn-cta" data-action="import" data-tab="text">${icon('clip')}Paste text</button><button class="btn" data-action="import" data-tab="link">${icon('link')}Add link</button></div>
-      <div class="ic-try"><button class="chip" data-action="import-sample">${icon('clip', 'i-sm')}Try a messy blog post</button><button class="chip" data-action="simulate-share">${icon('share', 'i-sm')}Try a shared link</button></div></section>` : ''}
     ${!fav && S.banner && recipes.some(r => r.sample) ? `<div class="banner">${icon('spark', 'i-sm')}<span class="grow"><b>These are example recipes.</b> Edit, scale or delete them freely.</span><button class="nb-btn" data-action="dismiss-banner" aria-label="Dismiss" style="min-width:32px;height:32px">${icon('x', 'i-sm')}</button></div>` : ''}
     ${fav ? '' : `<div class="chips" role="group" aria-label="Filter by tag"><button class="chip" data-action="tag" data-tag="" aria-pressed="${!S.tag}">All<span class="n">${recipes.length}</span></button><button class="chip" data-action="tag" data-tag=":quick" aria-pressed="${S.tag === ':quick'}" style="--c:var(--ocean)">${icon('bolt', 'i-sm')}Under 30 min</button>${tags.map(([t, n]) => `<button class="chip" data-action="tag" data-tag="${esc(t)}" aria-pressed="${S.tag === t}" style="${tagStyle(t)}"><span class="dot"></span>${esc(t)}<span class="n">${n}</span></button>`).join('')}</div>`}
     <div class="lib-tools"><span class="count" data-count>${list.length} ${list.length === 1 ? 'recipe' : 'recipes'}</span>${sortSel}${fav ? '' : `<div class="seg" role="group" aria-label="Layout" style="--idx:${S.layout === 'list' ? 1 : 0}"><button data-action="layout" data-v="grid" aria-pressed="${S.layout === 'grid'}" aria-label="Grid">${icon('grid', 'i-sm')}</button><button data-action="layout" data-v="list" aria-pressed="${S.layout === 'list'}" aria-label="List">${icon('list', 'i-sm')}</button></div>`}</div>
@@ -1708,7 +1714,7 @@ function renderSettings(rec) {
     <div class="group-label" style="margin-top:14px">Appearance</div>
     <div class="group"><div class="cell">${themeSeg()}</div></div>
     <div class="group-label" style="margin-top:14px">Cooking</div>
-    <div class="group">${sw('wake', 'sun', 'saffron', 'Keep screen on in cook mode', '')}${sw('sound', 'volume', 'sumac', 'Timer sound', 'Plays a chime when a timer ends')}</div>
+    <div class="group">${sw('haptics', 'vibrate', 'ube', 'Haptic feedback', 'Gentle taps on swipes, toggles and timers')}${sw('wake', 'sun', 'saffron', 'Keep screen on in cook mode', '')}${sw('sound', 'volume', 'sumac', 'Timer sound', 'Plays a chime when a timer ends')}</div>
     <div class="group-label" style="margin-top:14px">Library</div>
     <div class="group">
       <div class="cell"><span class="ci" style="--c:var(--ube)">${icon('book')}</span><span class="t"><b>Recipes</b></span><span class="val">${recipes.length}</span></div>
@@ -1784,7 +1790,7 @@ function updateScaled(animate = true) {
   }).join('');
   if (animate && !reduced.matches) $$('[data-k]', main).forEach(e => { if (prev.has(e.dataset.k) && prev.get(e.dataset.k) !== e.textContent && !e.dataset.timerChip) { e.classList.remove('bump'); void e.offsetWidth; e.classList.add('bump'); } });
 }
-function setFactor(f, anchor = null) { S.factor = Math.min(50, Math.max(.05, f)); S.anchor = anchor; updateScaled(true); haptic(); }
+function setFactor(f, anchor = null) { S.factor = Math.min(50, Math.max(.05, f)); S.anchor = anchor; updateScaled(true); haptic('selection'); }
 function openAmount(id) {
   const r = byId(S.id), ing = r && r.ingredients.find(i => i.id === id); if (!ing || !(ing.qty > 0)) return;
   const d = displayQty(ing, S.factor);
@@ -1835,7 +1841,7 @@ function toggleTimer(r, step, idx) {
   if (ex) { if (ex.done) return removeTimer(ex.id); ex.running ? pauseTimer(ex) : resumeTimer(ex); return; }
   const secs = Math.round(scaleTime(+step.time, step.scale, S.view === 'detail' && S.id === r.id ? S.factor : 1) * 60);
   const t = { id: uid(), key, label: `Step ${idx + 1} · ${r.title}`, total: secs, left: secs, running: true, endAt: Date.now() + secs * 1000, done: false };
-  timers.push(t); renderTimers(); startTick(); unlockAudio(); haptic(12);
+  timers.push(t); renderTimers(); startTick(); unlockAudio(); haptic('medium');
   toast(`Timer started: ${fmtMin(secs / 60)}`, { icon: 'timer' });
 }
 function pauseTimer(t) { t.left = Math.max(0, (t.endAt - Date.now()) / 1000); t.running = false; renderTimers(); }
@@ -1848,7 +1854,7 @@ function tick() {
   for (const t of timers) {
     if (!t.running) continue; any = true;
     t.left = Math.max(0, (t.endAt - Date.now()) / 1000);
-    if (t.left <= 0 && !t.done) { t.done = true; t.running = false; chime(); haptic(200); toast(`Time’s up: ${t.label}`, { icon: 'timer' }); renderTimers(); }
+    if (t.left <= 0 && !t.done) { t.done = true; t.running = false; chime(); haptic('warning'); toast(`Time’s up: ${t.label}`, { icon: 'timer' }); renderTimers(); }
   }
   updateTimerNodes();
   if (!any) { clearInterval(tickHandle); tickHandle = null; }
@@ -1962,7 +1968,7 @@ function actionSheet({ title = '', message = '', preview = null, actions = [] })
 }
 function openContext(id) {
   const r = byId(id); if (!r) return;
-  haptic(14);
+  haptic('medium');
   actionSheet({ preview: r, actions: [
     { label: 'Open recipe', icon: 'book', run: () => go('detail', id) },
     { label: 'Start cooking', icon: 'flame', run: () => { go('detail', id); setTimeout(openCook, reduced.matches ? 0 : 560); } },
@@ -1973,7 +1979,7 @@ function openContext(id) {
 }
 function toggleFav(id) {
   const r = byId(id); if (!r) return;
-  r.favorite = !r.favorite; persist(); haptic();
+  r.favorite = !r.favorite; persist(); haptic(r.favorite ? 'success' : 'light');
   const t = topRec();
   if (t.kind === 'detail') { const b = $('.navbar [data-action="fav"]', t.el); if (b) { b.setAttribute('aria-pressed', r.favorite); b.style.color = r.favorite ? 'var(--sumac)' : ''; b.innerHTML = icon('heart', r.favorite ? 'i-fill' : ''); } }
   else renderRec(t);
@@ -1986,7 +1992,7 @@ function confirmDelete(id) {
 }
 function doDelete(id) {
   const i = recipes.findIndex(r => r.id === id); if (i < 0) return;
-  const [gone] = recipes.splice(i, 1); persist(); haptic(14);
+  const [gone] = recipes.splice(i, 1); persist(); haptic('warning');
   timers.filter(t => t.key.startsWith(id + ':')).forEach(t => removeTimer(t.id));
   const t = topRec();
   if (t.kind === 'detail' && t.id === id) pop(); else renderRec(t);
@@ -2008,7 +2014,7 @@ function swipeable(el, onSwipe, tap) {
   el.addEventListener('pointerup', e => {
     if (x0 == null) return;
     const dx = (e.clientX - x0) / scaleK(), dy = (e.clientY - y0) / scaleK(); x0 = null;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { haptic(); onSwipe(dx < 0 ? 1 : -1); }
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { haptic('selection'); onSwipe(dx < 0 ? 1 : -1); }
     else if (tap && Math.abs(dx) < 6 && Math.abs(dy) < 6 && performance.now() - t0 < 300) tap();
   });
 }
@@ -2220,7 +2226,7 @@ function saveDraft() {
   };
   const i = recipes.findIndex(x => x.id === r.id);
   if (i >= 0) recipes[i] = r; else recipes.unshift(r);
-  persist(); S.draft = null;
+  persist(); S.draft = null; haptic('success');
   go('detail', r.id);
   toast(i >= 0 ? 'Changes saved' : `Saved “${r.title}”`, { icon: 'check' });
 }
@@ -2316,7 +2322,7 @@ function simulateShare(url = DEMO_LINKS[0]) {
   const el = document.createElement('div');
   el.className = 'incoming'; el.setAttribute('role', 'status');
   el.innerHTML = `<span class="ic">${icon('share', 'i-lg')}</span><div style="min-width:0"><b>Link shared to Mise</b><small>${esc(url.replace(/^https?:\/\//, ''))}</small></div><span class="bar"><i></i></span>`;
-  $('#screen').appendChild(el); haptic(10);
+  $('#screen').appendChild(el); haptic('medium');
   setTimeout(() => { el.classList.add('leaving'); setTimeout(() => el.remove(), 340); while (layers.length) closeLayer(); setTimeout(() => openImport('link', url, true), 120); }, reduced.matches ? 300 : 1700);
 }
 function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
@@ -2468,7 +2474,7 @@ async function runBackup({ auto = false, note = '' } = {}) {
   bkSnaps.set(entry.id, json);
   try { localStorage.setItem('mise.backup.snap.' + entry.id, json); } catch (e) { }
   BK.last = entry.at; saveBK();
-  bkRun = null; refreshBackupUI();
+  bkRun = null; refreshBackupUI(); if (!note) haptic('success');
   if (!note) toast(auto ? 'Backed up to Google Drive automatically' : `Backed up ${entry.recipes} recipes to Google Drive`, { icon: 'cloud' });
 }
 function connectGoogle() {
@@ -2525,7 +2531,7 @@ function backupBoot() {
    Theme
    ========================================================= */
 function setTheme(v) {
-  S.theme = v; store.set('mise.theme', v); haptic();
+  S.theme = v; store.set('mise.theme', v); haptic('selection');
   const apply = () => { applyTheme(); const t = topRec(); if (t.kind === 'settings') renderRec(t); };
   if (document.startViewTransition && !reduced.matches) document.startViewTransition(apply); else apply();
 }
@@ -2553,7 +2559,7 @@ const ACT = {
   tab: b => switchTab(b.dataset.tab),
   tag: b => {
     const t = b.dataset.tag || null;
-    if (NAV.tab === 'lib' && !NAV.stack.length) { S.tag = S.tag === t ? null : t; renderRec(NAV.roots.lib); haptic(); return; }
+    if (NAV.tab === 'lib' && !NAV.stack.length) { S.tag = S.tag === t ? null : t; renderRec(NAV.roots.lib); haptic('selection'); return; }
     S.tag = t; S.q = '';
     if (NAV.tab === 'lib') popAll(); else switchTab('lib');
     if (NAV.roots.lib) { NAV.roots.lib.renders = 0; renderRec(NAV.roots.lib, false); }
@@ -2572,18 +2578,18 @@ const ACT = {
   'import-sample': () => openImport('text', DEMO_PAGES[pageKey(DEMO_LINKS[0])]),
   'simulate-share': () => simulateShare(DEMO_LINKS[S.shareN = ((S.shareN ?? -1) + 1) % 2]),
   theme: b => setTheme(b.dataset.v),
-  layout: b => { S.layout = b.dataset.v; store.set('mise.layout', S.layout); NAV.roots.lib.renders = 0; renderRec(NAV.roots.lib); haptic(); },
+  layout: b => { S.layout = b.dataset.v; store.set('mise.layout', S.layout); NAV.roots.lib.renders = 0; renderRec(NAV.roots.lib); haptic('selection'); },
   'dismiss-banner': () => { S.banner = false; store.set('mise.banner', false); const el = $('.banner'); if (el) el.remove(); },
   'reset-demo': () => { const mine = recipes.filter(r => !r.sample); recipes = [...mine, ...seedRecipes()]; persist(); render(); toast('Example recipes restored', { icon: 'reset' }); },
-  pref: b => { const k = b.dataset.k; S.pref[k] = !S.pref[k]; store.set('mise.prefs', S.pref); b.setAttribute('aria-checked', S.pref[k]); haptic(); },
+  pref: b => { const k = b.dataset.k; S.pref[k] = !S.pref[k]; store.set('mise.prefs', S.pref); b.setAttribute('aria-checked', S.pref[k]); haptic('selection'); },
   run: b => { const fn = searchRuns[+b.dataset.k]; fn && fn(); },
   // Detail
   scale: b => setFactor(+b.dataset.f),
   serv: b => { const r = byId(S.id), cur = r.servings * S.factor, d = +b.dataset.d; const next = Math.max(1, d > 0 ? Math.floor(cur + 1e-6) + 1 : Math.ceil(cur - 1e-6) - 1); setFactor(next / r.servings); },
   'reset-scale': () => setFactor(1),
   'qty-edit': b => openAmount(b.dataset.id),
-  'check-ing': b => { const id = b.dataset.id; S.checked.has(id) ? S.checked.delete(id) : S.checked.add(id); const on = S.checked.has(id), li = b.closest('.ing'); li.classList.toggle('checked', on); $('.check', li).setAttribute('aria-checked', on); haptic(); },
-  'check-step': b => { const id = b.dataset.id; S.done.has(id) ? S.done.delete(id) : S.done.add(id); updateScaled(false); haptic(); },
+  'check-ing': b => { const id = b.dataset.id; S.checked.has(id) ? S.checked.delete(id) : S.checked.add(id); const on = S.checked.has(id), li = b.closest('.ing'); li.classList.toggle('checked', on); $('.check', li).setAttribute('aria-checked', on); haptic(on ? 'selection' : 'light'); },
+  'check-step': b => { const id = b.dataset.id; S.done.has(id) ? S.done.delete(id) : S.done.add(id); updateScaled(false); haptic(S.done.has(id) ? 'success' : 'light'); },
   timer: b => { const r = byId(S.id), i = r.steps.findIndex(s => s.id === b.dataset.id); toggleTimer(r, r.steps[i], i); },
   cook: () => openCook(),
   photo: b => { S.photo = +b.dataset.i; const r = byId(S.id), img = $('#d-hero-img'); img.src = r.photos[S.photo]; img.animate([{ opacity: .3 }, { opacity: 1 }], { duration: reduced.matches ? 1 : 380 }); $$('.thumb[data-i]').forEach(t => t.setAttribute('aria-current', +t.dataset.i === S.photo)); },
@@ -2602,15 +2608,15 @@ const ACT = {
   'ing-add': () => { const n = { id: uid(), qty: null, qtyText: '', unit: '', name: '', note: '' }; S.draft.ingredients.push(n); renderEdIngs(n.id); },
   'ing-head': () => { const n = { id: uid(), heading: true, name: '' }; S.draft.ingredients.push(n); renderEdIngs(n.id); },
   'ing-del': b => { const i = +b.dataset.i, row = b.closest('.ing-row'); const fin = () => { S.draft.ingredients.splice(i, 1); renderEdIngs(); }; if (row && !reduced.matches) { row.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateX(24px)' }], { duration: 180 }).onfinish = fin; } else fin(); },
-  'ing-move': b => { const L = S.draft.ingredients, i = +b.dataset.i, j = i + +b.dataset.d; if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; renderEdIngs(); haptic(); },
+  'ing-move': b => { const L = S.draft.ingredients, i = +b.dataset.i, j = i + +b.dataset.d; if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; renderEdIngs(); haptic('selection'); },
   'step-add': () => { const n = { id: uid(), text: '', time: 0, scale: 'fixed' }; S.draft.steps.push(n); renderEdSteps(n.id); },
   'step-del': b => { const i = +b.dataset.i, row = b.closest('.step-row'); const fin = () => { S.draft.steps.splice(i, 1); renderEdSteps(); }; if (row && !reduced.matches) { row.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateX(24px)' }], { duration: 180 }).onfinish = fin; } else fin(); },
-  'step-move': b => { const L = S.draft.steps, i = +b.dataset.i, j = i + +b.dataset.d; if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; renderEdSteps(); haptic(); },
+  'step-move': b => { const L = S.draft.steps, i = +b.dataset.i, j = i + +b.dataset.d; if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; renderEdSteps(); haptic('selection'); },
   'use-detect': b => { const s = S.draft.steps[+b.dataset.i]; s.time = detectTime(s.text); s.scale = guessScale(s.text); renderEdSteps(); },
   'tag-add': b => addTag(b.dataset.tag),
   'tag-del': b => { S.draft.tags = S.draft.tags.filter(t => t !== b.dataset.tag); renderEdTags(); },
   'ph-del': b => { const d = S.draft, i = +b.dataset.i; d.photos.splice(i, 1); if ((d.cover || 0) >= d.photos.length) d.cover = 0; else if (i < (d.cover || 0)) d.cover--; renderEdPhotos(); },
-  'ph-cover': b => { S.draft.cover = +b.dataset.i; renderEdPhotos(); haptic(); },
+  'ph-cover': b => { S.draft.cover = +b.dataset.i; renderEdPhotos(); haptic('selection'); },
   // Import
   'imp-tab': b => { if (IMP.busy) return; IMP.tab = b.dataset.tab; IMP.msg = ''; if (IMP.tab === 'text') IMP.parsed = IMP.text.trim() ? parseRecipeText(IMP.text) : null; else { IMP.parsed = null; IMP.pipe = []; } IMP.keys = new Set(); drawImpSrc(); drawImpOut(); },
   'imp-sample': () => { IMP.text = DEMO_PAGES[pageKey(DEMO_LINKS[IMP.text === DEMO_PAGES[pageKey(DEMO_LINKS[0])] ? 1 : 0])]; IMP.parsed = parseRecipeText(IMP.text); IMP.keys = new Set(); drawImpSrc(); drawImpOut(); },
@@ -2759,7 +2765,7 @@ addEventListener('pointermove', e => {
     let tx = Math.min(0, G.open + dx);
     if (tx < -168) tx = -168 + (tx + 168) * .3;
     G.row.style.transform = `translateX(${tx}px)`; G.tx = tx;
-    if (!G.buzzed && tx < -84) { haptic(6); G.buzzed = true; }
+    if (!G.buzzed && tx < -84) { haptic('selection'); G.buzzed = true; }
   }
 });
 function endGesture(e) {
@@ -2770,7 +2776,7 @@ function endGesture(e) {
     const rec = topRec(), under = NAV.stack.length > 1 ? NAV.stack[NAV.stack.length - 2] : NAV.roots[NAV.tab];
     const v = (g.dx || 0) / Math.max(1, performance.now() - g.t0);
     rec.el.classList.remove('dragging'); under.el.classList.remove('dragging'); under.el.style.filter = '';
-    if ((g.dx || 0) > g.w * .33 || v > .6) { suppressClick = performance.now(); under.el.style.transform = ''; pop(); haptic(); }
+    if ((g.dx || 0) > g.w * .33 || v > .6) { suppressClick = performance.now(); under.el.style.transform = ''; pop(); haptic('light'); }
     else { rec.el.style.transform = ''; under.el.style.transform = ''; if (g.dx > 4) suppressClick = performance.now(); }
     return;
   }
@@ -2795,7 +2801,7 @@ $('#layer').addEventListener('pointerdown', e => {
   const up = () => {
     removeEventListener('pointermove', mv); removeEventListener('pointerup', up); removeEventListener('pointercancel', up);
     sheet.classList.remove('dragging');
-    if (dy > 110 || dy / Math.max(1, performance.now() - t0) > .6) { closeLayer(L); haptic(); }
+    if (dy > 110 || dy / Math.max(1, performance.now() - t0) > .6) { closeLayer(L); haptic('light'); }
     else { sheet.style.transform = ''; if (L.scrim) L.scrim.style.opacity = ''; }
   };
   addEventListener('pointermove', mv); addEventListener('pointerup', up); addEventListener('pointercancel', up);
