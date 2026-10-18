@@ -1,0 +1,147 @@
+name: Test Release
+
+# Manual, on demand: builds a signed APK from any branch so it can be
+# installed and tested before a PR is opened. Never publishes a release.
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch to build the signed test release from"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      version_name: ${{ steps.version.outputs.version_name }}
+      version_code: ${{ steps.version.outputs.version_code }}
+      safe_branch: ${{ steps.version.outputs.safe_branch }}
+      short_sha: ${{ steps.version.outputs.short_sha }}
+      artifact_url: ${{ steps.upload.outputs.artifact-url }}
+    steps:
+      - name: Checkout ${{ inputs.branch }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+          # Full history -- versionCode is derived from commit count below,
+          # which a shallow (default depth-1) clone would always report as 1.
+          fetch-depth: 0
+
+      - name: Check the Gradle project exists
+        run: |
+          if [ ! -f gradlew ]; then
+            echo "::error::No Gradle project on this branch yet (gradlew is missing). The app scaffold has not been added."
+            exit 1
+          fi
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          # v3's default ("tools platform-tools") fails outright: Google has
+          # removed the legacy "tools" meta-package from the SDK repository
+          # entirely. Gradle fetches whatever platform/build-tools it needs.
+          packages: "platform-tools"
+
+      - name: Set up Gradle (with dependency caching)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Compute version
+        id: version
+        run: |
+          BASE_VERSION=$(grep '^VERSION_NAME=' app/version.properties | cut -d'=' -f2 | tr -d '[:space:]')
+          COMMIT_COUNT=$(git rev-list --count HEAD)
+          SHORT_SHA=$(git rev-parse --short HEAD)
+          SAFE_BRANCH=$(echo '${{ inputs.branch }}' | tr '/' '-')
+          VERSION_NAME="${BASE_VERSION}-${SAFE_BRANCH}.${SHORT_SHA}"
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$COMMIT_COUNT" >> "$GITHUB_OUTPUT"
+          echo "safe_branch=$SAFE_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --stacktrace
+
+      - name: Decode signing keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ runner.temp }}/release.jks"
+
+      - name: Build signed release APK
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew assembleRelease --stacktrace \
+            -PappVersionCode=${{ steps.version.outputs.version_code }} \
+            -PappVersionName=${{ steps.version.outputs.version_name }}
+
+      - name: Upload APK
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: mise-test-${{ steps.version.outputs.safe_branch }}-${{ steps.version.outputs.version_name }}
+          path: app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+
+  notify:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          VERSION_NAME: ${{ needs.build.outputs.version_name }}
+          VERSION_CODE: ${{ needs.build.outputs.version_code }}
+          BRANCH_NAME: ${{ inputs.branch }}
+          SHORT_SHA: ${{ needs.build.outputs.short_sha }}
+          ARTIFACT_URL: ${{ needs.build.outputs.artifact_url }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL is not set -- skipping the Discord notification."
+            exit 0
+          fi
+          if [ "$BUILD_RESULT" = "success" ]; then
+            TITLE="✅ Mise test release built"
+            COLOR=3066993
+          else
+            TITLE="❌ Mise test release failed"
+            COLOR=15158332
+          fi
+          PAYLOAD=$(jq -n \
+            --arg title "$TITLE" \
+            --argjson color "$COLOR" \
+            --arg version "${VERSION_NAME} (code ${VERSION_CODE})" \
+            --arg branch "$BRANCH_NAME" \
+            --arg commit "$SHORT_SHA" \
+            --arg artifact "$ARTIFACT_URL" \
+            '{
+              embeds: [{
+                title: $title,
+                color: $color,
+                fields: (
+                  [
+                    {name: "Version", value: $version, inline: true},
+                    {name: "Branch", value: $branch, inline: true},
+                    {name: "Commit", value: $commit, inline: true}
+                  ]
+                  + (if $artifact != "" then [{name: "Artifact", value: $artifact, inline: false}] else [] end)
+                )
+              }]
+            }')
+          curl -sS -X POST -H "Content-Type: application/json" -d "$PAYLOAD" "$DISCORD_WEBHOOK_URL"
