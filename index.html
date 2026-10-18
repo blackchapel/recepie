@@ -510,6 +510,106 @@ button.qty:hover{background:var(--surface-2);border-color:var(--line-strong)}
 .lightbox .lb-next{right:max(16px,env(safe-area-inset-right,0px))}
 .lightbox .btn{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.16);color:#fff}
 
+/* ---------- Backup ---------- */
+.bk-side{position:relative;display:flex;align-items:center;gap:10px;width:100%;padding:10px 10px 10px 10px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line);text-align:left;overflow:hidden;transition:border-color .2s,background-color .2s}
+.bk-side:hover{border-color:var(--line-strong);background:var(--surface-3)}
+.bk-side .t{flex:1;min-width:0}
+.bk-side .t b{display:block;font-size:13px;font-weight:600;color:var(--ink)}
+.bk-side .t small{display:block;font-size:12px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bk-side>.i{color:var(--faint)}
+.bk-ic{position:relative;width:34px;height:34px;flex:none;border-radius:10px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line);color:var(--mute)}
+.bk-dot{position:absolute;right:-2px;top:-2px;width:10px;height:10px;border-radius:50%;background:var(--faint);border:2px solid var(--surface-2)}
+[data-state="ok"] .bk-dot{background:var(--basil)}
+[data-state="warn"] .bk-dot{background:var(--saffron)}
+[data-state="run"] .bk-dot{background:var(--ocean);animation:breathe 1.2s ease-in-out infinite}
+[data-state="ok"] .bk-ic{color:var(--basil)}
+[data-state="run"] .bk-ic{color:var(--ocean)}
+[data-state="run"] .bk-ic .i{animation:float-up 1.2s ease-in-out infinite}
+.bk-mini{position:absolute;left:0;right:0;bottom:0;height:3px;background:var(--surface-3)}
+.bk-mini i,.bk-bar i{display:block;height:100%;background:var(--flame);transform-origin:left;transition:transform .2s linear}
+.bk-top{position:relative}
+.bk-top .bk-dot{right:4px;top:5px;border-color:var(--canvas)}
+.bk-dialog{width:min(600px,100%)}
+.bk-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:14px;padding:18px 20px;background:color-mix(in oklab,var(--surface) 90%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.bk-head .ic{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:var(--flame);color:var(--on-flame);flex:none}
+.bk-head div{flex:1;min-width:0}
+.bk-head h2{font:700 21px/1.15 var(--f-display);color:var(--ink);letter-spacing:-.015em}
+.bk-head p{font-size:13px;color:var(--mute)}
+.bk-body{padding:20px;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+.bk-sec>*,.bk-body>*{min-width:0}
+.bk-row>div{min-width:0}
+.bk-hero{position:relative;height:150px;border-radius:20px;background:radial-gradient(120% 90% at 50% 100%,color-mix(in oklab,var(--ocean) 22%,transparent),transparent 70%),var(--surface-2);border:1px solid var(--line);overflow:hidden}
+.bk-cloud{position:absolute;left:50%;top:18px;transform:translateX(-50%);width:84px;height:84px;border-radius:26px;display:grid;place-items:center;background:var(--flame);color:var(--on-flame);box-shadow:0 18px 40px -14px var(--paprika)}
+.bk-cloud .i{width:42px;height:42px}
+.bk-float{position:absolute;bottom:-14px;width:62px;height:62px;border-radius:16px;object-fit:cover;border:2px solid var(--surface);box-shadow:var(--shadow-md);left:calc(22% + var(--i) * 22%);animation:to-cloud 3.6s var(--ease-out) infinite;animation-delay:calc(var(--i) * 1.2s)}
+.bk-title{font:700 24px/1.15 var(--f-display);color:var(--ink);letter-spacing:-.02em;text-wrap:balance}
+.bk-lede{color:var(--body);margin-top:-8px}
+.bk-points{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.bk-points li{display:flex;gap:12px;align-items:flex-start;font-size:14px;color:var(--mute)}
+.bk-points li b{color:var(--ink);font-weight:600}
+.bk-points .i{color:var(--accent-ink);margin-top:2px}
+.bk-connect{height:48px;font-size:15px;border-radius:14px}
+.bk-note{text-align:center;margin-top:-6px}
+.bk-wait{display:grid;justify-items:center;text-align:center;gap:12px;padding:30px 10px}
+.bk-wait h3{font:700 20px var(--f-display);color:var(--ink)}
+.bk-wait p{color:var(--mute);max-width:40ch}
+.bk-spin{width:52px;height:52px;border-radius:50%;border:4px solid var(--surface-3);border-top-color:var(--saffron);border-right-color:var(--paprika);animation:spin2 .9s linear infinite}
+.bk-account{display:flex;align-items:center;gap:12px;padding:12px 12px 12px 14px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line);flex-wrap:wrap}
+.bk-avatar{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--flame);color:var(--on-flame);font:700 17px var(--f-display);flex:none}
+.bk-account .t{flex:1;min-width:120px}
+.bk-account .t b{display:block;color:var(--ink);font-weight:600}
+.bk-account .t small{display:block;color:var(--mute);font:12.5px var(--f-mono);overflow:hidden;text-overflow:ellipsis}
+.bk-now{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:18px;border-radius:18px;background:var(--canvas);border:1px solid var(--line);position:relative;overflow:hidden}
+.bk-now.running{border-color:color-mix(in oklab,var(--ocean) 45%,transparent)}
+.bk-now .t{display:grid;gap:4px;min-width:0}
+.bk-now .t b{font:700 20px/1.2 var(--f-display);color:var(--ink);letter-spacing:-.01em}
+.bk-now .t small{font:12.5px var(--f-mono);color:var(--mute)}
+.bk-go{height:46px;padding:0 18px;border-radius:14px;font-size:15px;min-width:150px;font-variant-numeric:tabular-nums}
+.bk-go[disabled]{opacity:1}
+.bk-bar{grid-column:1/-1;height:6px;border-radius:6px;background:var(--surface-3);overflow:hidden}
+.bk-warn{grid-column:1/-1;display:flex;gap:8px;align-items:center;font-size:13px;color:var(--accent-ink)}
+.bk-sec{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.bk-sec h3{font:700 16px var(--f-display);color:var(--ink);display:flex;gap:8px;align-items:baseline}
+.bk-sec h3 .n{font:500 12px var(--f-mono);color:var(--faint)}
+.bk-freq{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.bk-freq button{position:relative;display:grid;gap:3px;align-content:start;text-align:left;padding:14px 14px 14px 42px;border-radius:14px;background:var(--surface-2);border:1.5px solid var(--line);transition:border-color .2s,background-color .25s,transform .25s var(--ease-spring)}
+.bk-freq button:hover{border-color:var(--line-strong)}
+.bk-freq button:active{transform:scale(.97)}
+.bk-freq button b{font-weight:600;color:var(--ink);font-size:14px}
+.bk-freq button small{font-size:12.5px;color:var(--mute);line-height:1.35}
+.bk-freq .radio{position:absolute;left:14px;top:15px;width:18px;height:18px;border-radius:50%;border:2px solid var(--line-strong);transition:border-color .2s,border-width .3s var(--ease-spring)}
+.bk-freq button[aria-checked="true"]{border-color:var(--saffron);background:color-mix(in oklab,var(--saffron) 9%,var(--surface-2))}
+.bk-freq button[aria-checked="true"] .radio{border-color:var(--saffron);border-width:6px}
+.bk-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bk-row .flabel{font-size:12.5px;font-weight:600;color:var(--mute);min-width:40px}
+.bk-row .select{height:38px;background-color:var(--surface-2);background-position:calc(100% - 17px) 16px,calc(100% - 12px) 16px}
+.bk-days{display:flex;gap:4px;flex-wrap:wrap}
+.bk-days button{width:44px;height:36px;border-radius:10px;font-size:13px;font-weight:600;color:var(--mute);background:var(--surface-2);border:1px solid var(--line);transition:background-color .2s,color .2s,transform .25s var(--ease-spring)}
+.bk-days button:hover{color:var(--ink)}
+.bk-days button[aria-checked="true"]{background:var(--cta);color:var(--on-cta);border-color:transparent;transform:scale(1.05)}
+.bk-next{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--mute)}
+.bk-next b{color:var(--ink);font-weight:600}
+.bk-toggle{display:flex;align-items:center;gap:14px;width:100%;text-align:left;padding:12px 14px;border-radius:14px;background:var(--surface-2);border:1px solid var(--line);transition:border-color .2s}
+.bk-toggle:hover{border-color:var(--line-strong)}
+.bk-toggle .t{flex:1;min-width:0}
+.bk-toggle b{display:block;font-weight:600;color:var(--ink);font-size:14px}
+.bk-toggle small{display:block;font-size:12.5px;color:var(--mute)}
+.sw{position:relative;width:44px;height:26px;border-radius:999px;background:var(--surface-3);border:1px solid var(--line-strong);flex:none;transition:background-color .25s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .35s var(--ease-spring)}
+[aria-checked="true"]>.sw{background:var(--basil);border-color:transparent}
+[aria-checked="true"]>.sw::after{transform:translateX(18px)}
+.bk-hist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.bk-hist li{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 12px;border-radius:13px;background:var(--surface-2);border:1px solid var(--line)}
+.bk-hist li.fresh{animation:slide-down .5s var(--ease-spring);border-color:color-mix(in oklab,var(--basil) 50%,transparent)}
+.bk-hist .hic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--surface);color:var(--mute);flex:none}
+.bk-hist .t{flex:1;min-width:0}
+.bk-hist .t b{display:block;font-size:14px;font-weight:600;color:var(--ink)}
+.bk-hist .t small{display:block;font:12px var(--f-mono);color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bk-empty{padding:16px;border-radius:14px;border:1px dashed var(--line-strong);color:var(--mute);font-size:14px;text-align:center}
+.bk-empty b{color:var(--ink)}
+@keyframes float-up{0%,100%{transform:translateY(1px)}50%{transform:translateY(-2px)}}
+@keyframes to-cloud{0%{transform:translateY(30px) scale(.9) rotate(-6deg);opacity:0}25%{opacity:1}70%{transform:translateY(-38px) scale(.7) rotate(4deg);opacity:1}100%{transform:translateY(-70px) scale(.4);opacity:0}}
+
 /* ---------- Timers + toasts ---------- */
 .timers{position:fixed;z-index:50;right:max(18px,env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));display:grid;gap:10px;width:min(330px,calc(100vw - 32px));pointer-events:none}
 .timer{pointer-events:auto;display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center;padding:10px 10px 10px 12px;border-radius:18px;background:color-mix(in oklab,var(--surface-2) 90%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border:1px solid var(--line-strong);box-shadow:var(--shadow-lg);animation:slide-up .55s var(--ease-spring)}
@@ -605,6 +705,14 @@ button.qty:hover{background:var(--surface-2);border-color:var(--line-strong)}
   .imp-head{position:relative;padding-right:64px}
   .imp-head>[data-action=close]{position:absolute;top:14px;right:14px}
   .imp-head .seg{margin-left:0;width:100%;min-width:0}
+  .bk-freq{grid-template-columns:1fr}
+  .bk-now{grid-template-columns:1fr}
+  .bk-go{width:100%}
+  .bk-days button{width:auto;flex:1 0 38px;padding:0 4px}
+  .bk-days{flex:1;flex-wrap:nowrap;gap:3px}
+  .bk-days button{flex:1 1 0;min-width:0}
+  .bk-row{flex-direction:column;align-items:stretch;gap:8px}
+  .bk-body{padding:16px}
   .toasts{bottom:auto;top:calc(68px + env(safe-area-inset-top,0px))}
 }
 @media (max-width:640px){
@@ -696,6 +804,11 @@ button.qty:hover{background:var(--surface-2);border-color:var(--line-strong)}
   <symbol id="i-cmd" viewBox="0 0 24 24"><path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3"/></symbol>
   <symbol id="i-enter" viewBox="0 0 24 24"><path d="M9 10 4 15l5 5"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></symbol>
   <symbol id="i-dots" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="19" cy="12" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H8a6 6 0 1 1 5.7-7.9A4.5 4.5 0 1 1 17.5 19Z"/></symbol>
+  <symbol id="i-cloud-up" viewBox="0 0 24 24"><path d="M7 18.9A6 6 0 1 1 13.7 11a4.5 4.5 0 0 1 4.8 7.8"/><path d="m9 16 3-3 3 3M12 13v8"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.7-.9l-.8-1.2A2 2 0 0 0 7.9 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M20 13c0 5-3.5 7.5-7.7 9a1 1 0 0 1-.6 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.2-2.7a1.2 1.2 0 0 1 1.6 0C14.5 3.8 17 5 19 5a1 1 0 0 1 1 1Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
   <symbol id="i-logo" viewBox="0 0 40 40"><circle cx="15" cy="23" r="11" fill="url(#g-flame)"/><circle cx="29.5" cy="13" r="6.5" fill="url(#g-flame)" opacity=".8"/><circle cx="31" cy="29" r="4" fill="url(#g-flame)" opacity=".55"/><circle cx="15" cy="23" r="5.5" fill="none" stroke="#1C0F06" stroke-opacity=".35" stroke-width="1.6"/></symbol>
 </svg>
 
@@ -1360,11 +1473,12 @@ function renderChrome() {
       <div class="nav">${tags.map(([t, n]) => `<button class="nav-item" data-action="tag" data-tag="${esc(t)}" aria-current="${isLib && S.tag === t}" style="${tagStyle(t)}"><span class="dot"></span><span>${esc(t)}</span><span class="count">${n}</span></button>`).join('') || '<p class="ed-help" style="padding:0 10px">Tags you add show up here.</p>'}</div>
     </div>
     <div class="side-foot">
+      ${backupSideHtml()}
       <button class="btn btn-flame" data-action="import">${icon('spark')}Import recipe</button>
       <button class="btn" data-action="new">${icon('plus')}New recipe</button>
       ${themeSeg()}
     </div>`;
-  $('#topbar').innerHTML = `${brand}<button class="btn btn-ghost icon-btn" data-action="cycle-theme" aria-label="Switch theme">${icon(S.theme === 'dark' ? 'moon' : S.theme === 'light' ? 'sun' : 'monitor')}</button><button class="btn icon-btn" data-action="palette" aria-label="Search">${icon('search')}</button>`;
+  $('#topbar').innerHTML = `${brand}<button class="btn btn-ghost icon-btn" data-action="cycle-theme" aria-label="Switch theme">${icon(S.theme === 'dark' ? 'moon' : S.theme === 'light' ? 'sun' : 'monitor')}</button><button class="btn btn-ghost icon-btn bk-top" id="bk-top" data-action="backup" aria-label="Google Drive backup" data-state="${bkRun ? 'run' : BK.connected ? (unsaved() ? 'warn' : 'ok') : 'off'}">${icon(bkRun ? 'cloud-up' : 'cloud')}<i class="bk-dot"></i></button><button class="btn icon-btn" data-action="palette" aria-label="Search">${icon('search')}</button>`;
   const tab = (act, ic, label, cur, extra = '') => `<button class="tab ${extra}" data-action="${act}" ${act === 'nav' ? `data-nav="${label === 'Favorites' ? 'fav' : 'all'}"` : ''} aria-current="${cur}" aria-label="${label}">${icon(ic)}${extra ? '' : `<span>${label}</span>`}</button>`;
   $('#tabbar').innerHTML = tab('nav', 'book', 'Recipes', isLib && S.nav !== 'fav') + tab('nav', 'heart', 'Favorites', isLib && S.nav === 'fav') + tab('import', 'spark', 'Import a recipe', false, 'fab') + tab('palette', 'search', 'Search', false) + tab('new', 'plus', 'New', S.view === 'edit');
 }
@@ -1784,6 +1898,8 @@ function openPalette(initial = '') {
     { t: 'Import from pasted text', s: 'Paste a recipe from anywhere', ic: 'clip', k: 'I', run: () => openImport('text') },
     { t: 'Import from a link', s: 'Convert a recipe page', ic: 'link', run: () => openImport('link') },
     { t: 'Show favorites', s: 'Recipes you’ve hearted', ic: 'heart', run: () => { S.nav = 'fav'; S.tag = null; go('library'); } },
+    { t: 'Back up now', s: BK.connected ? (BK.last ? `Last backup ${fmtAgo(BK.last)}` : 'Save a copy to Google Drive') : 'Connect Google Drive first', ic: 'cloud-up', run: () => BK.connected ? runBackup() : openBackup() },
+    { t: 'Backup settings', s: 'Google Drive, schedule and restore', ic: 'cloud', run: () => openBackup() },
     { t: 'Switch theme', s: 'Auto, light or dark', ic: 'sun', run: () => cycleTheme() }
   ];
   const draw = () => {
@@ -2087,6 +2203,215 @@ function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTi
 <script>
 'use strict';
 /* =========================================================
+   Google Drive backup (simulated in this mockup: no network, no real account)
+   ========================================================= */
+const BK_KEY = 'mise.backup.v1', BK_KEEP = 6;
+const BK = Object.assign({ connected: false, account: null, freq: 'weekly', day: 0, time: 'night', wifi: true, photos: true, last: null, changed: null, history: [] }, store.get(BK_KEY, {}));
+const saveBK = () => store.set(BK_KEY, BK);
+const bkSnaps = new Map();
+let bkRun = null, bkConnecting = null;
+const FREQ = [['daily', 'Daily', 'Every day, while you sleep'], ['weekly', 'Weekly', 'Once a week on a day you pick'], ['manual', 'Only when I tap', 'Back up now whenever you like']];
+const BK_TIMES = { night: [2, 'Overnight (2:00 AM)'], morning: [8, 'Morning (8:00 AM)'], evening: [20, 'Evening (8:00 PM)'] };
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const DEMO_ACCOUNT = { name: 'Demo account', email: 'cook@example.com' };
+
+// Count local changes so the status can say when a backup is out of date.
+const persistLocal = persist;
+persist = function () { persistLocal(); BK.changed = Date.now(); saveBK(); refreshBackupUI(); };
+
+const fmtBytes = b => b < 1024 ? `${b} B` : b < 1048576 ? `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(b / 1024)} KB` : `${new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 }).format(b / 1048576)} MB`;
+function fmtWhen(ts) {
+  const d = new Date(ts), now = new Date(), day = 864e5;
+  const t = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' }).format(d);
+  const d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const diff = Math.floor((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() - d0) / day);
+  if (diff === 0) return `Today at ${t}`;
+  if (diff === -1) return `Yesterday at ${t}`;
+  if (diff === 1) return `Tomorrow at ${t}`;
+  return `${new Intl.DateTimeFormat('en-US', diff > 0 && diff < 7 ? { weekday: 'long' } : { month: 'short', day: 'numeric' }).format(d)} at ${t}`;
+}
+function fmtAgo(ts) {
+  const s = Math.round((Date.now() - ts) / 1000), rt = new Intl.RelativeTimeFormat('en-US', { numeric: 'auto' });
+  if (s < 45) return 'just now';
+  if (s < 3600) return rt.format(-Math.round(s / 60), 'minute');
+  if (s < 86400) return rt.format(-Math.round(s / 3600), 'hour');
+  return rt.format(-Math.round(s / 86400), 'day');
+}
+function nextBackupAt() {
+  if (!BK.connected || BK.freq === 'manual') return null;
+  const now = new Date(), d = new Date(); d.setHours(BK_TIMES[BK.time][0], 0, 0, 0);
+  if (BK.freq === 'daily') { if (d <= now) d.setDate(d.getDate() + 1); }
+  else { d.setDate(d.getDate() + (BK.day - d.getDay() + 7) % 7); if (d <= now) d.setDate(d.getDate() + 7); }
+  return d.getTime();
+}
+const backupPayload = () => ({ app: 'mise', version: 1, exported: new Date().toISOString(), recipes: BK.photos ? recipes : recipes.map(r => ({ ...r, photos: [], cover: 0 })) });
+const photoCount = () => recipes.reduce((a, r) => a + (r.photos || []).length, 0);
+const unsaved = () => BK.connected && BK.changed && (!BK.last || BK.changed > BK.last);
+
+/* ---------- Status pill in the sidebar ---------- */
+function backupSideHtml() {
+  let state = 'off', sub = 'Not connected';
+  if (bkRun) { state = 'run'; sub = `${bkRun.label} · ${Math.round(bkRun.pct * 100)}%`; }
+  else if (BK.connected) { state = unsaved() ? 'warn' : 'ok'; sub = BK.last ? (unsaved() ? `Changes since ${fmtAgo(BK.last)}` : `Backed up ${fmtAgo(BK.last)}`) : 'No backup yet'; }
+  return `<button class="bk-side" data-action="backup" id="bk-side" data-state="${state}">
+    <span class="bk-ic">${icon(state === 'run' ? 'cloud-up' : 'cloud')}<i class="bk-dot"></i></span>
+    <span class="t"><b>Google Drive backup</b><small>${esc(sub)}</small></span>
+    ${icon('right', 'i-sm')}
+    ${bkRun ? `<span class="bk-mini"><i style="transform:scaleX(${bkRun.pct})"></i></span>` : ''}
+  </button>`;
+}
+function refreshBackupUI() {
+  const side = $('#bk-side'); if (side) side.outerHTML = backupSideHtml();
+  const tb = $('#bk-top'); if (tb) { tb.dataset.state = bkRun ? 'run' : BK.connected ? (unsaved() ? 'warn' : 'ok') : 'off'; tb.innerHTML = icon(bkRun ? 'cloud-up' : 'cloud') + '<i class="bk-dot"></i>'; }
+  if ($('#bk-body')) {
+    const now = $('.bk-now.running');
+    if (bkRun && now) {
+      $('b', now).textContent = bkRun.label + '…';
+      $('.bk-go', now).innerHTML = icon('cloud-up') + Math.round(bkRun.pct * 100) + '%';
+      $('.bk-bar i', now).style.transform = `scaleX(${bkRun.pct})`;
+    } else drawBackup();
+  }
+}
+setInterval(() => { if (!bkRun) refreshBackupUI(); }, 30000);
+
+/* ---------- Dialog ---------- */
+function openBackup() {
+  if (layers.some(l => l.el.querySelector('#bk-body'))) return;
+  openLayer(`<div class="bk-head"><span class="ic">${icon('cloud', 'i-lg')}</span><div><h2>Backup</h2><p>Google Drive</p></div><button class="btn btn-ghost icon-btn" data-action="close" aria-label="Close">${icon('x')}</button></div><div id="bk-body" class="bk-body" aria-live="polite"></div>`, { cls: 'bk-dialog', label: 'Google Drive backup', onClose: () => { if (bkConnecting) { clearTimeout(bkConnecting); bkConnecting = null; } } });
+  drawBackup();
+}
+function drawBackup() {
+  const body = $('#bk-body'); if (!body) return;
+  if (bkConnecting) {
+    body.innerHTML = `<div class="bk-wait"><span class="bk-spin"></span><h3>Waiting for Google sign-in…</h3><p>In the app, Google’s own sign-in window opens here so you can pick an account and allow access.</p><button class="btn" data-action="bk-cancel">Cancel</button></div>`;
+    return;
+  }
+  if (!BK.connected) {
+    const covers = recipes.slice(0, 3).map(r => coverOf(r).src);
+    body.innerHTML = `<div class="bk-hero" aria-hidden="true"><div class="bk-cloud">${icon('cloud')}</div>${covers.map((c, i) => `<img class="bk-float" style="--i:${i}" src="${c}" alt="">`).join('')}</div>
+      <h3 class="bk-title">Keep your recipes safe in Google Drive</h3>
+      <p class="bk-lede">Mise saves a copy of your recipes, photos and tags to your own Google Drive. If you switch phones or clear this browser, you can bring everything back.</p>
+      <ul class="bk-points">
+        <li>${icon('folder')}<span><b>Saved in a “Mise Backups” folder</b> in your Drive, using your Drive storage.</span></li>
+        <li>${icon('shield')}<span><b>Private to you.</b> Mise can open only the files it creates, not the rest of your Drive.</span></li>
+        <li>${icon('calendar')}<span><b>On your schedule.</b> Back up daily, weekly, or only when you tap Back up.</span></li>
+      </ul>
+      <button class="btn btn-cta bk-connect" data-action="bk-connect">${icon('cloud')}Connect Google account</button>
+      <p class="ed-help bk-note">This is a mockup. Connecting uses a demo account, and nothing leaves your browser.</p>`;
+    return;
+  }
+  const photos = photoCount(), bytes = new Blob([JSON.stringify(backupPayload())]).size, nx = nextBackupAt();
+  const a = BK.account || DEMO_ACCOUNT;
+  body.innerHTML = `
+    <div class="bk-account"><span class="bk-avatar">${esc(a.name[0])}</span><div class="t"><b>${esc(a.name)}</b><small>${esc(a.email)}</small></div><span class="tag" style="--c:var(--basil)">${icon('check', 'i-sm')}Connected</span><button class="btn btn-sm btn-ghost" data-action="bk-disconnect">Disconnect</button></div>
+    <section class="bk-now ${bkRun ? 'running' : ''}">
+      <div class="t"><span class="label">Last backup</span><b>${bkRun ? esc(bkRun.label) + '…' : BK.last ? fmtWhen(BK.last) : 'Not backed up yet'}</b>
+        <small>${recipes.length} recipes · ${BK.photos ? `${photos} photo${photos === 1 ? '' : 's'}` : 'photos not included'} · about ${fmtBytes(bytes)}</small></div>
+      <button class="btn btn-flame bk-go" data-action="bk-now" ${bkRun ? 'disabled' : ''}>${icon('cloud-up')}${bkRun ? `${Math.round(bkRun.pct * 100)}%` : 'Back up now'}</button>
+      <div class="bk-bar" ${bkRun ? '' : 'hidden'}><i style="transform:scaleX(${bkRun ? bkRun.pct : 0})"></i></div>
+      ${!bkRun && unsaved() && BK.last ? `<p class="bk-warn">${icon('spark', 'i-sm')}You’ve changed recipes since the last backup.</p>` : ''}
+    </section>
+    <section class="bk-sec" aria-labelledby="bk-auto-h">
+      <h3 id="bk-auto-h">Automatic backups</h3>
+      <div class="bk-freq" role="radiogroup" aria-labelledby="bk-auto-h">${FREQ.map(([k, l, s]) => `<button role="radio" aria-checked="${BK.freq === k}" data-action="bk-freq" data-v="${k}"><span class="radio"></span><b>${l}</b><small>${s}</small></button>`).join('')}</div>
+      ${BK.freq === 'weekly' ? `<div class="bk-row"><span class="flabel">Day</span><div class="bk-days" role="radiogroup" aria-label="Day of the week">${WEEKDAYS.map((d, i) => `<button role="radio" aria-checked="${BK.day === i}" data-action="bk-day" data-v="${i}">${d}</button>`).join('')}</div></div>` : ''}
+      ${BK.freq !== 'manual' ? `<div class="bk-row"><label class="flabel" for="bk-time">Time</label><select class="select" id="bk-time">${Object.entries(BK_TIMES).map(([k, [, l]]) => `<option value="${k}" ${BK.time === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+        <p class="bk-next">${icon('clock', 'i-sm')}Next backup <b>${fmtWhen(nx)}</b>${BK.wifi ? ' on Wi-Fi' : ''}</p>` : `<p class="bk-next">${icon('cloud-up', 'i-sm')}Mise backs up only when you tap <b>Back up now</b>.</p>`}
+    </section>
+    <section class="bk-sec" aria-label="Backup options">
+      <button class="bk-toggle" role="switch" aria-checked="${BK.photos}" data-action="bk-opt" data-k="photos"><span class="t"><b>Include photos</b><small>Photos make backups larger.</small></span><span class="sw"></span></button>
+      <button class="bk-toggle" role="switch" aria-checked="${BK.wifi}" data-action="bk-opt" data-k="wifi"><span class="t"><b>Back up on Wi-Fi only</b><small>Automatic backups wait for Wi-Fi to save mobile data.</small></span><span class="sw"></span></button>
+    </section>
+    <section class="bk-sec" aria-labelledby="bk-hist-h">
+      <h3 id="bk-hist-h">Backups in your Drive <span class="n">${BK.history.length}</span></h3>
+      ${BK.history.length ? `<ul class="bk-hist">${BK.history.map((h, i) => `<li class="${i === 0 && h.fresh ? 'fresh' : ''}"><span class="hic">${icon(h.note ? 'shield' : h.auto ? 'clock' : 'cloud-up', 'i-sm')}</span><span class="t"><b>${fmtWhen(h.at)}</b><small>${h.recipes} recipes · ${h.photos} photos · ${fmtBytes(h.bytes)} · ${h.note || (h.auto ? 'Automatic' : 'Manual')}</small></span><button class="btn btn-sm" data-action="bk-restore" data-id="${h.id}">${icon('reset', 'i-sm')}Restore</button></li>`).join('')}</ul>
+      <p class="ed-help">Mise keeps your ${BK_KEEP} most recent backups and removes older ones from the folder.</p>`
+      : `<p class="bk-empty">No backups yet. Tap <b>Back up now</b> to make your first one.</p>`}
+    </section>`;
+  BK.history.forEach(h => delete h.fresh);
+  const sel = $('#bk-time', body); if (sel) sel.addEventListener('change', e => { BK.time = e.target.value; saveBK(); drawBackup(); });
+}
+
+/* ---------- Actions ---------- */
+async function runBackup({ auto = false, note = '' } = {}) {
+  if (bkRun) return;
+  if (!BK.connected) { openBackup(); return; }
+  const payload = backupPayload(), photos = BK.photos ? photoCount() : 0;
+  const json = JSON.stringify(payload), bytes = new Blob([json]).size;
+  const wait = ms => new Promise(r => setTimeout(r, reduced.matches ? 0 : ms));
+  const stages = [['Preparing your recipes', .15, 500]];
+  if (photos) for (let i = 1; i <= photos; i++) stages.push([`Uploading photos ${i} of ${photos}`, .15 + .6 * i / photos, Math.min(420, 1400 / photos)]);
+  stages.push(['Uploading recipes', .9, 650], ['Checking the backup', 1, 450]);
+  bkRun = { label: stages[0][0], pct: 0 }; refreshBackupUI();
+  for (const [label, to, ms] of stages) {
+    const from = bkRun.pct, t0 = performance.now();
+    bkRun.label = label;
+    while (true) {
+      const k = reduced.matches ? 1 : Math.min(1, (performance.now() - t0) / ms);
+      bkRun.pct = from + (to - from) * k; refreshBackupUI();
+      if (k >= 1) break; await wait(60);
+    }
+  }
+  const entry = { id: uid(), at: Date.now(), recipes: payload.recipes.length, photos, bytes, auto, note, fresh: true };
+  BK.history.unshift(entry);
+  for (const old of BK.history.splice(BK_KEEP)) { bkSnaps.delete(old.id); try { localStorage.removeItem('mise.backup.snap.' + old.id); } catch (e) { } }
+  bkSnaps.set(entry.id, json);
+  try { localStorage.setItem('mise.backup.snap.' + entry.id, json); } catch (e) { }
+  BK.last = entry.at; saveBK();
+  bkRun = null; refreshBackupUI();
+  if (!note) toast(auto ? 'Backed up to Google Drive automatically' : `Backed up ${entry.recipes} recipes to Google Drive`, { icon: 'cloud' });
+}
+function connectGoogle() {
+  bkConnecting = setTimeout(() => {
+    bkConnecting = null; BK.connected = true; BK.account = DEMO_ACCOUNT; saveBK();
+    drawBackup(); refreshBackupUI();
+    toast('Google Drive connected', { icon: 'check' });
+  }, reduced.matches ? 100 : 1800);
+  drawBackup();
+}
+function confirmDisconnect() {
+  openLayer(`<div class="dlg-pad"><div class="dlg-head"><h2>Disconnect Google Drive?</h2></div><p style="margin-top:8px;color:var(--mute)">Automatic backups stop. Backups already in your Drive stay there, and you can reconnect any time to restore them.</p><div class="dlg-foot"><button class="btn" data-action="close" autofocus>Stay connected</button><button class="btn btn-solid-danger" data-action="bk-disconnect-yes">Disconnect</button></div></div>`, { label: 'Disconnect Google Drive' });
+}
+function confirmRestore(id) {
+  const h = BK.history.find(x => x.id === id); if (!h) return;
+  openLayer(`<div class="dlg-pad"><div class="confirm-ic" style="background:color-mix(in oklab,var(--ocean) 16%,transparent);color:var(--ocean)">${icon('reset', 'i-lg')}</div><div class="dlg-head"><h2>Restore the backup from ${fmtWhen(h.at).replace(/^./, c => c.toLowerCase())}?</h2></div><p style="margin-top:8px;color:var(--mute)">Your recipe box is replaced with the ${h.recipes} recipes in this backup${h.photos ? '' : ', without photos'}. Mise backs up what you have now first, so you can undo this from the list.</p><div class="dlg-foot"><button class="btn" data-action="close" autofocus>Cancel</button><button class="btn btn-cta" data-action="bk-restore-yes" data-id="${id}">${icon('reset')}Restore backup</button></div></div>`, { label: 'Restore backup' });
+}
+async function doRestore(id) {
+  let json = bkSnaps.get(id);
+  if (!json) { try { json = localStorage.getItem('mise.backup.snap.' + id); } catch (e) { } }
+  closeLayer();
+  if (!json) { toast('This backup’s data isn’t available in this browser demo.'); return; }
+  await runBackup({ auto: true, note: 'Before restore' });
+  try { recipes = JSON.parse(json).recipes; } catch (e) { toast('That backup couldn’t be read.'); return; }
+  persist(); BK.last = Date.now(); saveBK();
+  S.tag = null; S.q = ''; S.nav = 'all';
+  if (S.view !== 'library') go('library'); else render();
+  refreshBackupUI();
+  toast('Backup restored', { icon: 'check' });
+}
+const BACKUP_ACT = {
+  backup: () => openBackup(),
+  'bk-connect': () => connectGoogle(),
+  'bk-cancel': () => { clearTimeout(bkConnecting); bkConnecting = null; drawBackup(); },
+  'bk-disconnect': () => confirmDisconnect(),
+  'bk-disconnect-yes': () => { closeLayer(); BK.connected = false; BK.account = null; saveBK(); refreshBackupUI(); toast('Google Drive disconnected. Your backups are still in Drive.', { icon: 'cloud' }); },
+  'bk-now': () => runBackup(),
+  'bk-freq': b => { BK.freq = b.dataset.v; saveBK(); drawBackup(); refreshBackupUI(); },
+  'bk-day': b => { BK.day = +b.dataset.v; saveBK(); drawBackup(); },
+  'bk-opt': b => { BK[b.dataset.k] = !BK[b.dataset.k]; saveBK(); drawBackup(); },
+  'bk-restore': b => confirmRestore(b.dataset.id),
+  'bk-restore-yes': b => doRestore(b.dataset.id)
+};
+// When the app opens and a scheduled backup is overdue, run it quietly.
+function backupBoot() {
+  if (!BK.connected || BK.freq === 'manual' || !BK.last) return;
+  const every = BK.freq === 'daily' ? 864e5 : 7 * 864e5;
+  if (Date.now() - BK.last >= every) setTimeout(() => runBackup({ auto: true }), 2500);
+}
+</script>
+<script>
+'use strict';
+/* =========================================================
    Router with view transitions
    ========================================================= */
 function render() {
@@ -2132,6 +2457,7 @@ function setTheme(v) {
    Events
    ========================================================= */
 const ACT = {
+  ...BACKUP_ACT,
   nav: b => { S.nav = b.dataset.nav; S.tag = null; S.q = ''; if (S.view !== 'library') go('library'); else { render(); } },
   tag: b => { const t = b.dataset.tag || null; S.tag = S.tag === t ? null : t; if (S.tag) S.nav = 'all'; if (S.view !== 'library') { S.libScroll = 0; go('library'); } else { S.calm = false; renderChrome(); renderLibrary(); } },
   'clear-filters': () => { S.tag = null; S.q = ''; S.nav = 'all'; render(); },
@@ -2303,6 +2629,7 @@ document.addEventListener('pointermove', e => {
    Boot
    ========================================================= */
 render();
+backupBoot();
 </script>
 </body>
 </html>
