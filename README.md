@@ -24,6 +24,8 @@ your own Google Drive.
   scaled amounts that step uses.
 - **Import:** paste copied recipe text, or share a recipe link to Recipai
   from the browser's share sheet. Recipai converts it into its own format.
+  Import is rule-based for now, with AI added later. That means no AI API
+  key and no server, and the app works fully offline.
 - **Google Drive backup:** connect a Google account, back up daily,
   weekly or only on demand, restore from earlier backups.
 - Light and dark themes, haptic feedback, offline-first.
