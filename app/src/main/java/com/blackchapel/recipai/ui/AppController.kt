@@ -15,6 +15,7 @@ import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.RecipeRepository
 import com.blackchapel.recipai.data.SettingsStore
 import com.blackchapel.recipai.ui.components.Ico
+import com.blackchapel.recipai.ui.timers.TimerStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -244,4 +245,13 @@ class AppController(
     }
 
     // ---- Module additions go below, one section per module, so merges stay simple.
+
+    // ---- timers-cook ----
+
+    /**
+     * Step timers. Process-wide, not per controller: the timers foreground
+     * service keeps them counting after the activity (and this ViewModel)
+     * is gone, and a new activity picks the same timers up.
+     */
+    val timers: TimerStore get() = TimerStore.shared
 }
