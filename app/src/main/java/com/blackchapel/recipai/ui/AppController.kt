@@ -5,9 +5,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.blackchapel.recipai.core.ParsedRecipe
+import com.blackchapel.recipai.core.PhotoImport
+import com.blackchapel.recipai.core.PhotoStore
+import com.blackchapel.recipai.core.Photos
+import com.blackchapel.recipai.core.Recipe
+import com.blackchapel.recipai.core.coverPhoto
+import com.blackchapel.recipai.core.photoSet
+import com.blackchapel.recipai.core.withPhotos
 import com.blackchapel.recipai.core.SortOrder
 import com.blackchapel.recipai.core.TagFilter
 import com.blackchapel.recipai.core.toRecipe
@@ -16,6 +24,7 @@ import com.blackchapel.recipai.data.RecipeRepository
 import com.blackchapel.recipai.data.SettingsStore
 import com.blackchapel.recipai.ui.components.Ico
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -244,4 +253,104 @@ class AppController(
     }
 
     // ---- Module additions go below, one section per module, so merges stay simple.
+
+    // ---- photos ----
+
+    /** A recipe waiting for the photo picker (More menu or the Add photo tile); `PhotoHost` opens it. */
+    var photoPickFor by mutableStateOf<String?>(null)
+        private set
+
+    /** Photos being copied in: the recipe id and how many (placeholder thumbnails). */
+    var photosAdding by mutableStateOf<Pair<String, Int>?>(null)
+
+    /** The photo each open detail page's hero shows when it isn't the cover. */
+    private val heroPhotos = mutableStateMapOf<DetailPage, String>()
+
+    /** Detail pages whose hero already played its entrance (once per visit). */
+    private val heroEntered = mutableSetOf<DetailPage>()
+
+    private var photosCleanedUp = false
+
+    /** Scope for copying picked photos, so a rotation mid-copy doesn't drop them. */
+    val photoScope: CoroutineScope get() = scope
+
+    private fun openDetailPage(recipeId: String): DetailPage? =
+        stack.lastOrNull { it is DetailPage && it.recipeId == recipeId } as DetailPage?
+
+    /** Add photos to a saved recipe (detail page's Add photo tile and More menu). */
+    fun addPhoto(recipeId: String) {
+        sheet = null
+        photoPickFor = recipeId
+    }
+
+    /** `PhotoHost` took the request in [photoPickFor]. */
+    fun photoPickTaken() {
+        photoPickFor = null
+    }
+
+    /** Picked photos are stored: attach them to the recipe and show the last one. */
+    fun photosPicked(recipeId: String, result: PhotoImport) {
+        if (photosAdding?.first == recipeId) photosAdding = null
+        val r = repo.get(recipeId)
+        if (r == null) {
+            // Deleted while the photos were copied; the files are cleaned up on a later start.
+            if (result.added > 0) showToast("The recipe was deleted, so the photos weren't added", Ico.Info)
+            return
+        }
+        if (result.added > 0) {
+            repo.upsert(r.withPhotos(Photos.add(r.photoSet, result.names)).copy(updatedAt = System.currentTimeMillis()))
+            showHeroPhoto(recipeId, result.names.last())
+        }
+        val added = result.added
+        val failed = result.failed
+        val noun = if (added == 1) "photo" else "photos"
+        when {
+            added > 0 && failed == 0 -> showToast("Added $added $noun", Ico.Camera)
+            added > 0 -> showToast("Added $added $noun; $failed couldn't be read", Ico.Camera)
+            failed == 1 -> showToast("Couldn't read that photo. Try a JPG or PNG.", Ico.Info)
+            failed > 1 -> showToast("Couldn't read those $failed photos. Try JPGs or PNGs.", Ico.Info)
+        }
+    }
+
+    /** The photo the detail hero shows: the one picked from the strip, else the cover. */
+    fun heroPhoto(recipe: Recipe): String? {
+        val picked = openDetailPage(recipe.id)?.let { heroPhotos[it] }
+        return picked?.takeIf { it in recipe.photos } ?: recipe.coverPhoto
+    }
+
+    /** Shows [name] in the open detail page's hero (a thumbnail tap). */
+    fun showHeroPhoto(recipeId: String, name: String) {
+        val page = openDetailPage(recipeId) ?: return
+        heroPhotos.keys.filter { it !in stack }.forEach { heroPhotos.remove(it) }
+        heroPhotos[page] = name
+    }
+
+    /**
+     * True the first time the open detail page for [recipeId] shows its
+     * hero, so the entrance animation plays once per visit, not again after
+     * scrolling back up or returning from the editor.
+     */
+    fun claimHeroEntrance(recipeId: String): Boolean {
+        val page = openDetailPage(recipeId) ?: return false
+        heroEntered.retainAll { it in stack }
+        return heroEntered.add(page)
+    }
+
+    /**
+     * Once per launch, after the recipes loaded: delete photo files no recipe
+     * uses (removed in the editor, deleted recipes, cancelled edits). Skipped
+     * when the recipe file couldn't be read, so its photos are never lost.
+     */
+    fun cleanUpPhotos(store: PhotoStore) {
+        if (photosCleanedUp || !repo.loaded.value || repo.loadError.value != null) return
+        photosCleanedUp = true
+        val referenced = repo.recipes.value.flatMapTo(HashSet()) { it.photos }
+        scope.launch(Dispatchers.IO) {
+            try {
+                store.cleanUp(referenced)
+            } catch (e: Exception) {
+                // Best effort: whatever is left is tried again next launch.
+            }
+        }
+    }
 }
