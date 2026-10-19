@@ -20,16 +20,19 @@ import androidx.compose.material3.SheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.blackchapel.recipai.core.Recipe
 import com.blackchapel.recipai.haptics.HapticType
 import com.blackchapel.recipai.haptics.LocalHaptics
+import com.blackchapel.recipai.haptics.NoComposeHaptics
 import com.blackchapel.recipai.ui.theme.LocalColors
 import com.blackchapel.recipai.ui.theme.RecipaiType
 import kotlinx.coroutines.CoroutineScope
@@ -96,7 +99,7 @@ fun RSheet(
                 IconButton(Ico.X, "Close", { closer.close() }, size = 32.dp, iconSize = 16.dp, background = c.surface2, tint = c.mute)
             }
         }
-        content(closer)
+        CompositionLocalProvider(LocalHapticFeedback provides NoComposeHaptics) { content(closer) }
     }
 }
 

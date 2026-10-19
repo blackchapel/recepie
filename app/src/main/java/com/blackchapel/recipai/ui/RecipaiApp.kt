@@ -64,6 +64,7 @@ fun RecipaiApp(app: AppController, versionName: String) {
     val recipes by app.repo.recipes.collectAsState()
     val loaded by app.repo.loaded.collectAsState()
     val loadError by app.repo.loadError.collectAsState()
+    val saveError by app.repo.saveError.collectAsState()
     val dark = isDarkTheme(settings.theme)
 
     RecipaiTheme(dark) {
@@ -73,6 +74,7 @@ fun RecipaiApp(app: AppController, versionName: String) {
         SystemBarIcons(lightIcons = dark || (top is DetailPage && app.heroUnderStatusBar))
         SystemBackHandler(enabled = pushed) { app.back() }
         LaunchedEffect(loadError) { loadError?.let { app.showToast(it, Ico.Info) } }
+        LaunchedEffect(saveError) { saveError?.let { app.showToast(it, Ico.Info) } }
 
         Box(Modifier.fillMaxSize().background(c.canvas)) {
             if (loaded) {

@@ -95,6 +95,9 @@ part of the change that touches them -- see `CLAUDE.md`.
 - **An unreadable recipe file is set aside, not repaired.** It is
   renamed to `recipes.json.unreadable-<time>` and the examples load in
   its place, with a toast. There is no in-app way to recover it yet.
+- **A failed save (e.g. disk full) only shows a toast.** The app keeps
+  working from memory and retries on the next change; quitting before
+  a save succeeds loses those changes.
 - **Scale factor and checklists are per visit.** Leaving a recipe resets
   its scale, checked ingredients and done steps (as in the prototype).
   They survive rotation but not process death.

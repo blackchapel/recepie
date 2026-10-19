@@ -7,12 +7,11 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
-import androidx.compose.ui.hapticfeedback.HapticFeedback
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalView
 import com.blackchapel.recipai.haptics.Haptics
 import com.blackchapel.recipai.haptics.LocalHaptics
+import com.blackchapel.recipai.haptics.NoComposeHaptics
 import com.blackchapel.recipai.ui.RecipaiApp
 
 class MainActivity : ComponentActivity() {
@@ -35,8 +34,4 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
-
-private object NoComposeHaptics : HapticFeedback {
-    override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) = Unit
 }

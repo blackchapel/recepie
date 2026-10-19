@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
@@ -41,6 +42,10 @@ class RecipeRepository(
     /** Set when the saved file could not be read (a copy is kept beside it). */
     private val _loadError = MutableStateFlow<String?>(null)
     val loadError: StateFlow<String?> = _loadError.asStateFlow()
+
+    /** Set while the last save failed; cleared by the next successful one. */
+    private val _saveError = MutableStateFlow<String?>(null)
+    val saveError: StateFlow<String?> = _saveError.asStateFlow()
 
     init {
         scope.launch {
@@ -113,9 +118,16 @@ class RecipeRepository(
     }
 
     private fun writeFile(list: List<Recipe>) {
-        file.parentFile?.mkdirs()
-        val tmp = File(file.parentFile, "${file.name}.tmp")
-        tmp.writeText(RecipeJson.encode(list))
-        Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+        try {
+            file.parentFile?.mkdirs()
+            val tmp = File(file.parentFile, "${file.name}.tmp")
+            tmp.writeText(RecipeJson.encode(list))
+            Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+            _saveError.value = null
+        } catch (e: IOException) {
+            // Disk full or similar: keep running on what's in memory and say so.
+            // The next change tries again.
+            _saveError.value = "Couldn't save your recipes (${e.message ?: "storage error"}). Free up some space."
+        }
     }
 }
