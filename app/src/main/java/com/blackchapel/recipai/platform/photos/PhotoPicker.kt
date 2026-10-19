@@ -73,6 +73,9 @@ fun rememberPhotoPicker(
                 true
             } catch (e: ActivityNotFoundException) {
                 false
+            } catch (e: IllegalArgumentException) {
+                // The system picker refused the request (e.g. its item limit).
+                false
             }
         }
     }

@@ -63,6 +63,14 @@ class PhotosTest {
         assertEquals(0, updated.coverIndex)
     }
 
+    @Test fun photosSurviveTheRecipeFile() {
+        val r = Recipe(id = "r", title = "T", servings = 2, photos = listOf(a, b), coverIndex = 1)
+        assertEquals(listOf(r), RecipeJson.decode(RecipeJson.encode(listOf(r))))
+        // Files written before photos existed read as "no photos".
+        val old = RecipeJson.decode(RecipeJson.encode(listOf(r.copy(photos = emptyList(), coverIndex = 0))))
+        assertEquals(emptyList(), old.single().photos)
+    }
+
     @Test fun sampleSizeNeverDropsBelowTheTarget() {
         assertEquals(1, Photos.sampleSize(1200, 800))
         assertEquals(1, Photos.sampleSize(4000, 3000)) // halving would give 2000 < 2048
