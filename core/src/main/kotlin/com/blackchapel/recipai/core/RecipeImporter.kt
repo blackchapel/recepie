@@ -23,6 +23,10 @@ data class ParsedRecipe(
     val tags: List<String>,
     /** Lines dropped as page clutter (ads, ratings, "jump to recipe"...). */
     val skippedLines: Int,
+    /** What a serving is called ("cookies"), when the source said so. Null means "servings". */
+    val servingsLabel: String? = null,
+    /** Where it came from (host + path) for a link import; saved as [Recipe.source]. */
+    val source: String? = null,
 ) {
     val timerCount: Int get() = steps.count { it.minutes > 0 }
 
