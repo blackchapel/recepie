@@ -209,7 +209,9 @@ private fun PageBack(app: AppController, swipe: PageBackSwipe, under: Animatable
         onBack = { swiped ->
             val top = app.stack.lastOrNull()
             if (swiped) haptics.perform(HapticType.LIGHT)
-            if (top != null && swipe.isFollowing(top)) {
+            // The finish-the-slide path only for a real swipe: a later back
+            // press on a page whose swipe was abandoned pops normally.
+            if (swiped && top != null && swipe.isFollowing(top)) {
                 swipe.commit()
                 scope.launch {
                     try {
