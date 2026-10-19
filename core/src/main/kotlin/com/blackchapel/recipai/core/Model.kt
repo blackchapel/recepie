@@ -49,6 +49,13 @@ data class Recipe(
     val favorite: Boolean = false,
     val source: String? = null,
     val isSample: Boolean = false,
+    /**
+     * Photo file names, in app-private storage (photos module). The first
+     * photo, or the one at [coverIndex], is the cover; none means the
+     * generated illustration is shown.
+     */
+    val photos: List<String> = emptyList(),
+    val coverIndex: Int = 0,
     val createdAt: Long = 0,
     val updatedAt: Long = 0,
 ) {

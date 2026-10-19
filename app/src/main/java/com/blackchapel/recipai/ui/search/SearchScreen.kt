@@ -1,5 +1,6 @@
 package com.blackchapel.recipai.ui.search
 
+import com.blackchapel.recipai.ui.photos.RecipeImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,7 +52,6 @@ import com.blackchapel.recipai.ui.components.Ico
 import com.blackchapel.recipai.ui.components.LargeTitle
 import com.blackchapel.recipai.ui.components.NavBarHeight
 import com.blackchapel.recipai.ui.components.RIcon
-import com.blackchapel.recipai.ui.components.RecipeArt
 import com.blackchapel.recipai.ui.components.SearchField
 import com.blackchapel.recipai.ui.components.TabBarHeight
 import com.blackchapel.recipai.ui.components.TopBar
@@ -121,7 +121,7 @@ fun SearchScreen(app: AppController, recipes: List<Recipe>) {
                     hits.forEachIndexed { i, hit ->
                         if (i > 0) Hairline(start = 62.dp)
                         ResultRow(hit.recipe.title, hit.why ?: "${timeText(hit.recipe)} · ${servingsText(hit.recipe)}", onClick = { app.openRecipe(hit.recipe.id) }) {
-                            RecipeArt(hit.recipe, Modifier.size(38.dp).clip(RoundedCornerShape(10.dp)))
+                            RecipeImage(hit.recipe, Modifier.size(38.dp).clip(RoundedCornerShape(10.dp)))
                         }
                     }
                 }

@@ -43,6 +43,21 @@ class DetailPage(val recipeId: String) : Page {
     }
 }
 
+/**
+ * The editor, a modal page that slides up (editor module). [recipeId] null
+ * means a new recipe; [preset] prefills it from an import preview.
+ */
+@Stable
+class EditorPage(val recipeId: String?, val preset: ParsedRecipe? = null) : Page
+
+/** Full-screen cook mode at the detail page's scale (cook module). */
+@Stable
+class CookPage(val recipeId: String, val factor: Double) : Page
+
+/** Google Drive backup, pushed from Settings (backup module). */
+@Stable
+class BackupPage : Page
+
 enum class ImportTab { TEXT, LINK }
 
 sealed interface Sheet {
@@ -52,6 +67,12 @@ sealed interface Sheet {
     /** Press-and-hold preview ([preview] = true) or the detail page's more menu. */
     data class Actions(val recipeId: String, val preview: Boolean) : Sheet
     data class ConfirmDelete(val recipeId: String) : Sheet
+
+    /** Every running timer (timers module). */
+    data object Timers : Sheet
+
+    /** Full-screen photo viewer (photos module). */
+    data class PhotoViewer(val recipeId: String, val index: Int) : Sheet
 }
 
 data class Toast(
@@ -90,6 +111,9 @@ class AppController(
 
     /** Kept between openings of the import sheet, like a draft. */
     var importText by mutableStateOf("")
+
+    /** The link in the import sheet's "From a link" tab (link-import module). */
+    var importUrl by mutableStateOf("")
 
     var sheet by mutableStateOf<Sheet?>(null)
     var toast by mutableStateOf<Toast?>(null)
@@ -174,10 +198,50 @@ class AppController(
         scope.launch { settingsStore.update(transform) }
     }
 
-    /** The + button: the editor is not built yet (see docs/KNOWN_GAPS.md). */
+    /** The + button and Search's "New recipe". */
     fun newRecipe() {
-        showToast("The recipe editor is coming next. Import one for now.", Ico.Pencil, "Import") {
-            sheet = Sheet.Import()
+        sheet = null
+        stack.add(EditorPage(recipeId = null))
+    }
+
+    fun editRecipe(id: String) {
+        sheet = null
+        stack.add(EditorPage(recipeId = id))
+    }
+
+    /** Import sheet "Review": open the parse in the editor before saving. */
+    fun reviewImport(parsed: ParsedRecipe) {
+        sheet = null
+        stack.add(EditorPage(recipeId = null, preset = parsed))
+    }
+
+    fun startCooking(recipeId: String, factor: Double = 1.0) {
+        sheet = null
+        stack.add(CookPage(recipeId, factor))
+    }
+
+    fun openBackup() {
+        sheet = null
+        stack.add(BackupPage())
+    }
+
+    /**
+     * Text shared to Recipai from another app (share target). A link goes
+     * to the "From a link" tab, anything else to "Paste text".
+     */
+    fun handleSharedText(text: String) {
+        val t = text.trim()
+        if (t.isEmpty()) return
+        stack.clear()
+        val url = Regex("""https?://\S+""").find(t)?.value
+        if (url != null && t.length < url.length + 120) {
+            importUrl = url
+            sheet = Sheet.Import(ImportTab.LINK)
+        } else {
+            importText = t
+            sheet = Sheet.Import(ImportTab.TEXT)
         }
     }
+
+    // ---- Module additions go below, one section per module, so merges stay simple.
 }

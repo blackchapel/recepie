@@ -31,6 +31,8 @@ import com.blackchapel.recipai.data.ThemeMode
 import com.blackchapel.recipai.haptics.HapticType
 import com.blackchapel.recipai.ui.AppController
 import com.blackchapel.recipai.ui.Tab
+import com.blackchapel.recipai.ui.backup.BackupSettingsSection
+import com.blackchapel.recipai.ui.cook.CookingSettingsRows
 import com.blackchapel.recipai.ui.components.Cell
 import com.blackchapel.recipai.ui.components.Group
 import com.blackchapel.recipai.ui.components.GroupLabel
@@ -66,6 +68,7 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
             modifier = Modifier.fillMaxSize(),
         ) {
             item("title") { LargeTitle("Recipai", "Settings") }
+            item("backup") { BackupSettingsSection(app) }
 
             item("appearance") {
                 Section("Appearance") {
@@ -96,6 +99,7 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
                             haptic = null,
                             onClick = { app.updateSettings { it.copy(haptics = !it.haptics) } },
                         ) { RSwitch(settings.haptics) }
+                        CookingSettingsRows(app, settings)
                     }
                 }
             }

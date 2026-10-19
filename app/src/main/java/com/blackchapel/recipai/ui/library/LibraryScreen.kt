@@ -1,5 +1,6 @@
 package com.blackchapel.recipai.ui.library
 
+import com.blackchapel.recipai.ui.photos.RecipeImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -66,7 +67,6 @@ import com.blackchapel.recipai.ui.components.LargeTitle
 import com.blackchapel.recipai.ui.components.NavBarHeight
 import com.blackchapel.recipai.ui.components.RButton
 import com.blackchapel.recipai.ui.components.RIcon
-import com.blackchapel.recipai.ui.components.RecipeArt
 import com.blackchapel.recipai.ui.components.SearchField
 import com.blackchapel.recipai.ui.components.SegLabel
 import com.blackchapel.recipai.ui.components.Segmented
@@ -302,7 +302,7 @@ private fun RecipeCard(app: AppController, r: Recipe, modifier: Modifier = Modif
                 .clip(RoundedCornerShape(15.dp))
                 .background(c.surface2),
         ) {
-            RecipeArt(r, Modifier.fillMaxSize())
+            RecipeImage(r, Modifier.fillMaxSize())
             if (time.isNotEmpty()) TimeBadge(time, Modifier.align(Alignment.BottomStart).padding(8.dp))
             FavoriteGlassButton(app, r, Modifier.align(Alignment.TopEnd).padding(7.dp))
         }
@@ -355,7 +355,7 @@ private fun RecipeRow(app: AppController, r: Recipe, first: Boolean, last: Boole
             horizontalArrangement = Arrangement.spacedBy(14.dp),
         ) {
             Box {
-                RecipeArt(r, Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)))
+                RecipeImage(r, Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)))
                 if (r.favorite) {
                     Box(
                         Modifier

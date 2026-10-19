@@ -1,5 +1,6 @@
 package com.blackchapel.recipai.ui.importer
 
+import com.blackchapel.recipai.ui.photos.RecipeImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -50,7 +51,6 @@ import com.blackchapel.recipai.ui.components.Ico
 import com.blackchapel.recipai.ui.components.RButton
 import com.blackchapel.recipai.ui.components.RIcon
 import com.blackchapel.recipai.ui.components.RSheet
-import com.blackchapel.recipai.ui.components.RecipeArt
 import com.blackchapel.recipai.ui.components.SegLabel
 import com.blackchapel.recipai.ui.components.Segmented
 import com.blackchapel.recipai.ui.components.TagPill
@@ -106,6 +106,12 @@ fun ImportSheet(app: AppController, sheet: Sheet.Import) {
                     else -> "Add a title line and at least one ingredient or step."
                 }
                 Text(status, style = RecipaiType.bodySmall, color = c.mute, modifier = Modifier.weight(1f), maxLines = 2)
+                RButton(
+                    "Review",
+                    { p?.let { app.reviewImport(it) } },
+                    icon = Ico.Pencil,
+                    enabled = p != null && (p.title.isNotBlank() || p.ingredients.isNotEmpty() || p.steps.isNotEmpty()),
+                )
                 RButton(
                     "Save",
                     {
@@ -237,7 +243,7 @@ private fun PreviewBody(p: ParsedRecipe) {
     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         val recipe = remember(p) { p.toRecipe(now = 0) { "preview" } }
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            RecipeArt(recipe, Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)))
+            RecipeImage(recipe, Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)))
             Column(Modifier.weight(1f)) {
                 Text(p.title.ifBlank { "Untitled recipe" }, style = RecipaiType.secTitle, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 if (p.description.isNotBlank()) Text(p.description, style = RecipaiType.bodySmall, color = c.mute, maxLines = 2, overflow = TextOverflow.Ellipsis)

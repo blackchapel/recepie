@@ -72,6 +72,11 @@ import com.blackchapel.recipai.ui.AppController
 import com.blackchapel.recipai.ui.DetailPage
 import com.blackchapel.recipai.ui.Sheet
 import com.blackchapel.recipai.ui.components.ButtonStyle
+import com.blackchapel.recipai.ui.cook.DetailBottomBar
+import com.blackchapel.recipai.ui.cook.DetailBottomBarHeight
+import com.blackchapel.recipai.ui.photos.DetailHero
+import com.blackchapel.recipai.ui.photos.DetailPhotoStrip
+import com.blackchapel.recipai.ui.timers.StepTimeChip
 import com.blackchapel.recipai.ui.components.GlassButton
 import com.blackchapel.recipai.ui.components.Ico
 import com.blackchapel.recipai.ui.components.IconButton
@@ -116,35 +121,10 @@ fun DetailScreen(app: AppController, page: DetailPage, recipe: Recipe?) {
     val scaled = kotlin.math.abs(page.factor - 1) > 1e-6
 
     Box(Modifier.fillMaxSize().background(c.canvas)) {
-        LazyColumn(state = state, contentPadding = PaddingValues(bottom = bottom + 40.dp), modifier = Modifier.fillMaxSize()) {
-            item("hero") {
-                Box(Modifier.fillMaxWidth().height(HeroHeight).clipToBounds()) {
-                    RecipeArt(
-                        r,
-                        Modifier
-                            .fillMaxSize()
-                            .graphicsLayer {
-                                // Parallax: the art moves at about half the scroll speed.
-                                val y = if (state.firstVisibleItemIndex == 0) state.firstVisibleItemScrollOffset else 0
-                                translationY = y * 0.45f
-                            },
-                    )
-                    Box(Modifier.fillMaxWidth().height(140.dp).background(Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.45f), Color.Transparent))))
-                    TimeBadge("Illustration", Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 44.dp), icon = Ico.Spark)
-                    // The top of the content sheet, overlapping the art.
-                    Box(
-                        Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .height(28.dp)
-                            .background(c.canvas, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)),
-                        contentAlignment = Alignment.TopCenter,
-                    ) {
-                        Box(Modifier.padding(top = 8.dp).width(36.dp).height(5.dp).background(c.lineStrong, CircleShape))
-                    }
-                }
-            }
+        LazyColumn(state = state, contentPadding = PaddingValues(bottom = bottom + DetailBottomBarHeight + 40.dp), modifier = Modifier.fillMaxSize()) {
+            item("hero") { DetailHero(app, r, state) }
             item("head") { Head(app, r) }
+            item("photos") { DetailPhotoStrip(app, r) }
             item("stats") { Stats(page, r, scaled) }
             item("ingredients") { Ingredients(app, page, r, scaled) }
             item("method-head") {
@@ -157,13 +137,14 @@ fun DetailScreen(app: AppController, page: DetailPage, recipe: Recipe?) {
             if (r.steps.isEmpty()) {
                 item("no-steps") { Text("No steps yet.", style = RecipaiType.body, color = c.mute, modifier = Modifier.padding(horizontal = Gutter)) }
             }
-            itemsIndexed(r.steps, key = { _, s -> s.id }) { i, s -> StepCard(page, s, i, scaled) }
+            itemsIndexed(r.steps, key = { _, s -> s.id }) { i, s -> StepCard(app, r, page, s, i, scaled) }
             if (r.notes.isNotBlank()) {
                 item("notes") { Notes(r.notes) }
             }
         }
 
         DetailTopBar(app, r, collapsed)
+        DetailBottomBar(app, r, page, Modifier.align(Alignment.BottomCenter))
     }
 }
 
@@ -427,7 +408,7 @@ private fun IngredientRow(ing: Ingredient, page: DetailPage, anchored: Boolean, 
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun StepCard(page: DetailPage, s: Step, index: Int, scaled: Boolean) {
+private fun StepCard(app: AppController, r: Recipe, page: DetailPage, s: Step, index: Int, scaled: Boolean) {
     val c = LocalColors.current
     val haptics = LocalHaptics.current
     val done = s.id in page.done
@@ -467,14 +448,7 @@ private fun StepCard(page: DetailPage, s: Step, index: Int, scaled: Boolean) {
                     verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    Row(
-                        Modifier.height(34.dp).background(c.surface2, CircleShape).padding(start = 10.dp, end = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    ) {
-                        RIcon(Ico.Clock, size = 15.dp, tint = c.ink)
-                        Text(Scaling.formatMinutes(minutes), style = RecipaiType.mono.copy(fontSize = RecipaiType.uiSmall.fontSize.times(13f / 13.5f)), color = c.ink)
-                    }
+                    StepTimeChip(app, r, s, minutes, Modifier.align(Alignment.CenterVertically))
                     if (scaled && minutes != s.minutes) {
                         Text(
                             Scaling.formatMinutes(s.minutes),

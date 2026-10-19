@@ -42,7 +42,13 @@ import com.blackchapel.recipai.ui.components.TabBar
 import com.blackchapel.recipai.ui.components.TabBarHeight
 import com.blackchapel.recipai.ui.components.ToastHost
 import com.blackchapel.recipai.ui.detail.AmountSheet
+import com.blackchapel.recipai.ui.backup.BackupScreen
+import com.blackchapel.recipai.ui.cook.CookScreen
 import com.blackchapel.recipai.ui.detail.DetailScreen
+import com.blackchapel.recipai.ui.editor.EditorScreen
+import com.blackchapel.recipai.ui.photos.PhotoViewer
+import com.blackchapel.recipai.ui.timers.TimerOverlay
+import com.blackchapel.recipai.ui.timers.TimersSheet
 import com.blackchapel.recipai.ui.importer.ImportSheet
 import com.blackchapel.recipai.ui.library.LibraryScreen
 import com.blackchapel.recipai.ui.search.SearchScreen
@@ -105,10 +111,18 @@ fun RecipaiApp(app: AppController, versionName: String) {
                     transitionSpec = {
                         // Runs after the stack changed: a page that is no longer in it was popped.
                         val isPop = initialState != null && initialState !in app.stack
+                        // The editor and cook mode are modal: they slide up and down; other pages slide sideways.
+                        val moving = if (isPop) initialState else targetState
+                        val modal = moving is EditorPage || moving is CookPage
                         val transform = if (isPop) {
-                            EnterTransition.None togetherWith slideOutHorizontally(tween(400, easing = NavEasing)) { it }
+                            EnterTransition.None togetherWith
+                                if (modal) slideOutVertically(tween(400, easing = NavEasing)) { it }
+                                else slideOutHorizontally(tween(400, easing = NavEasing)) { it }
                         } else {
-                            slideInHorizontally(tween(450, easing = NavEasing)) { it } togetherWith ExitTransition.KeepUntilTransitionsFinished
+                            (
+                                if (modal) slideInVertically(tween(450, easing = NavEasing)) { it }
+                                else slideInHorizontally(tween(450, easing = NavEasing)) { it }
+                                ) togetherWith ExitTransition.KeepUntilTransitionsFinished
                         }
                         // Deeper pages draw on top, so a popped page slides out over the one below.
                         transform.apply { targetContentZIndex = app.stack.size.toFloat() }
@@ -117,6 +131,9 @@ fun RecipaiApp(app: AppController, versionName: String) {
                 ) { page ->
                     when (page) {
                         is DetailPage -> DetailScreen(app, page, recipes.firstOrNull { it.id == page.recipeId })
+                        is EditorPage -> EditorScreen(app, page, recipes)
+                        is CookPage -> CookScreen(app, page, recipes.firstOrNull { it.id == page.recipeId })
+                        is BackupPage -> BackupScreen(app, page)
                         null -> Box(Modifier.fillMaxSize())
                     }
                 }
@@ -138,6 +155,7 @@ fun RecipaiApp(app: AppController, versionName: String) {
                         .padding(end = 18.dp, bottom = TabBarHeight + 16.dp),
                 )
             }
+            if (loaded) TimerOverlay(app, Modifier.align(Alignment.BottomCenter))
             ToastHost(app, Modifier.align(Alignment.TopCenter))
             SheetHost(app, recipes)
         }
@@ -161,7 +179,11 @@ private fun SheetHost(app: AppController, recipes: List<Recipe>) {
                 LaunchedEffect(sheet) { app.sheet = null }
             } else {
                 val actions = buildList {
-                    if (sheet.preview) add(SheetAction("Open recipe", Ico.Book) { app.openRecipe(r.id) })
+                    if (sheet.preview) {
+                        add(SheetAction("Open recipe", Ico.Book) { app.openRecipe(r.id) })
+                        if (r.steps.isNotEmpty()) add(SheetAction("Start cooking", Ico.Flame) { app.startCooking(r.id) })
+                    }
+                    add(SheetAction("Edit recipe", Ico.Pencil) { app.editRecipe(r.id) })
                     add(
                         SheetAction(if (r.favorite) "Remove from favorites" else "Add to favorites", Ico.Heart) {
                             val now = app.toggleFavorite(r.id)
@@ -177,6 +199,11 @@ private fun SheetHost(app: AppController, recipes: List<Recipe>) {
                     title = r.title.takeUnless { sheet.preview },
                 )
             }
+        }
+        Sheet.Timers -> TimersSheet(app)
+        is Sheet.PhotoViewer -> {
+            val r = recipes.firstOrNull { it.id == sheet.recipeId }
+            if (r == null) LaunchedEffect(sheet) { app.sheet = null } else PhotoViewer(app, sheet, r)
         }
         is Sheet.ConfirmDelete -> {
             val r = recipes.firstOrNull { it.id == sheet.recipeId }

@@ -20,7 +20,8 @@ kotlin {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    // api: the app also reads JSON (Drive API responses, backup files).
+    api("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
 
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:2.0.21")
 }

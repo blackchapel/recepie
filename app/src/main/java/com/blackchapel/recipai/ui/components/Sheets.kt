@@ -1,5 +1,6 @@
 package com.blackchapel.recipai.ui.components
 
+import com.blackchapel.recipai.ui.photos.RecipeImage
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -123,7 +124,7 @@ fun ActionSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp),
             ) {
-                RecipeArt(preview, Modifier.size(96.dp).clip(RoundedCornerShape(18.dp)))
+                RecipeImage(preview, Modifier.size(96.dp).clip(RoundedCornerShape(18.dp)))
                 Column(Modifier.weight(1f)) {
                     Text(preview.title, style = RecipaiType.secTitle, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
                     Spacer(Modifier.height(4.dp))

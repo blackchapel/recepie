@@ -1,5 +1,6 @@
 package com.blackchapel.recipai
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,5 +34,20 @@ class MainActivity : ComponentActivity() {
                 RecipaiApp(app, BuildConfig.VERSION_NAME)
             }
         }
+        // A fresh launch from the share sheet; rotation re-creates with the
+        // same intent, so only handle it the first time.
+        if (savedInstanceState == null) handleShare(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleShare(intent)
+    }
+
+    /** Text or a link shared to Recipai from another app. */
+    private fun handleShare(intent: Intent?) {
+        if (intent?.action != Intent.ACTION_SEND || intent.type != "text/plain") return
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT) ?: return
+        viewModel.app.handleSharedText(text)
     }
 }
