@@ -6,14 +6,29 @@ part of the change that touches them -- see `CLAUDE.md`.
 
 ## Project state
 
-- **No app code yet.** Only the design, docs and CI exist. Both
-  workflows deliberately fail with "No Gradle project" until the
-  scaffold PR lands.
+- **The Android code has never been compiled by Android tooling.** This
+  sandbox cannot reach Google's Maven repository or the Android SDK, so
+  the first real compile is the first Test Release run. Mitigations:
+  `:core` and the repository tests run locally; the shared Compose code
+  was compile-checked against Compose Desktop (the same APIs). The
+  Android-only files (`MainActivity`, `MainViewModel`,
+  `DataStoreSettings`, `Haptics`, `Fonts`, `Icons`, `ui/Platform.kt`)
+  and the Gradle/AGP wiring were only reviewed. Expect a possible
+  fix-up round.
 - **The pipeline has never run.** The workflows are adapted from
-  RideLink's, which have run, but these copies are unexercised. Expect
-  one fix-up round after the first real run.
-- **Proposed identifiers are unconfirmed:** `com.blackchapel.recipai`,
-  minSdk 26, targetSdk 35.
+  RideLink's, which have run, but these copies are unexercised. The
+  first Test Release is also the first test of the signing secrets.
+- **Not yet built** (see the roadmap in `SYSTEM_STATE.md`): the recipe
+  editor (the + button and Search's "New recipe" show a toast that
+  offers Import instead), timers and cook mode (step times are shown and
+  scaled but can't be started; there is no Start cooking bar), link
+  import and the share target (the "From a link" tab explains this),
+  photos, Google Drive backup (no Backup group in Settings yet), and
+  swiping list rows. The detail page's more menu and the press-and-hold
+  sheet offer only what exists (Open, Favorite, Delete).
+- **The UI has not been seen on a device.** Spacing, font rendering of
+  the variable fonts, the generated illustrations and animation feel
+  need a pass on real phones in both themes.
 
 ## Release pipeline
 
@@ -45,9 +60,10 @@ part of the change that touches them -- see `CLAUDE.md`.
 - **Background backups are best-effort.** WorkManager defers work under
   Doze and battery saver; "daily at 2 AM" means "roughly daily, when the
   OS allows". The Wi-Fi-only option adds a network constraint.
-- **Backup format is unversioned until written.** `BackupSnapshot` must
-  carry a `version` from day one; a breaking change is a MAJOR bump
-  (see `CLAUDE.md`).
+- **Backup format.** The on-device recipe file (`RecipeJson`) already
+  carries a `version` and ignores unknown keys; the Drive backup should
+  build on it. A change older versions can't read is a MAJOR bump (see
+  `CLAUDE.md`).
 - **Photos make backups large.** The prototype assumes the user
   accepts that (there is an Include photos switch). Upload size limits
   and resumable uploads are not designed yet.
@@ -70,11 +86,25 @@ part of the change that touches them -- see `CLAUDE.md`.
 - **Quantity ranges** ("2-3 tbsp") currently keep the first value and put
   the range in the note.
 
+## Storage
+
+- **All recipes live in one JSON file**, read fully into memory and
+  rewritten on every change. Fine for hundreds of recipes; revisit
+  (Room, or one file per recipe) if libraries get much larger or photos
+  move into the model.
+- **An unreadable recipe file is set aside, not repaired.** It is
+  renamed to `recipes.json.unreadable-<time>` and the examples load in
+  its place, with a toast. There is no in-app way to recover it yet.
+- **Scale factor and checklists are per visit.** Leaving a recipe resets
+  its scale, checked ingredients and done steps (as in the prototype).
+  They survive rotation but not process death.
+
 ## Scaling
 
 - **Step-time scaling is a heuristic.** `partial` uses the square root of
   the factor, which is a reasonable default for simmering and roasting
-  but not physics. Users can change each step's mode.
+  but not physics. Each step's mode is guessed from its text; changing
+  it needs the editor (M2).
 - **Unit systems.** No metric/imperial conversion; amounts keep the unit
   they were entered in (volume and weight units step up/down within
   their own system only).
@@ -88,11 +118,16 @@ part of the change that touches them -- see `CLAUDE.md`.
 
 ## Design
 
-- **The prototype is a web page.** Gestures (edge swipe back, row swipe,
-  press and hold, sheet drag) must be rebuilt with Compose gesture APIs
-  and Android's predictive back; feel on a real device is unverified.
-- **Haptics** in the prototype are a vibration approximation; the mapping
-  to `HapticFeedbackConstants` in `DESIGN.md` is untested on devices,
-  and some constants need newer API levels (fall back on older ones).
-- **Fonts** (Bricolage Grotesque, Geist) load through the Google Fonts
-  provider; a first-launch offline fallback to the system font is needed.
+- **Back gesture.** Swipe from the left edge is Android's own back
+  gesture (handled with `BackHandler`); there is no in-app "page follows
+  the finger" drag, and predictive back's preview animation is not
+  wired up.
+- **No blur.** The design's bars are translucent and blurred; the app
+  uses the translucent color without blur (the design's stated solid
+  fallback).
+- **Haptics** are untested on devices. `SEGMENT_TICK` needs API 34 and
+  `CONFIRM`/`REJECT` API 30; older versions fall back to `CLOCK_TICK`
+  and `LONG_PRESS`.
+- **Illustrations are simpler than the prototype's** (a seeded plate
+  with generic items), and only recognize English ingredient names.
+- **Bundled fonts add about 0.7 MB** to the APK (three variable TTFs).

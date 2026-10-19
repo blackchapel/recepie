@@ -7,98 +7,152 @@ the codebase quickly. Keep it current alongside every change (see
 
 ## What exists today
 
-- The approved UI prototype: `docs/design/recipai-prototype.html`
-  (single self-contained HTML file, no build step). It is a design
-  reference, **not** shipped code. Its JavaScript also contains working
-  reference implementations of the scaling engine and the text importer,
-  worth porting (see "Logic to port" below).
-- The release pipeline: `.github/workflows/build-apk.yml` (Test
-  Release), `.github/workflows/release.yml` (Production Release),
-  `.github/release.yml` (release-note categories).
-- `app/version.properties` (`VERSION_NAME=0.1`).
-- Docs: this file, `KNOWN_GAPS.md`, `DESIGN.md`, `RELEASING.md`.
+The first app milestone (M1): a working library with live scaling and
+paste-text import, on sample data plus whatever the user imports.
 
-**There is no Android project yet** (no `gradlew`, no `app/build.gradle.kts`,
-no Kotlin). Until the scaffold lands, both workflows stop at their
-"Check the Gradle project exists" step with a clear error. That is
-expected.
+- **Recipes / Favorites tabs:** large collapsing title, search field,
+  dismissible "example recipes" banner, tag chips with counts plus
+  "Under 30 min", sort (Recent / A to Z / Quickest), grid/list toggle
+  (remembered), favorite hearts, empty states. Press and hold a card or
+  row for a preview action sheet (Open, Favorite, Delete).
+- **Recipe detail:** generated plate illustration with parallax, glass
+  top bar that turns solid on scroll, tags (tap one to filter Recipes),
+  title, description, source, stats (time, servings with - / +, items),
+  scale presets (½× to 3×), "Scaled 1.5× to match ..." banner with
+  Reset, ingredient check-off, step done-marking, scaled step times with
+  the original struck through and the scaling mode, notes. More menu:
+  favorite, delete (confirm sheet, then Undo in a toast).
+- **Amount sheet:** tap any amount, type or step a new value; the
+  preview shows the factor, servings and total time; Scale recipe
+  applies it. Quick chips for ½×, Original, 2×, 3×.
+- **Import sheet** (center tab button): Paste text (clipboard button,
+  "Try a sample", free typing) with a live parsed preview (ingredients,
+  steps, timers, servings, tags, skipped clutter), Save opens the new
+  recipe. The "From a link" tab only explains that link import is
+  coming (see `KNOWN_GAPS.md`).
+- **Search tab:** browse tiles (Under 30 minutes, Favorites, one per
+  tag); with a query, Recipes (title, then ingredient "Uses ...", then
+  tag matches), Tags, and Actions (New recipe, Import from text / link).
+- **Settings tab:** theme (Auto / Light / Dark), haptic feedback switch,
+  recipe count, Restore example recipes, About with the version name.
+- **Persistence:** recipes in one JSON file, settings in DataStore. The
+  first launch seeds the 8 example recipes.
+- **Haptics** for every interaction, through one wrapper, with the
+  in-app switch (see `DESIGN.md`, "Haptics").
+- The approved prototype `docs/design/recipai-prototype.html` remains
+  the design reference.
+- The release pipeline (below), `app/version.properties`
+  (`VERSION_NAME=0.1`), and the docs.
 
-## Planned architecture
+Not built yet (in milestone order): the editor (the + button explains
+this and offers Import), timers and cook mode, link import / share
+target / JSON-LD, photos, Google Drive backup, swipe-to-act rows. See
+"Roadmap" below and `KNOWN_GAPS.md`.
 
-Offline-first, single module (`app`), single Activity, Compose UI. No
-backend: Google Drive is the only network dependency besides fetching a
-recipe page the user asked to import.
+## Architecture (as built)
 
-Proposed identifiers (confirm before the scaffold PR): `applicationId` /
-namespace `com.blackchapel.recipai`, minSdk 26, target/compile SDK 35, JDK 17.
+Offline-first, single Activity, Compose UI, two Gradle modules. No
+backend and no network use at all yet.
+
+Identifiers: `applicationId` / namespace `com.blackchapel.recipai`,
+minSdk 26, target/compile SDK 35, JDK 17. Toolchain: AGP 8.7.2, Kotlin
+2.0.21, Gradle 8.9, Compose BOM 2024.10.01.
 
 | Concern | Choice |
 |---|---|
-| Language / UI | Kotlin, Jetpack Compose, Material 3 as the base, custom theme from `DESIGN.md` |
-| Navigation | Navigation Compose: four tab roots, pushed detail/backup pages, editor as a modal route |
-| Storage | Room (recipes, ingredients, steps, tags, photos metadata); photos as files in app-private storage; DataStore for settings |
-| DI | Hilt |
-| Images | Coil; photo picker (`PickVisualMedia`) so no storage permission is needed |
-| Timers | Foreground service (`foregroundServiceType="specialUse"` or `shortService`, to confirm) + notification with pause / +1 min; survives screen off |
-| Import | `ACTION_SEND` share target (`text/plain`); page fetch with OkHttp; parse schema.org `Recipe` JSON-LD first, then fall back to the text heuristics. **Rule-based only, no AI/LLM** (decided; see below) |
-| Backup | Google Sign-In / Credential Manager + Drive REST v3, `drive.file` scope (app can only see files it created), WorkManager periodic work for daily/weekly |
-| Haptics | `HapticFeedbackConstants` through one `Haptics` wrapper (see mapping in `DESIGN.md`) |
-| Fonts | Bricolage Grotesque, Geist, Geist Mono via Google Fonts provider |
+| Language / UI | Kotlin, Jetpack Compose. Material 3 only as the base (sheets, menus); every visible color/type comes from the design tokens in `ui/theme` |
+| Navigation | A small hand-rolled stack in `AppController`: four tab roots (kept with `rememberSaveableStateHolder`), pages pushed over them with `AnimatedContent` (slide in from the right, the tab underneath shifts left and dims), system back via `BackHandler` |
+| State | `AppController`: Compose snapshot state owned by the activity's `MainViewModel`, so it survives rotation. Each pushed `DetailPage` carries its own scale factor and checklists |
+| Storage | `RecipeRepository`: all recipes in memory, saved to `filesDir/recipes.json` (`RecipeJson`, versioned, kotlinx.serialization) with an atomic temp-file-then-move write on a single-threaded dispatcher. An unreadable file is renamed aside, never overwritten. Settings in DataStore Preferences (`DataStoreSettings`) |
+| DI | None; `MainViewModel` builds the two repositories. Add Hilt only if the graph grows |
+| Sheets | `ModalBottomSheet` wrapped in `RSheet` (grabber, title, close; drag down or scrim to dismiss; light haptic) |
+| Haptics | `haptics/Haptics.kt` maps the design's six types to `HapticFeedbackConstants` via `View.performHapticFeedback` (no VIBRATE permission). Compose's own `LocalHapticFeedback` is replaced with a no-op so nothing bypasses the switch |
+| Fonts | Bricolage Grotesque, Geist and Geist Mono bundled as variable fonts in `res/font` (OFL, licenses in `third_party/fonts/`), so they work offline from first launch |
+| Icons | The prototype's line icons as vector drawables (`res/drawable/ic_*.xml`), used through `Ico` / `RIcon` |
+| Illustrations | `RecipeArt`: a seeded Compose `Canvas` plate (table, plate, a base, and items picked from ingredient names), simpler than the prototype's but stable per recipe |
+| Import | `TextRecipeParser` in `:core` behind the `RecipeImporter` interface. Rule-based only (see "AI / LLM features") |
 
-## Planned module map
+## Module map
 
-`app/src/main/java/com/blackchapel/recipai/` (none of this exists yet)
+`core/` -- **pure Kotlin JVM module, no Android imports.** Unit-tested
+by `./gradlew :core:test`.
 
-- `MainActivity.kt`, `MiseApplication.kt` -- single activity; app-level
-  setup, notification channels (timers, backup).
-- `data/` -- Room database, DAOs, entities, repository; `BackupSnapshot`
-  (the JSON backup format, versioned).
-- `domain/scaling/` -- pure Kotlin: quantity parsing and formatting,
-  unit step-up/step-down, per-step time scaling. **No Android imports.**
-- `domain/importer/` -- pure Kotlin: text parser, JSON-LD reader, tag
-  suggestions, behind a `RecipeImporter` interface so an LLM-backed
-  importer can be added later without touching callers. **No Android
-  imports.**
-- `ui/library/`, `ui/detail/`, `ui/editor/`, `ui/search/`,
-  `ui/settings/`, `ui/backup/`, `ui/cook/` -- screens and view models.
-- `ui/components/` -- tab bar, floating action button, bottom sheets,
-  action sheets, tag chips, swipeable rows, timer pill.
-- `ui/theme/` -- color, type, shape, motion tokens.
-- `timer/` -- timer manager + foreground service.
-- `backup/` -- Drive client, `BackupWorker`, restore.
-- `share/ShareReceiverActivity.kt` -- receives shared links/text.
-- `haptics/Haptics.kt`.
+- `Model.kt` -- `Recipe`, `Ingredient`, `Step`, `TimeScale`
+  (serializable).
+- `Quantities.kt` -- parse `2`, `1.5`, `1/2`, `1 1/2`, `1½`; format as
+  fractions.
+- `Scaling.kt` -- scaled amounts with tsp/tbsp/cup and g/kg, ml/l steps
+  and plurals; factor from a typed amount; step-time scaling (fixed,
+  partial = square root, linear); time/servings formatting.
+- `TextRecipeParser.kt`, `RecipeImporter.kt` -- the importer and its
+  interface; `Importing.kt` turns a parse into a `Recipe`;
+  `ImportSamples.kt` holds two realistic copied pages ("Try a sample",
+  tests).
+- `Library.kt` -- filter / sort / tag counts / search ranking.
+- `Tags.kt` -- tag normalizing and stable colors.
+- `RecipeJson.kt` -- the versioned recipe file format.
+- `SampleRecipes.kt` -- the 8 examples, generated from the prototype.
 
-## Logic to port from the prototype
+`app/src/main/java/com/blackchapel/recipai/`
 
-These were verified in the prototype and should be ported with unit
-tests (JVM, run by CI):
+- `MainActivity.kt` -- edge-to-edge, provides haptics, hosts
+  `RecipaiApp`. `MainViewModel.kt` -- owns `AppController`.
+- `data/` -- `RecipeRepository` (JSON file), `Settings.kt`
+  (`AppSettings`, `SettingsStore`), `DataStoreSettings`.
+- `haptics/` -- `HapticType`, `LocalHaptics`, the Android `Haptics`
+  mapping.
+- `ui/AppController.kt` -- tabs, page stack, filters, open sheet, toast,
+  actions (favorite, delete with undo, save import, restore examples).
+- `ui/RecipaiApp.kt` -- the root: tab roots, pushed pages, tab bar, +
+  button, toasts, the sheet host.
+- `ui/Platform.kt` -- `BackHandler` and status-bar icon color (the only
+  Android-specific UI calls).
+- `ui/library/`, `ui/detail/` (detail page, amount sheet), `ui/search/`,
+  `ui/settings/`, `ui/importer/`.
+- `ui/components/` -- controls (buttons, segmented control, chips,
+  tags, search field, cells, switch), chrome (top bar, large title, tab
+  bar, + button, toasts), sheets (action sheet, delete confirm),
+  `RecipeArt`, icons.
+- `ui/theme/` -- color tokens (dark/light), type scale, fonts, theme.
 
-- **Scaling:** quantities accept `2`, `1.5`, `1/2`, `1 1/2` and vulgar
-  fractions; output uses fractions (¼ ⅓ ½ ...) for cooking units and
-  rounded numbers for g/ml; tsp->tbsp->cup and g->kg, ml->l conversions
-  when scaling crosses a threshold; singular/plural unit names.
-- **Step time modes:** `fixed` (oven, resting), `partial` (scales with
-  the square root of the factor, e.g. simmering), `linear` (scales with
-  the batch, e.g. chopping). Defaults are guessed from the step text.
-- **Typing one amount scales the rest:** new factor = typed amount
-  (converted back to the stored unit) / stored quantity.
-- **Text import:** section headings (Ingredients / Method / Notes), junk
-  line filtering (ads, ratings, "jump to recipe"), ingredient line
-  parsing (quantity, unit, name, note, "optional"), sub-headings such as
-  "For the sauce", step time detection (`10-12 minutes`, `1 hour 20
-  minutes`), tag suggestions.
+Unit tests: `core/src/test` (scaling, quantities, parser, tags, library,
+JSON) and `app/src/test` (`RecipeRepositoryTest`: first launch,
+persistence across restarts, undo, restore examples, unreadable file).
+
+## Roadmap
+
+- **M2 -- Editor:** create/edit recipes (modal page from the bottom),
+  sections, reorder, detected-time chips, validation; wire the + button
+  and Edit actions.
+- **M3 -- Timers and cook mode:** tap a step time to start a timer
+  (foreground service + notification so it survives screen off), timers
+  sheet, cook mode with keep-screen-on and timer sound settings.
+- **M4 -- Link import:** fetch a page, read schema.org `Recipe` JSON-LD,
+  fall back to the text rules; `ACTION_SEND` share target; the
+  "From a link" tab.
+- **M5 -- Photos:** photo picker, cover photo, viewer.
+- **M6 -- Google Drive backup:** the Backup page from the design.
+- Gestures still to add: swipe a list row for Favorite / Delete.
+
+## Reference implementations ported from the prototype
+
+The prototype's JavaScript scaling engine and text importer were ported
+to `:core` with unit tests. Two prototype bugs were fixed on the way: a
+vulgar fraction with no whole number swallowed the space before it, and
+the "drinks" tag fired on any recipe whose steps mention lemon juice
+(it now only comes from the title).
 
 ## AI / LLM features: deferred
 
-Decision: the first versions are **rule-based only**. Import uses the
-JSON-LD reader and text heuristics; nothing calls a language model, so
-the app needs no AI API key and works fully offline.
+Decision: import is rule-based for now, with AI added later. That
+means no AI API key and no server, and the app works fully offline.
+Today import is the text rules (`TextRecipeParser`); M4 adds a JSON-LD
+reader in front of them. Nothing calls a language model.
 
 LLM support (for example importing messy text or photos of recipe
 cards, tag suggestions, substitutions) may be added later. When it is:
 
-- The importer interface above is the extension point: rules first, an
+- `RecipeImporter` (in `:core`) is the extension point: rules first, an
   LLM only as a fallback or opt-in step.
 - A cloud model's API key must **never** ship inside the APK (it can be
   extracted). It needs a small proxy server that holds the key and
@@ -117,7 +171,7 @@ Neither runs automatically; merging to `main` releases nothing.
 - Input: `branch`. Builds a signed APK from that branch.
 - Version name: `<MAJOR.MINOR>-<branch>.<shortsha>`; version code: the
   commit count of that branch.
-- Runs `testDebugUnitTest`, then `assembleRelease`.
+- Runs `:core:test testDebugUnitTest`, then `assembleRelease`.
 - Uploads the APK as a workflow artifact named
   `recipai-test-<branch>-<version>`. Does not tag or publish.
 
@@ -126,7 +180,7 @@ Neither runs automatically; merging to `main` releases nothing.
 - Version name: `<MAJOR.MINOR>.<PATCH>` where PATCH is one more than the
   highest existing `v<MAJOR.MINOR>.*` tag (0 if none). Refuses to reuse
   an existing tag. Version code: the commit count of `main`.
-- Runs `testDebugUnitTest`, `assembleRelease`, then creates the GitHub
+- Runs `:core:test testDebugUnitTest`, `assembleRelease`, then creates the GitHub
   Release `v<version>` with generated notes (grouped by PR label via
   `.github/release.yml`) and the APK `recipai-v<version>.apk` attached.
 
@@ -139,7 +193,7 @@ silently if not.
   `versionName` (local builds fall back to `1` and the file's value).
 - The `release` signing config reads `KEYSTORE_PATH`,
   `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` from the environment.
-- `./gradlew testDebugUnitTest` and `./gradlew assembleRelease` work and
+- `./gradlew :core:test testDebugUnitTest` and `./gradlew assembleRelease` work and
   write `app/build/outputs/apk/release/app-release.apk`.
 
 Differences from RideLink's pipeline: the production workflow refuses to

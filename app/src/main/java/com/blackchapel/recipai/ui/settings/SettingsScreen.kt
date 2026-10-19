@@ -1,0 +1,144 @@
+package com.blackchapel.recipai.ui.settings
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import com.blackchapel.recipai.core.Recipe
+import com.blackchapel.recipai.data.AppSettings
+import com.blackchapel.recipai.data.ThemeMode
+import com.blackchapel.recipai.haptics.HapticType
+import com.blackchapel.recipai.ui.AppController
+import com.blackchapel.recipai.ui.Tab
+import com.blackchapel.recipai.ui.components.Cell
+import com.blackchapel.recipai.ui.components.Group
+import com.blackchapel.recipai.ui.components.GroupLabel
+import com.blackchapel.recipai.ui.components.Hairline
+import com.blackchapel.recipai.ui.components.Ico
+import com.blackchapel.recipai.ui.components.LargeTitle
+import com.blackchapel.recipai.ui.components.NavBarHeight
+import com.blackchapel.recipai.ui.components.RIcon
+import com.blackchapel.recipai.ui.components.RSwitch
+import com.blackchapel.recipai.ui.components.SegLabel
+import com.blackchapel.recipai.ui.components.Segmented
+import com.blackchapel.recipai.ui.components.TabBarHeight
+import com.blackchapel.recipai.ui.components.TopBar
+import com.blackchapel.recipai.ui.theme.LocalColors
+import com.blackchapel.recipai.ui.theme.RecipaiType
+
+@Composable
+fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Recipe>, versionName: String) {
+    val c = LocalColors.current
+    val state = rememberLazyListState()
+    val initialTick = remember { app.reselectTick }
+    LaunchedEffect(app.reselectTick) { if (app.reselectTick != initialTick && app.tab == Tab.SETTINGS) state.animateScrollToItem(0) }
+    val density = LocalDensity.current
+    val scrolled by remember { derivedStateOf { state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > 4 } }
+    val collapsed by remember { derivedStateOf { state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > with(density) { 44.dp.toPx() } } }
+    val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
+    Box(Modifier.fillMaxSize().background(c.canvas)) {
+        LazyColumn(
+            state = state,
+            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + TabBarHeight + 28.dp),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            item("title") { LargeTitle("Recipai", "Settings") }
+
+            item("appearance") {
+                Section("Appearance") {
+                    Group {
+                        val themes = listOf(Triple(ThemeMode.AUTO, Ico.Monitor, "Auto"), Triple(ThemeMode.LIGHT, Ico.Sun, "Light"), Triple(ThemeMode.DARK, Ico.Moon, "Dark"))
+                        Segmented(
+                            count = 3,
+                            selected = themes.indexOfFirst { it.first == settings.theme },
+                            onSelect = { i -> app.updateSettings { it.copy(theme = themes[i].first) } },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+                        ) { i, _ ->
+                            RIcon(themes[i].second, size = 15.dp)
+                            SegLabel(themes[i].third)
+                        }
+                    }
+                }
+            }
+
+            item("cooking") {
+                Section("Cooking") {
+                    Group {
+                        Cell(
+                            "Haptic feedback",
+                            icon = Ico.Vibrate,
+                            iconColor = c.ube,
+                            subtitle = "Gentle taps on swipes, toggles and timers",
+                            role = Role.Switch,
+                            haptic = null,
+                            onClick = { app.updateSettings { it.copy(haptics = !it.haptics) } },
+                        ) { RSwitch(settings.haptics) }
+                    }
+                }
+            }
+
+            item("library") {
+                Section("Library") {
+                    Group {
+                        Cell("Recipes", icon = Ico.Book, iconColor = c.ube) {
+                            Text("${recipes.size}", style = RecipaiType.cell, color = c.mute)
+                        }
+                        Hairline(start = 56.dp)
+                        Cell(
+                            "Restore example recipes",
+                            icon = Ico.Reset,
+                            iconColor = c.basil,
+                            subtitle = "Adds back any of the 8 examples you deleted",
+                            haptic = HapticType.SUCCESS,
+                            onClick = { app.restoreSamples() },
+                        )
+                    }
+                }
+            }
+
+            item("about") {
+                Section("About") {
+                    Group {
+                        Cell("Recipai", icon = Ico.Info, iconColor = c.faint, subtitle = "Works offline. Your recipes stay on this phone.")
+                        Hairline(start = 56.dp)
+                        // Test builds have long names (0.1-branch.sha), so the version gets its own line.
+                        Cell("Version", icon = Ico.Tag, iconColor = c.faint, subtitle = versionName)
+                    }
+                }
+            }
+        }
+        TopBar(title = "Settings", scrolled = scrolled, collapsed = collapsed)
+    }
+}
+
+@Composable
+private fun Section(label: String, content: @Composable () -> Unit) {
+    Column(Modifier.padding(top = 14.dp)) {
+        GroupLabel(label)
+        content()
+        Spacer(Modifier.height(8.dp))
+    }
+}

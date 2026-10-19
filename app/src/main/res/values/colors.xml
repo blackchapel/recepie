@@ -1,0 +1,6 @@
+<resources>
+    <!-- Launcher icon background and the window color before Compose draws. -->
+    <color name="canvas_dark">#0D0C0B</color>
+    <color name="canvas_light">#F4F2EE</color>
+    <color name="window_background">@color/canvas_light</color>
+</resources>

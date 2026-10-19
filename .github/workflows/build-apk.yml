@@ -73,7 +73,9 @@ jobs:
           echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        # :core is a plain JVM module (scaling, import, storage format), so it
+        # has its own test task; testDebugUnitTest covers :app.
+        run: ./gradlew :core:test testDebugUnitTest --stacktrace
 
       - name: Decode signing keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ runner.temp }}/release.jks"

@@ -1,0 +1,121 @@
+package com.blackchapel.recipai.data
+
+import com.blackchapel.recipai.core.Recipe
+import com.blackchapel.recipai.core.RecipeJson
+import com.blackchapel.recipai.core.SampleRecipes
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
+/**
+ * All recipes, kept in memory and saved as one JSON file ([RecipeJson]) in
+ * app-private storage. The first launch (no file yet) starts with the
+ * example recipes.
+ */
+class RecipeRepository(
+    private val file: File,
+    private val scope: CoroutineScope,
+    io: CoroutineDispatcher,
+    private val clock: () -> Long = System::currentTimeMillis,
+) {
+    // One writer at a time, and each write saves the latest list, so the
+    // file always ends up matching memory whatever order writes run in.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val writer = io.limitedParallelism(1)
+
+    private val _recipes = MutableStateFlow<List<Recipe>>(emptyList())
+    val recipes: StateFlow<List<Recipe>> = _recipes.asStateFlow()
+
+    private val _loaded = MutableStateFlow(false)
+    val loaded: StateFlow<Boolean> = _loaded.asStateFlow()
+
+    /** Set when the saved file could not be read (a copy is kept beside it). */
+    private val _loadError = MutableStateFlow<String?>(null)
+    val loadError: StateFlow<String?> = _loadError.asStateFlow()
+
+    init {
+        scope.launch {
+            val saved = withContext(writer) { readFile() }
+            _recipes.value = saved ?: SampleRecipes.all(clock())
+            _loaded.value = true
+            if (saved == null) save()
+        }
+    }
+
+    fun get(id: String): Recipe? = _recipes.value.firstOrNull { it.id == id }
+
+    /** Adds [recipe] at the top, or replaces the recipe with the same id. */
+    fun upsert(recipe: Recipe) = mutate { list ->
+        val i = list.indexOfFirst { it.id == recipe.id }
+        if (i < 0) listOf(recipe) + list else list.toMutableList().also { it[i] = recipe }
+    }
+
+    fun toggleFavorite(id: String): Boolean? {
+        var now: Boolean? = null
+        mutate { list ->
+            list.map { r -> if (r.id == id) r.copy(favorite = !r.favorite).also { now = it.favorite } else r }
+        }
+        return now
+    }
+
+    /** Removes a recipe; returns it with its position so it can be undone. */
+    fun delete(id: String): Pair<Int, Recipe>? {
+        val list = _recipes.value
+        val i = list.indexOfFirst { it.id == id }
+        if (i < 0) return null
+        val gone = list[i]
+        mutate { it.filterNot { r -> r.id == id } }
+        return i to gone
+    }
+
+    fun restore(index: Int, recipe: Recipe) = mutate { list ->
+        if (list.any { it.id == recipe.id }) list
+        else list.toMutableList().also { it.add(index.coerceIn(0, it.size), recipe) }
+    }
+
+    /** Adds back any example recipe that is missing. Returns how many. */
+    fun restoreSamples(): Int {
+        val have = _recipes.value.map { it.id }.toSet()
+        val missing = SampleRecipes.all(clock()).filter { it.id !in have }
+        if (missing.isNotEmpty()) mutate { it + missing }
+        return missing.size
+    }
+
+    private fun mutate(transform: (List<Recipe>) -> List<Recipe>) {
+        _recipes.update(transform)
+        save()
+    }
+
+    private fun save() {
+        scope.launch(writer) { writeFile(_recipes.value) }
+    }
+
+    private fun readFile(): List<Recipe>? {
+        if (!file.exists()) return null
+        return try {
+            RecipeJson.decode(file.readText())
+        } catch (e: Exception) {
+            // Never overwrite what we could not read: keep it for recovery.
+            val kept = File(file.parentFile, "${file.name}.unreadable-${clock()}")
+            file.renameTo(kept)
+            _loadError.value = "Couldn't read your saved recipes. A copy was kept, and the examples were loaded instead."
+            null
+        }
+    }
+
+    private fun writeFile(list: List<Recipe>) {
+        file.parentFile?.mkdirs()
+        val tmp = File(file.parentFile, "${file.name}.tmp")
+        tmp.writeText(RecipeJson.encode(list))
+        Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
+    }
+}

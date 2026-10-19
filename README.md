@@ -6,9 +6,23 @@ follows** -- amounts, servings and step times. Import recipes from pasted
 text or a shared link, attach photos, tag everything, and back up to
 your own Google Drive.
 
-> **Status: pre-build.** This repo currently holds the approved design
-> and the CI/release pipeline. There is no app code yet -- see
-> `docs/SYSTEM_STATE.md` for exactly what exists.
+> **Status: first milestone.** The library, recipe detail with live
+> scaling, paste-text import, search and settings work, offline, with
+> 8 example recipes. The editor, timers and cook mode, link import,
+> photos and Drive backup come next -- see `docs/SYSTEM_STATE.md` for
+> exactly what exists.
+
+## Works today
+
+- Browse recipes in a grid or list: search, filter by tag or "Under 30
+  min", sort, favorite. Press and hold a recipe for quick actions.
+- **Live scaling** on every recipe: change servings, pick ½× to 3×, or
+  tap any amount and type a new one. Everything else, including step
+  times, follows.
+- **Import by pasting text:** see the parsed recipe update as you paste
+  or type, then save it.
+- Check off ingredients and steps while cooking, delete with undo,
+  restore the examples, light/dark/auto theme, haptics on or off.
 
 ## Features (target)
 
@@ -38,16 +52,19 @@ renders inside a phone frame). `docs/DESIGN.md` describes it in words.
 
 ## Tech
 
-Kotlin, Jetpack Compose, Room, WorkManager, Google Drive REST API. Android
-only, native. Min SDK 26. See `docs/SYSTEM_STATE.md`.
+Kotlin and Jetpack Compose, Android only, native. Min SDK 26. Two
+modules: `core` (plain Kotlin: scaling, the importer, the recipe file
+format, with unit tests) and `app` (the Android UI). Recipes are stored
+as a JSON file on the phone, settings in DataStore. See
+`docs/SYSTEM_STATE.md`.
 
 ## Building
 
-Once the Gradle project exists:
+Needs JDK 17 and the Android SDK (compile SDK 35).
 
 ```sh
-./gradlew testDebugUnitTest      # unit tests
-./gradlew assembleDebug          # debug APK, no signing needed
+./gradlew :core:test testDebugUnitTest   # unit tests
+./gradlew assembleDebug                  # debug APK, no signing needed
 ```
 
 Release APKs are signed and built by GitHub Actions only; there is no

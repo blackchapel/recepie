@@ -119,12 +119,12 @@ setting too.
 
 | Type | Used for | Android constant (fallback) |
 |---|---|---|
-| selection | Tabs, tag chips, scale presets and steppers, toggles, reordering, a swipe passing its action point, step/photo swipes | `SEGMENT_TICK` / `CLOCK_TICK` (API 30+/earlier) |
+| selection | Tabs, tag chips, scale presets and steppers, toggles, reordering, a swipe passing its action point, step/photo swipes | `SEGMENT_TICK` / `CLOCK_TICK` (API 34+/earlier) |
 | light | Unchecking, dismissing a sheet, back swipe, removing a favorite | `KEYBOARD_TAP` |
 | medium | Press-and-hold menu, starting a timer, an incoming shared link | `LONG_PRESS` |
 | success | Saving a recipe, adding a favorite, finishing a step, a completed backup | `CONFIRM` (API 30+; else `LONG_PRESS`) |
-| warning | Deleting a recipe, a timer finishing | `REJECT` (API 30+; else a short two-pulse `VibrationEffect`) |
-| error | Reserved: failed save/backup/import | `REJECT` |
+| warning | Deleting a recipe, a timer finishing | `REJECT` (API 30+; else `LONG_PRESS`) |
+| error | Reserved: failed save/backup/import | `REJECT` (API 30+; else `LONG_PRESS`) |
 
 A finishing timer in the background uses its notification channel's
 vibration pattern, not this table.
