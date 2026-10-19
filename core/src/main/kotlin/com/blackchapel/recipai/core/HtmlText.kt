@@ -2,9 +2,9 @@ package com.blackchapel.recipai.core
 
 /**
  * Just enough HTML handling for link import: entity decoding, tag
- * stripping, the page's JSON-LD blocks and its readable text. Regex based
- * on purpose (no HTML parser dependency); it only ever reads, it never
- * renders anything from the page.
+ * stripping, the page's JSON-LD blocks and its readable text. No HTML
+ * parser dependency on purpose: a linear scan for structure, small regexes
+ * for tags. It only ever reads; nothing from the page is rendered or run.
  */
 object HtmlText {
     private val i = RegexOption.IGNORE_CASE
@@ -51,7 +51,11 @@ object HtmlText {
         else -> String(Character.toChars(cp))
     }
 
-    private val comment = Regex("<!--[\\s\\S]*?-->")
+    // Structure (comments, script blocks, regions) is found by scanning with
+    // indexOf, not regex: Android's ICU regex engine keeps a backtracking
+    // state per character for lazy `[\s\S]*?`, which overflows its stack on
+    // pages with a few hundred KB of inline script.
+
     private val breakTag = Regex("<br\\s*/?>", i)
     private val blockTag = Regex(
         "</?(?:p|div|li|ul|ol|h[1-6]|tr|table|tbody|thead|section|article|main|header|blockquote|dt|dd|dl|figure|figcaption|pre|hr)\\b[^>]*>",
@@ -68,7 +72,7 @@ object HtmlText {
      */
     fun stripTags(html: String): String {
         if ('<' !in html && '&' !in html) return cleanLines(html)
-        val text = html.replace(comment, "")
+        val text = removeComments(html)
             .replace(breakTag, "\n")
             .replace(blockTag, "\n")
             .replace(anyTag, "")
@@ -83,14 +87,81 @@ object HtmlText {
     /** One line of plain text: tags stripped, all whitespace collapsed. */
     fun inline(html: String): String = stripTags(html).replace('\n', ' ').replace(spaces, " ").trim()
 
-    private val jsonLdScript = Regex(
-        "<script\\b[^>]*\\btype\\s*=\\s*[\"']?\\s*application/ld\\+json[^>]*>([\\s\\S]*?)</script\\s*>",
-        i,
-    )
+    /** ASCII-only lowercase: same length as [s], so indexes line up. */
+    private fun lower(s: String): String {
+        val chars = CharArray(s.length)
+        for (k in s.indices) {
+            val ch = s[k]
+            chars[k] = if (ch in 'A'..'Z') ch + 32 else ch
+        }
+        return String(chars)
+    }
+
+    private fun removeComments(html: String): String {
+        var start = html.indexOf("<!--")
+        if (start < 0) return html
+        val out = StringBuilder(html.length)
+        var from = 0
+        while (start >= 0) {
+            out.append(html, from, start)
+            val end = html.indexOf("-->", start + 4)
+            if (end < 0) return out.toString()
+            from = end + 3
+            start = html.indexOf("<!--", from)
+        }
+        return out.append(html, from, html.length).toString()
+    }
+
+    /** The tag name opening at [lt] in [low] ("<script ..."), or null for closing tags, comments and stray "<". */
+    private fun tagNameAt(low: String, lt: Int): String? {
+        var k = lt + 1
+        if (k >= low.length || low[k] !in 'a'..'z') return null
+        while (k < low.length && (low[k] in 'a'..'z' || low[k] in '0'..'9')) k++
+        if (k < low.length && !low[k].isWhitespace() && low[k] != '>' && low[k] != '/') return null
+        return low.substring(lt + 1, k)
+    }
+
+    /** An element's position: its opening tag is [open] (from "<" to ">"), its content [content]. */
+    private class Element(val open: IntRange, val content: IntRange, val end: Int)
+
+    /** The element opening at [lt] (whose name is [name]); its content runs to the first `</name`. */
+    private fun elementAt(low: String, lt: Int, name: String): Element {
+        val gt = low.indexOf('>', lt).let { if (it < 0) low.length - 1 else it }
+        if (gt > lt && low[gt - 1] == '/') return Element(lt..gt, gt + 1 until gt + 1, gt + 1) // <svg ... />
+        val close = low.indexOf("</$name", gt + 1)
+        if (close < 0) return Element(lt..gt, gt + 1 until low.length, low.length)
+        val closeEnd = low.indexOf('>', close).let { if (it < 0) low.length else it + 1 }
+        return Element(lt..gt, gt + 1 until close, closeEnd)
+    }
+
+    /** Every `<name ...>` element, in order (not nested in one another). */
+    private fun elements(low: String, name: String): Sequence<Element> = sequence {
+        var from = 0
+        while (true) {
+            val lt = low.indexOf("<$name", from)
+            if (lt < 0) break
+            if (tagNameAt(low, lt) != name) {
+                from = lt + 1
+                continue
+            }
+            val e = elementAt(low, lt, name)
+            yield(e)
+            from = maxOf(e.end, lt + 1)
+        }
+    }
+
+    private fun first(html: String, low: String, name: String): String? =
+        elements(low, name).firstOrNull()?.let { html.substring(it.content.first, maxOf(it.content.first, it.content.last + 1)) }
 
     /** The contents of every `<script type="application/ld+json">` on the page, in order. */
-    fun jsonLdBlocks(html: String): List<String> =
-        jsonLdScript.findAll(html).map { it.groupValues[1].trim() }.filter { it.isNotEmpty() }.toList()
+    fun jsonLdBlocks(html: String): List<String> {
+        val low = lower(html)
+        return elements(low, "script")
+            .filter { e -> attr(html.substring(e.open.first, e.open.last + 1), "type")?.contains("ld+json", ignoreCase = true) == true }
+            .map { e -> html.substring(e.content.first, maxOf(e.content.first, e.content.last + 1)).trim() }
+            .filter { it.isNotEmpty() }
+            .toList()
+    }
 
     private val metaTag = Regex("<meta\\b[^>]*>", i)
     private fun attr(tag: String, name: String): String? =
@@ -108,26 +179,52 @@ object HtmlText {
         ?.let { decodeEntities(it).trim() }
         ?.takeIf { it.isNotEmpty() }
 
-    private val h1 = Regex("<h1\\b[^>]*>([\\s\\S]*?)</h1\\s*>", i)
-    private val titleTag = Regex("<title\\b[^>]*>([\\s\\S]*?)</title\\s*>", i)
     private val siteSuffix = Regex("\\s+[|•·–—-]\\s+[^|•·–—-]{2,60}$")
 
     /** The page's own name for itself: `og:title`, else the first `<h1>`, else `<title>` minus " | Site name". */
     fun pageTitle(html: String): String? {
         meta(html, "og:title")?.let { return it }
-        h1.find(html)?.let { m -> inline(m.groupValues[1]).takeIf { it.isNotEmpty() }?.let { return it } }
-        return titleTag.find(html)?.let { m -> inline(m.groupValues[1]).replace(siteSuffix, "").trim().takeIf { it.isNotEmpty() } }
+        val page = removeComments(html)
+        val low = lower(page)
+        first(page, low, "h1")?.take(2_000)?.let(::inline)?.takeIf { it.isNotEmpty() }?.let { return it }
+        return first(page, low, "title")?.take(2_000)?.let(::inline)?.replace(siteSuffix, "")?.trim()?.takeIf { it.isNotEmpty() }
     }
 
-    private val invisible = Regex(
-        "<(script|style|noscript|template|svg|iframe|object|canvas|head|nav|footer|aside|form|button|select|dialog)\\b[^>]*>[\\s\\S]*?</\\1\\s*>",
-        i,
+    /** Elements whose content is never recipe text. */
+    private val invisible = setOf(
+        "script", "style", "noscript", "template", "svg", "iframe", "object", "canvas", "head",
+        "nav", "footer", "aside", "form", "button", "select", "dialog",
     )
     private val voidInvisible = Regex("<(?:input|img|link|meta)\\b[^>]*>", i)
-    private val regionMain = Regex("<main\\b[^>]*>([\\s\\S]*?)</main\\s*>", i)
-    private val regionArticle = Regex("<article\\b[^>]*>([\\s\\S]*)</article\\s*>", i)
-    private val regionBody = Regex("<body\\b[^>]*>([\\s\\S]*)", i)
-    private val h1Start = Regex("<h1\\b", i)
+
+    /** [html] without comments and without the [invisible] elements (each replaced by a line break). */
+    private fun removeInvisible(html: String): String {
+        val low = lower(html)
+        val out = StringBuilder(html.length)
+        var from = 0
+        var k = 0
+        while (true) {
+            val lt = low.indexOf('<', k)
+            if (lt < 0) break
+            if (low.startsWith("<!--", lt)) {
+                out.append(html, from, lt)
+                val end = low.indexOf("-->", lt + 4)
+                from = if (end < 0) html.length else end + 3
+                k = from
+                continue
+            }
+            val name = tagNameAt(low, lt)
+            if (name != null && name in invisible) {
+                out.append(html, from, lt).append('\n')
+                from = elementAt(low, lt, name).end
+                k = from
+                continue
+            }
+            k = lt + 1
+        }
+        if (from < html.length) out.append(html, from, html.length)
+        return out.toString()
+    }
 
     /** Caps the work the text rules do on huge pages. */
     private const val MAX_TEXT = 60_000
@@ -139,18 +236,24 @@ object HtmlText {
      * from its `<h1>` on, so menus above the title don't become the title.
      */
     fun visibleText(html: String): String {
-        val cleaned = html.replace(comment, "").replace(invisible, "\n").replace(voidInvisible, "")
-        val region = regionMain.find(cleaned)?.groupValues?.get(1)
-            ?: regionArticle.find(cleaned)?.groupValues?.get(1)
-            ?: regionBody.find(cleaned)?.groupValues?.get(1)
+        val cleaned = removeInvisible(html).replace(voidInvisible, "")
+        val low = lower(cleaned)
+        val region = first(cleaned, low, "main")
+            ?: elements(low, "article").firstOrNull()?.let { a ->
+                // Up to the last </article>, so nested articles (comments) don't cut it short.
+                val close = low.lastIndexOf("</article")
+                cleaned.substring(a.content.first, if (close > a.content.first) close else cleaned.length)
+            }
+            ?: elements(low, "body").firstOrNull()?.let { cleaned.substring(it.content.first) }
             ?: cleaned
-        val fromTitle = h1Start.find(region)?.let { region.substring(it.range.first) } ?: region
-        val text = stripTags(fromTitle)
+        val regionLow = lower(region)
+        val h1 = elements(regionLow, "h1").firstOrNull()?.open?.first
+        val text = stripTags(if (h1 != null) region.substring(h1) else region)
         return if (text.length > MAX_TEXT) text.substring(0, MAX_TEXT) else text
     }
 
     private val metaCharset = Regex("<meta\\b[^>]*?charset\\s*=\\s*[\"']?\\s*([A-Za-z0-9_\\-:.]+)", i)
 
     /** The charset a page declares in a `<meta>` tag (either form), from the first bytes read as Latin-1. */
-    fun declaredCharset(head: String): String? = metaCharset.find(head)?.groupValues?.get(1)
+    fun declaredCharset(head: String): String? = metaCharset.find(head.take(4096))?.groupValues?.get(1)
 }

@@ -34,6 +34,16 @@ class HtmlTextAndLinksTest {
         assertNull(HtmlText.declaredCharset("<meta name=x>"))
     }
 
+    @Test fun handlesHugeInlineScriptsAndOddMarkup() {
+        val js = "var a = '<div>' + \"</p>\";\n".repeat(100_000) // ~2.6 MB, like a page builder's inline bundle
+        val html = "<html><head><script>$js</script><script type=\"application/ld+json\">{\"@type\":\"Recipe\"}</script></head>" +
+            "<body><nav>menu</nav><!-- a comment <h1>no</h1> --><h1 class=t>Soup</h1><p>Hot.</p><svg viewBox='0 0 1 1'/><p>Done</p>" +
+            "<p>2 < 3</p><!-- never closed"
+        assertEquals(listOf("{\"@type\":\"Recipe\"}"), HtmlText.jsonLdBlocks(html))
+        assertEquals("Soup\nHot.\nDone\n2 < 3", HtmlText.visibleText(html))
+        assertEquals("Soup", HtmlText.pageTitle(html))
+    }
+
     @Test fun findsLinksInSharedText() {
         assertEquals("https://kitchen.example.com/r/1", Links.findUrl("Look at this! https://kitchen.example.com/r/1."))
         assertEquals("https://en.example.org/wiki/Pie_(food)", Links.findUrl("(see https://en.example.org/wiki/Pie_(food))"))
