@@ -40,7 +40,7 @@ namespace `com.blackchapel.recipai`, minSdk 26, target/compile SDK 35, JDK 17.
 | DI | Hilt |
 | Images | Coil; photo picker (`PickVisualMedia`) so no storage permission is needed |
 | Timers | Foreground service (`foregroundServiceType="specialUse"` or `shortService`, to confirm) + notification with pause / +1 min; survives screen off |
-| Import | `ACTION_SEND` share target (`text/plain`); page fetch with OkHttp; parse schema.org `Recipe` JSON-LD first, then fall back to the text heuristics |
+| Import | `ACTION_SEND` share target (`text/plain`); page fetch with OkHttp; parse schema.org `Recipe` JSON-LD first, then fall back to the text heuristics. **Rule-based only, no AI/LLM** (decided; see below) |
 | Backup | Google Sign-In / Credential Manager + Drive REST v3, `drive.file` scope (app can only see files it created), WorkManager periodic work for daily/weekly |
 | Haptics | `HapticFeedbackConstants` through one `Haptics` wrapper (see mapping in `DESIGN.md`) |
 | Fonts | Bricolage Grotesque, Geist, Geist Mono via Google Fonts provider |
@@ -56,7 +56,9 @@ namespace `com.blackchapel.recipai`, minSdk 26, target/compile SDK 35, JDK 17.
 - `domain/scaling/` -- pure Kotlin: quantity parsing and formatting,
   unit step-up/step-down, per-step time scaling. **No Android imports.**
 - `domain/importer/` -- pure Kotlin: text parser, JSON-LD reader, tag
-  suggestions. **No Android imports.**
+  suggestions, behind a `RecipeImporter` interface so an LLM-backed
+  importer can be added later without touching callers. **No Android
+  imports.**
 - `ui/library/`, `ui/detail/`, `ui/editor/`, `ui/search/`,
   `ui/settings/`, `ui/backup/`, `ui/cook/` -- screens and view models.
 - `ui/components/` -- tab bar, floating action button, bottom sheets,
@@ -86,6 +88,25 @@ tests (JVM, run by CI):
   parsing (quantity, unit, name, note, "optional"), sub-headings such as
   "For the sauce", step time detection (`10-12 minutes`, `1 hour 20
   minutes`), tag suggestions.
+
+## AI / LLM features: deferred
+
+Decision: the first versions are **rule-based only**. Import uses the
+JSON-LD reader and text heuristics; nothing calls a language model, so
+the app needs no AI API key and works fully offline.
+
+LLM support (for example importing messy text or photos of recipe
+cards, tag suggestions, substitutions) may be added later. When it is:
+
+- The importer interface above is the extension point: rules first, an
+  LLM only as a fallback or opt-in step.
+- A cloud model's API key must **never** ship inside the APK (it can be
+  extracted). It needs a small proxy server that holds the key and
+  rate-limits per user; that server and its secret are new
+  infrastructure, outside this repo's current pipeline.
+- An on-device model (Gemini Nano via Android's AI APIs) needs no key
+  but only runs on recent high-end phones, so it can only ever be an
+  enhancement.
 
 ## Release pipeline (as it exists)
 
