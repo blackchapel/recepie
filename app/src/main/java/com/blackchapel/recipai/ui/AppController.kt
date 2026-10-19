@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.blackchapel.recipai.core.Links
 import com.blackchapel.recipai.core.ParsedRecipe
 import com.blackchapel.recipai.core.SortOrder
 import com.blackchapel.recipai.core.TagFilter
@@ -14,7 +15,9 @@ import com.blackchapel.recipai.core.toRecipe
 import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.RecipeRepository
 import com.blackchapel.recipai.data.SettingsStore
+import com.blackchapel.recipai.platform.net.PageFetcher
 import com.blackchapel.recipai.ui.components.Ico
+import com.blackchapel.recipai.ui.importer.LinkImport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -233,10 +236,9 @@ class AppController(
         val t = text.trim()
         if (t.isEmpty()) return
         stack.clear()
-        val url = Regex("""https?://\S+""").find(t)?.value
+        val url = Links.findUrl(t)
         if (url != null && t.length < url.length + 120) {
-            importUrl = url
-            sheet = Sheet.Import(ImportTab.LINK)
+            shareLink(url)
         } else {
             importText = t
             sheet = Sheet.Import(ImportTab.TEXT)
@@ -244,4 +246,39 @@ class AppController(
     }
 
     // ---- Module additions go below, one section per module, so merges stay simple.
+
+    // ---- link-import ----
+
+    /** The import sheet's "From a link" conversion; lives here so it survives rotation. */
+    val linkImport = LinkImport(scope, fetch = { PageFetcher.fetch(it) })
+
+    /** Converts the link in [importUrl]; the field then shows the cleaned-up link. */
+    fun convertLink() {
+        linkImport.convert(importUrl)?.let { importUrl = it }
+    }
+
+    /** A link shared from another app: open "From a link" and convert it straight away. */
+    fun shareLink(url: String) {
+        importUrl = url
+        sheet = Sheet.Import(ImportTab.LINK)
+        linkImport.convert(url, fromShare = true)?.let { importUrl = it }
+        linkImport.shareHapticPending = true
+    }
+
+    /**
+     * Saves a converted link (its source comes along in [ParsedRecipe.source])
+     * and clears the link tab. Unlike [saveImport] it leaves a pasted-text
+     * draft alone.
+     */
+    fun saveLinkImport(parsed: ParsedRecipe) {
+        val recipe = parsed.toRecipe(now = System.currentTimeMillis()) { UUID.randomUUID().toString() }
+        repo.upsert(recipe)
+        linkImport.reset()
+        importUrl = ""
+        sheet = null
+        stack.clear()
+        tab = Tab.RECIPES
+        openRecipe(recipe.id)
+        showToast("Saved “${recipe.title}”", Ico.Check)
+    }
 }

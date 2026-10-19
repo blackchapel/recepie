@@ -1,6 +1,11 @@
 package com.blackchapel.recipai.ui.importer
 
 import com.blackchapel.recipai.ui.photos.RecipeImage
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -9,7 +14,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.font.FontStyle
@@ -39,10 +44,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.blackchapel.recipai.core.ImportSamples
 import com.blackchapel.recipai.core.ParsedRecipe
+import com.blackchapel.recipai.core.RecipeSource
 import com.blackchapel.recipai.core.Scaling
 import com.blackchapel.recipai.core.TextRecipeParser
 import com.blackchapel.recipai.core.toRecipe
 import com.blackchapel.recipai.haptics.HapticType
+import com.blackchapel.recipai.haptics.LocalHaptics
 import com.blackchapel.recipai.ui.AppController
 import com.blackchapel.recipai.ui.ImportTab
 import com.blackchapel.recipai.ui.Sheet
@@ -62,12 +69,16 @@ import kotlinx.coroutines.withContext
 
 /**
  * Paste a recipe and see it parsed live (rule-based: [TextRecipeParser]),
- * then save it. "From a link" explains that link fetching comes later.
+ * or convert a recipe page from a link ([LinkImport]), then review or save it.
  */
 @Composable
 fun ImportSheet(app: AppController, sheet: Sheet.Import) {
     val c = LocalColors.current
-    var tab by remember { mutableStateOf(sheet.tab) }
+    val haptics = LocalHaptics.current
+    val link = app.linkImport
+    var tab by remember(sheet) { mutableStateOf(sheet.tab) }
+    // A shared link also lands here when the sheet was already open on "Paste text".
+    LinkHaptics(link, haptics::perform, onShared = { tab = ImportTab.LINK })
     var parsed by remember { mutableStateOf<ParsedRecipe?>(null) }
     LaunchedEffect(app.importText) {
         val text = app.importText
@@ -78,7 +89,7 @@ fun ImportSheet(app: AppController, sheet: Sheet.Import) {
         delay(180) // debounce typing
         parsed = withContext(Dispatchers.Default) { TextRecipeParser.parse(text) }
     }
-    val p = parsed.takeIf { tab == ImportTab.TEXT }
+    val p = if (tab == ImportTab.TEXT) parsed else link.result
 
     RSheet({ app.sheet = null }, title = "Import a recipe") { _ ->
         Column(Modifier.fillMaxWidth().fillMaxHeight()) {
@@ -90,8 +101,21 @@ fun ImportSheet(app: AppController, sheet: Sheet.Import) {
                 }
             }
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState())) {
-                if (tab == ImportTab.TEXT) TextSource(app) else LinkSource { tab = ImportTab.TEXT }
-                Preview(p, busy = tab == ImportTab.TEXT && app.importText.isNotBlank() && p == null)
+                if (tab == ImportTab.TEXT) TextSource(app) else LinkSource(app) { tab = ImportTab.TEXT }
+                if (tab == ImportTab.TEXT) {
+                    Preview(p, busy = app.importText.isNotBlank() && p == null, busyLabel = "Reading…")
+                } else {
+                    Preview(
+                        p,
+                        busy = link.running,
+                        busyLabel = "Reading the page…",
+                        note = if (p != null && link.via == RecipeSource.PAGE_TEXT) {
+                            "This page has no recipe card, so Recipai read its text. Check it before saving."
+                        } else {
+                            null
+                        },
+                    )
+                }
             }
             // Footer
             Box(Modifier.fillMaxWidth().height(0.5.dp).background(c.lineStrong))
@@ -100,12 +124,14 @@ fun ImportSheet(app: AppController, sheet: Sheet.Import) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
+                val source = p?.source
                 val status = when {
                     p == null -> ""
-                    p.isUsable -> "Looks good? Save it to your recipes."
-                    else -> "Add a title line and at least one ingredient or step."
+                    !p.isUsable -> "Add a title line and at least one ingredient or step."
+                    source != null -> "From $source"
+                    else -> "Looks good? Save it to your recipes."
                 }
-                Text(status, style = RecipaiType.bodySmall, color = c.mute, modifier = Modifier.weight(1f), maxLines = 2)
+                Text(status, style = RecipaiType.bodySmall, color = c.mute, modifier = Modifier.weight(1f), maxLines = 2, overflow = TextOverflow.Ellipsis)
                 RButton(
                     "Review",
                     { p?.let { app.reviewImport(it) } },
@@ -116,7 +142,7 @@ fun ImportSheet(app: AppController, sheet: Sheet.Import) {
                     "Save",
                     {
                         val ready = p ?: return@RButton
-                        app.saveImport(ready)
+                        if (tab == ImportTab.LINK) app.saveLinkImport(ready) else app.saveImport(ready)
                     },
                     icon = Ico.Check,
                     style = ButtonStyle.FLAME,
@@ -182,32 +208,7 @@ private fun TextSource(app: AppController) {
 }
 
 @Composable
-private fun LinkSource(onUseText: () -> Unit) {
-    val c = LocalColors.current
-    Column(
-        Modifier
-            .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
-            .fillMaxWidth()
-            .background(c.surface2, RoundedCornerShape(18.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RIcon(Ico.Link, tint = c.accentInk)
-            Text("Link import is coming next", style = RecipaiType.ui, color = c.ink)
-        }
-        Text(
-            "Recipai will fetch a recipe page and convert it, and you'll be able to share links straight to it. For now, open the page, copy the recipe and paste it here.",
-            style = RecipaiType.bodySmall,
-            color = c.mute,
-        )
-        Spacer(Modifier.height(4.dp))
-        RButton("Paste text instead", onUseText, icon = Ico.Clip, small = true)
-    }
-}
-
-@Composable
-private fun Preview(p: ParsedRecipe?, busy: Boolean) {
+private fun Preview(p: ParsedRecipe?, busy: Boolean, busyLabel: String, note: String? = null) {
     val c = LocalColors.current
     Column(
         Modifier
@@ -219,9 +220,20 @@ private fun Preview(p: ParsedRecipe?, busy: Boolean) {
         if (p == null) {
             Column(Modifier.fillMaxWidth().padding(vertical = 24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Box(Modifier.size(52.dp).background(c.surface2, CircleShape), contentAlignment = Alignment.Center) {
-                    RIcon(if (busy) Ico.Spark else Ico.Chef, size = 24.dp, tint = c.faint)
+                    if (busy) {
+                        // The prototype's slow spin while reading.
+                        val spin by rememberInfiniteTransition(label = "reading").animateFloat(
+                            0f,
+                            360f,
+                            infiniteRepeatable(tween(1400, easing = LinearEasing)),
+                            label = "reading-spin",
+                        )
+                        RIcon(Ico.Spark, Modifier.graphicsLayer { rotationZ = spin }, size = 24.dp, tint = c.accentInk)
+                    } else {
+                        RIcon(Ico.Chef, size = 24.dp, tint = c.faint)
+                    }
                 }
-                Text(if (busy) "Reading…" else "Your recipe appears here", style = RecipaiType.ui, color = c.ink)
+                Text(if (busy) busyLabel else "Your recipe appears here", style = RecipaiType.ui, color = c.ink)
                 if (!busy) {
                     Text(
                         "Recipai finds the title, servings, each ingredient with its amount and unit, and the steps with their timings.",
@@ -231,6 +243,20 @@ private fun Preview(p: ParsedRecipe?, busy: Boolean) {
                 }
             }
         } else {
+            if (note != null) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(c.saffron.copy(alpha = 0.12f), RoundedCornerShape(14.dp))
+                        .border(1.dp, c.saffron.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    RIcon(Ico.Info, size = 16.dp, tint = c.accentInk)
+                    Text(note, style = RecipaiType.bodySmall, color = c.body)
+                }
+            }
             PreviewBody(p)
         }
     }
@@ -253,7 +279,7 @@ private fun PreviewBody(p: ParsedRecipe) {
             StatPill("${recipe.itemCount} ingredients")
             StatPill("${p.steps.size} steps")
             StatPill("${p.timerCount} timers")
-            StatPill("${p.servings} servings" + if (p.servingsGuessed) " (guessed)" else "")
+            StatPill("${p.servings} ${p.servingsLabel ?: "servings"}" + if (p.servingsGuessed) " (guessed)" else "")
             if (p.skippedLines > 0) StatPill("Skipped ${p.skippedLines} lines of clutter", warn = true)
         }
         if (p.tags.isNotEmpty()) {
