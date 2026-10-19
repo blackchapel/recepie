@@ -273,7 +273,7 @@ private fun Empty(app: AppController, favorites: Boolean, noRecipes: Boolean) {
     when {
         favorites -> EmptyState(Ico.Heart, "No favorites yet", "Tap the heart on any recipe to keep it here.")
         noRecipes -> EmptyState(Ico.Chef, "Your recipe box is empty", "Import a recipe from pasted text to get started.") {
-            RButton("Import a recipe", { app.sheet = Sheet.Import() }, icon = Ico.Spark, style = ButtonStyle.FLAME, haptic = HapticType.MEDIUM)
+            RButton("Import a recipe", { app.sheet = Sheet.Import() }, icon = Ico.Spark, style = ButtonStyle.FLAME)
         }
         else -> EmptyState(Ico.Chef, "Nothing matches", "Try another tag or search word.") {
             RButton("Clear filters", {
