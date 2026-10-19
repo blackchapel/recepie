@@ -54,6 +54,13 @@ part of the change that touches them -- see `CLAUDE.md`.
 
 ## Import
 
+- **No AI in import (deliberate, for now).** Messy text, social-media
+  captions and photos of recipes are handled only as well as the rules
+  allow; photos aren't supported at all. LLM support is deferred, not
+  rejected; see "AI / LLM features" in `SYSTEM_STATE.md` for the
+  constraints (no API key in the app, proxy server needed for a cloud
+  model).
+
 - **Fetching pages from the device** will hit sites that block non-browser
   clients or render recipes client-side. Fallback is JSON-LD, then text
   heuristics, then a clear "couldn't read this page, paste the text
