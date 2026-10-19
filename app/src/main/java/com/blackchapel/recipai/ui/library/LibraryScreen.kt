@@ -1,6 +1,8 @@
 package com.blackchapel.recipai.ui.library
 
 import com.blackchapel.recipai.ui.photos.RecipeImage
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +37,8 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,7 +47,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.blackchapel.recipai.core.Library
@@ -58,6 +68,7 @@ import com.blackchapel.recipai.ui.AppController
 import com.blackchapel.recipai.ui.Sheet
 import com.blackchapel.recipai.ui.Tab
 import com.blackchapel.recipai.ui.components.ButtonStyle
+import com.blackchapel.recipai.ui.components.EaseNav
 import com.blackchapel.recipai.ui.components.EmptyState
 import com.blackchapel.recipai.ui.components.FilterChip
 import com.blackchapel.recipai.ui.components.GlassButton
@@ -75,12 +86,16 @@ import com.blackchapel.recipai.ui.components.TagDots
 import com.blackchapel.recipai.ui.components.TimeBadge
 import com.blackchapel.recipai.ui.components.TopBar
 import com.blackchapel.recipai.ui.components.greeting
+import com.blackchapel.recipai.ui.components.rememberRiseStart
+import com.blackchapel.recipai.ui.components.rise
 import com.blackchapel.recipai.ui.components.servingsText
 import com.blackchapel.recipai.ui.components.tap
 import com.blackchapel.recipai.ui.components.tapAndHold
 import com.blackchapel.recipai.ui.components.timeText
 import com.blackchapel.recipai.ui.theme.LocalColors
 import com.blackchapel.recipai.ui.theme.RecipaiType
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 private val Gutter = 18.dp
 
@@ -103,6 +118,13 @@ fun LibraryScreen(app: AppController, favorites: Boolean, recipes: List<Recipe>,
     val density = LocalDensity.current
     val scrolled by remember { derivedStateOf { state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > 4 } }
     val collapsed by remember { derivedStateOf { state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > with(density) { 44.dp.toPx() } } }
+
+    // The cards/rows rise in on first appearance and after a layout switch.
+    val riseStart = rememberRiseStart(layout.name)
+    // At most one list row is swiped open; scrolling or a new list closes it.
+    var openRow by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(list) { openRow = null }
+    LaunchedEffect(state) { snapshotFlow { state.isScrollInProgress }.collect { if (it) openRow = null } }
 
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
@@ -129,15 +151,27 @@ fun LibraryScreen(app: AppController, favorites: Boolean, recipes: List<Recipe>,
             if (list.isEmpty()) {
                 full("empty") { Empty(app, favorites, recipes.isEmpty()) }
             } else if (layout == LibraryLayout.GRID) {
-                itemsIndexed(list, key = { _, r -> r.id }) { i, r ->
+                // Keys differ per layout, so switching layouts brings in fresh items (they rise) instead of morphing.
+                itemsIndexed(list, key = { _, r -> "g:${r.id}" }) { i, r ->
                     RecipeCard(
                         app, r,
-                        Modifier.padding(start = if (i % 2 == 0) Gutter else 6.dp, end = if (i % 2 == 0) 6.dp else Gutter, bottom = 12.dp),
+                        Modifier
+                            .animateItem(fadeInSpec = tween(250), fadeOutSpec = null)
+                            .rise(riseStart, i, staggerMs = 45, durationMs = 600)
+                            .padding(start = if (i % 2 == 0) Gutter else 6.dp, end = if (i % 2 == 0) 6.dp else Gutter, bottom = 12.dp),
                     )
                 }
             } else {
-                itemsIndexed(list, key = { _, r -> r.id }, span = { _, _ -> GridItemSpan(maxLineSpan) }) { i, r ->
-                    RecipeRow(app, r, first = i == 0, last = i == list.lastIndex)
+                itemsIndexed(list, key = { _, r -> "l:${r.id}" }, span = { _, _ -> GridItemSpan(maxLineSpan) }) { i, r ->
+                    RecipeRow(
+                        app, r, first = i == 0, last = i == list.lastIndex,
+                        open = openRow == r.id,
+                        onOpenChange = { open -> openRow = if (open) r.id else openRow.takeUnless { it == r.id } },
+                        onInteract = { if (openRow != r.id) openRow = null },
+                        modifier = Modifier
+                            .animateItem(fadeInSpec = tween(250), fadeOutSpec = null)
+                            .rise(riseStart, i, staggerMs = 35, durationMs = 500),
+                    )
                 }
             }
         }
@@ -332,48 +366,117 @@ fun FavoriteGlassButton(app: AppController, r: Recipe, modifier: Modifier = Modi
     )
 }
 
+/**
+ * A list row: tap to open, press and hold for the preview sheet, swipe
+ * left for Favorite and Delete (Delete collapses the row, then offers
+ * Undo). TalkBack gets the swipe actions as custom actions.
+ */
 @Composable
-private fun RecipeRow(app: AppController, r: Recipe, first: Boolean, last: Boolean) {
+private fun RecipeRow(
+    app: AppController,
+    r: Recipe,
+    first: Boolean,
+    last: Boolean,
+    open: Boolean,
+    onOpenChange: (Boolean) -> Unit,
+    onInteract: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val c = LocalColors.current
+    val haptics = LocalHaptics.current
+    val scope = rememberCoroutineScope()
     val shape = RoundedCornerShape(
         topStart = if (first) 18.dp else 0.dp, topEnd = if (first) 18.dp else 0.dp,
         bottomStart = if (last) 18.dp else 0.dp, bottomEnd = if (last) 18.dp else 0.dp,
     )
-    Column(
-        Modifier
-            .padding(horizontal = Gutter)
-            .clip(shape)
-            .background(c.surface),
-    ) {
-        if (!first) Box(Modifier.padding(start = 92.dp).fillMaxWidth().height(0.5.dp).background(c.lineStrong))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .tapAndHold(onLongClick = { app.sheet = Sheet.Actions(r.id, preview = true) }, pressedScale = 0.985f, label = "Open ${r.title}") { app.openRecipe(r.id) }
-                .padding(start = 14.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(14.dp),
-        ) {
-            Box {
-                RecipeImage(r, Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)))
-                if (r.favorite) {
-                    Box(
-                        Modifier
-                            .offset(x = 48.dp, y = (-2).dp)
-                            .size(18.dp)
-                            .background(c.surface, CircleShape)
-                            .padding(2.dp)
-                            .background(c.sumac, CircleShape),
-                        contentAlignment = Alignment.Center,
-                    ) { RIcon(Ico.HeartFill, size = 9.dp, tint = androidx.compose.ui.graphics.Color.White) }
+    // 1 = full height; animates to 0 before a swipe delete.
+    val collapse = remember { Animatable(1f) }
+    var deleting by remember { mutableStateOf(false) }
+
+    val favorite = {
+        onOpenChange(false)
+        val now = app.toggleFavorite(r.id)
+        haptics.perform(if (now == true) HapticType.SUCCESS else HapticType.LIGHT)
+    }
+    val delete = {
+        if (!deleting) {
+            deleting = true
+            haptics.perform(HapticType.WARNING)
+            scope.launch {
+                try {
+                    collapse.animateTo(0f, tween(260, easing = EaseNav))
+                } finally {
+                    // Even if the list went away mid-animation, the delete still happens.
+                    app.deleteRecipe(r.id)
+                    onOpenChange(false)
                 }
             }
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(r.title, style = RecipaiType.rowTitle, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${timeText(r)} · ${servingsText(r)}", style = RecipaiType.mono, color = c.mute, maxLines = 1)
-                TagDots(r.tags)
+        }
+    }
+
+    Box(
+        modifier
+            .clipToBounds()
+            .layout { measurable, constraints ->
+                val placeable = measurable.measure(constraints)
+                layout(placeable.width, (placeable.height * collapse.value).roundToInt()) { placeable.place(0, 0) }
             }
-            RIcon(Ico.Right, size = 20.dp, tint = c.faint)
+            .graphicsLayer { alpha = collapse.value }
+            .padding(horizontal = Gutter)
+            .clip(shape),
+    ) {
+        SwipeActions(
+            open = open,
+            onOpenChange = onOpenChange,
+            onDragStart = onInteract,
+            favorite = r.favorite,
+            onFavorite = favorite,
+            onDelete = delete,
+        ) {
+            Column(Modifier.background(c.surface)) {
+                if (!first) Box(Modifier.padding(start = 92.dp).fillMaxWidth().height(0.5.dp).background(c.lineStrong))
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .tapAndHold(onLongClick = { app.sheet = Sheet.Actions(r.id, preview = true) }, pressedScale = 0.985f, label = "Open ${r.title}") {
+                            // Tapping a swiped-open row just closes it.
+                            if (open) onOpenChange(false) else {
+                                onInteract()
+                                app.openRecipe(r.id)
+                            }
+                        }
+                        .semantics {
+                            customActions = listOf(
+                                CustomAccessibilityAction(if (r.favorite) "Remove from favorites" else "Add to favorites") { favorite(); true },
+                                CustomAccessibilityAction("Delete recipe") { delete(); true },
+                            )
+                        }
+                        .padding(start = 14.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    Box {
+                        RecipeImage(r, Modifier.size(64.dp).clip(RoundedCornerShape(14.dp)))
+                        if (r.favorite) {
+                            Box(
+                                Modifier
+                                    .offset(x = 48.dp, y = (-2).dp)
+                                    .size(18.dp)
+                                    .background(c.surface, CircleShape)
+                                    .padding(2.dp)
+                                    .background(c.sumac, CircleShape),
+                                contentAlignment = Alignment.Center,
+                            ) { RIcon(Ico.HeartFill, size = 9.dp, tint = androidx.compose.ui.graphics.Color.White) }
+                        }
+                    }
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(r.title, style = RecipaiType.rowTitle, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        Text("${timeText(r)} · ${servingsText(r)}", style = RecipaiType.mono, color = c.mute, maxLines = 1)
+                        TagDots(r.tags)
+                    }
+                    RIcon(Ico.Right, size = 20.dp, tint = c.faint)
+                }
+            }
         }
     }
 }
