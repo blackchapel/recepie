@@ -85,6 +85,8 @@ fun SearchScreen(app: AppController, recipes: List<Recipe>) {
         Command("New recipe", "Start from a blank recipe", Ico.Plus) { app.newRecipe() },
         Command("Import from pasted text", "Paste a recipe from anywhere", Ico.Clip) { app.sheet = Sheet.Import(ImportTab.TEXT) },
         Command("Import from a link", "Convert a recipe page", Ico.Link) { app.sheet = Sheet.Import(ImportTab.LINK) },
+        Command("Back up now", com.blackchapel.recipai.ui.backup.backUpNowSubtitle(app), Ico.CloudUp) { app.backUpNow() },
+        Command("Backup settings", "Google Drive, schedule and restore", Ico.Cloud) { app.openBackup() },
     ).filter { q.isNotEmpty() && (it.title.contains(q, ignoreCase = true) || it.subtitle.contains(q, ignoreCase = true)) }
     val tagHits = tags.filter { q.isNotEmpty() && it.first.contains(q.lowercase()) }.take(4)
 

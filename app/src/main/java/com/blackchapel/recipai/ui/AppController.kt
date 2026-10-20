@@ -454,4 +454,12 @@ class AppController(
         val i = stack.indexOfLast { it === page }
         if (i >= 0) stack.removeAt(i)
     }
+
+    // ---- backup ----
+
+    /** Google Drive backup (ui/backup): the Backup page's state and actions. */
+    val backup = com.blackchapel.recipai.ui.backup.BackupController(this, scope)
+
+    /** Settings and Search "Back up now": backs up, or opens the Backup page to connect first. */
+    fun backUpNow() = backup.backUpNow()
 }

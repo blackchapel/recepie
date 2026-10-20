@@ -16,4 +16,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         settingsStore = DataStoreSettings(application),
         scope = viewModelScope,
     )
+
+    init {
+        // Google Drive backup: the process-wide runner the background worker shares.
+        app.backup.attach(com.blackchapel.recipai.platform.backup.BackupRuntime.jobs(application))
+    }
 }

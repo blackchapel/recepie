@@ -175,6 +175,7 @@ fun RecipaiApp(app: AppController, versionName: String) {
             PhotoHost(app)
             ToastHost(app, Modifier.align(Alignment.TopCenter))
             SheetHost(app, recipes)
+            com.blackchapel.recipai.ui.backup.BackupHost(app)
         }
     }
 }
