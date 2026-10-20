@@ -43,9 +43,12 @@ object HapticPatterns {
     // vibrator's click primitive goes; the original Import button was
     // stronger still, a long-press buzz, and was "too much"). The scale is
     // not linear to the finger, so the order matters more than the numbers:
-    // selection < light < medium/notifications. Retune here only.
+    // selection < light < medium/notifications. Retune here only. Selection
+    // sits close to light (0.8 vs 0.85) on purpose: sheets and chip rows are
+    // full of selection-type controls, and at 0.65 they felt weaker than the
+    // buttons elsewhere.
     private val selection = HapticPattern(
-        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 0.65f)),
+        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 0.8f)),
         predefined = PredefinedHaptic.CLICK,
         fallback = ViewHaptic.VIRTUAL_KEY,
     )

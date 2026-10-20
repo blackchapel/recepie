@@ -38,7 +38,9 @@ class HapticPatternsTest {
         // Everyday taps were too weak (0.6): light is clearly firmer, but
         // not the full strength of the old Import button.
         assertTrue(peak(HapticType.LIGHT) in 0.75f..0.9f)
-        assertTrue(peak(HapticType.SELECTION) >= 0.6f)
+        // Close to light: selection controls (chips, segmented, steppers) must not feel weaker.
+        assertTrue(peak(HapticType.SELECTION) >= 0.75f)
+        assertTrue(peak(HapticType.LIGHT) - peak(HapticType.SELECTION) <= 0.1f)
         assertEquals(1.0f, peak(HapticType.MEDIUM), 0f)
     }
 

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
@@ -78,7 +79,11 @@ fun RSheet(
     val closer = SheetCloser(state, scope, onDismiss)
     ModalBottomSheet(
         onDismissRequest = dismiss,
-        modifier = modifier,
+        // The app draws behind the system bars. A tall sheet (the import sheet
+        // fills the window) must stop below the status bar, so its grabber,
+        // title and close button stay reachable. Padding on the sheet's own
+        // modifier shrinks the height the sheet can use.
+        modifier = modifier.statusBarsPadding(),
         sheetState = state,
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
         containerColor = c.surface,
