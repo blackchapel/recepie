@@ -29,6 +29,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -102,8 +105,20 @@ fun WelcomeScreen(onFinish: () -> Unit, modifier: Modifier = Modifier, initialPa
     val scope = rememberCoroutineScope()
     val last = pager.currentPage == Pages.lastIndex
 
+    // Next and Back move the pager themselves. Next already plays its own
+    // button tap and Back is silent, so the page-change tick below is only for
+    // a swipe; without this a Next tap vibrated twice.
+    var scrollingByButton by remember { mutableStateOf(false) }
+
     fun goTo(page: Int) {
-        scope.launch { pager.animateScrollToPage(page) }
+        scope.launch {
+            scrollingByButton = true
+            try {
+                pager.animateScrollToPage(page)
+            } finally {
+                scrollingByButton = false
+            }
+        }
     }
 
     // Back steps to the previous page; on the first page it leaves the tour.
@@ -111,7 +126,7 @@ fun WelcomeScreen(onFinish: () -> Unit, modifier: Modifier = Modifier, initialPa
         if (pager.currentPage > 0) goTo(pager.currentPage - 1) else onFinish()
     }
     LaunchedEffect(pager) {
-        snapshotFlow { pager.currentPage }.distinctUntilChanged().drop(1).collect { haptics.perform(HapticType.SELECTION) }
+        snapshotFlow { pager.currentPage }.distinctUntilChanged().drop(1).collect { if (!scrollingByButton) haptics.perform(HapticType.SELECTION) }
     }
 
     Column(

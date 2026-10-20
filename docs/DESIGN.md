@@ -119,7 +119,9 @@ right, pages 1 and 2), page dots (the current one is a pill), and a
 bottom button: **Next**, then **Get started** on the last page. Follows
 the system light/dark theme; content stays inside the system bars while
 the background fills the window. Back steps to the previous page, and
-leaves the tour from page 1. Replay: Settings > About > Welcome tour.
+leaves the tour from page 1. Haptics: one tap per button press; the
+page-change tick plays only for a swipe, never on top of Next, and Back
+is silent. Replay: Settings > About > Welcome tour.
 
 **Update card** (not in the prototype) -- appears at the top of Settings,
 under the title, only while a newer GitHub release exists: "Update
