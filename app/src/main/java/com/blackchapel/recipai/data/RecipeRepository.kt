@@ -1,5 +1,6 @@
 package com.blackchapel.recipai.data
 
+import com.blackchapel.recipai.core.Durable
 import com.blackchapel.recipai.core.Recipe
 import com.blackchapel.recipai.core.RecipeJson
 import kotlinx.coroutines.CoroutineDispatcher
@@ -138,7 +139,8 @@ class RecipeRepository(
         try {
             file.parentFile?.mkdirs()
             val tmp = File(file.parentFile, "${file.name}.tmp")
-            tmp.writeText(RecipeJson.encode(list))
+            // Synced before the rename: a power loss must not leave the new name on empty data.
+            Durable.write(tmp, RecipeJson.encode(list).toByteArray(Charsets.UTF_8))
             Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
             _saveError.value = null
         } catch (e: IOException) {
