@@ -99,6 +99,10 @@ class AndroidBackupPlatform(context: Context) : BackupPlatform {
         BackupScheduler.cancel(app)
     }
 
+    override fun runSoon(wifiOnly: Boolean) {
+        BackupScheduler.runSoon(app, wifiOnly)
+    }
+
     override suspend fun savedRecipes(): List<Recipe>? = withContext(Dispatchers.IO) {
         val file = File(app.filesDir, RECIPES_FILE)
         if (!file.isFile) return@withContext null

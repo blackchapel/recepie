@@ -61,7 +61,15 @@ interface BackupPlatform {
     /** Registers background work for automatic backups (replacing any before). */
     fun schedule(frequency: BackupFrequency, isoWeekday: Int, hour: Int, wifiOnly: Boolean, now: ZonedDateTime)
 
+    /** Cancels automatic backups, including a queued catch-up ([runSoon]). */
     fun cancelSchedule()
+
+    /**
+     * Queues one automatic backup to run as soon as the OS allows (a network,
+     * Wi-Fi with [wifiOnly]): an overdue schedule caught up when the app opens.
+     * A catch-up already queued is kept.
+     */
+    fun runSoon(wifiOnly: Boolean)
 
     /** The recipes as last saved (the background worker reads them without the app's repository). */
     suspend fun savedRecipes(): List<Recipe>?

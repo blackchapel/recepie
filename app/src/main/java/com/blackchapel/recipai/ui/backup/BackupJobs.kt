@@ -246,6 +246,24 @@ class BackupJobs(
     }
 
     /**
+     * When the app opens and a scheduled backup is overdue (WorkManager held
+     * it back, e.g. under Doze), queues one now, as the prototype does. Only
+     * once there is a last backup to be overdue from; the background run
+     * skips the upload when nothing changed. Returns true when queued.
+     */
+    fun catchUpIfOverdue(settings: AppSettings): Boolean {
+        val status = _status.value
+        if (!status.connected || status.needsReconnect) return false
+        val last = status.lastBackupAt ?: return false
+        val period = BackupTiming.periodHours(settings.backupSchedule.toFrequency()) ?: return false
+        // A little slack, so a run that is merely due now is left to the schedule.
+        val overdueAfter = (period + OVERDUE_SLACK_HOURS) * 3_600_000L
+        if (clock() - last < overdueAfter) return false
+        platform.runSoon(settings.backupWifiOnly)
+        return true
+    }
+
+    /**
      * Registers background work for [settings] when the schedule changed
      * (or cancels it when disconnected or manual).
      */
@@ -275,6 +293,8 @@ class BackupJobs(
     }
 
     companion object {
+        private const val OVERDUE_SLACK_HOURS = 2L
+
         /** A user-facing message for any failure. */
         fun messageFor(e: Throwable): String = when (e) {
             is DriveException -> e.message ?: "Google Drive had a problem. Try again."

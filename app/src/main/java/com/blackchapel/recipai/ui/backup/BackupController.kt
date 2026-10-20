@@ -16,6 +16,7 @@ import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.BackupSchedule
 import com.blackchapel.recipai.haptics.HapticType
 import com.blackchapel.recipai.ui.AppController
+import com.blackchapel.recipai.ui.BackupPage
 import com.blackchapel.recipai.ui.components.Ico
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -121,6 +122,16 @@ class BackupController(private val app: AppController, private val scope: Corout
                         // Scheduling is retried on the next settings change or launch.
                     }
                 }
+        }
+        // An automatic backup the OS held back for too long runs soon after the app opens.
+        scope.launch {
+            try {
+                jobs.catchUpIfOverdue(jobs.platform.savedSettings())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // The regular schedule still runs; the next launch checks again.
+            }
         }
     }
 
@@ -244,7 +255,8 @@ class BackupController(private val app: AppController, private val scope: Corout
     fun backUpNow() {
         val jobs = jobs ?: return unavailable()
         if (!status.connected) {
-            app.openBackup()
+            // Already on the Backup page: its Connect button is right there.
+            if (app.stack.lastOrNull() !is BackupPage) app.openBackup()
             return
         }
         if (working) return

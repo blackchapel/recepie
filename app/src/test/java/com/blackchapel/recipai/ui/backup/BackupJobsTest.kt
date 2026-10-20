@@ -130,6 +130,9 @@ class BackupJobsTest {
         override fun cancelSchedule() {
             scheduled += "cancel"
         }
+        override fun runSoon(wifiOnly: Boolean) {
+            scheduled += "soon $wifiOnly"
+        }
         override suspend fun savedRecipes(): List<Recipe>? = null
         override suspend fun savedSettings(): AppSettings = AppSettings()
     }
@@ -245,6 +248,23 @@ class BackupJobsTest {
         jobs.reschedule(weekly.copy(backupWifiOnly = false))
         jobs.reschedule(weekly.copy(backupSchedule = BackupSchedule.MANUAL))
         assertEquals(listOf("cancel", "WEEKLY 3 20 true", "WEEKLY 3 20 false", "cancel"), platform.scheduled)
+    }
+
+    @Test
+    fun anOverdueScheduleIsCaughtUpOnce() = runTest {
+        val daily = AppSettings(backupSchedule = BackupSchedule.DAILY, backupWifiOnly = false)
+        assertFalse(jobs.catchUpIfOverdue(daily)) // not connected
+        jobs.connect("token")
+        assertFalse(jobs.catchUpIfOverdue(daily)) // no backup yet to be overdue from
+        jobs.backUp(input(recipes("Soup")), BackupKind.MANUAL, tokens)
+        assertFalse(jobs.catchUpIfOverdue(daily)) // just backed up
+        clock += 25 * 3_600_000L
+        assertFalse(jobs.catchUpIfOverdue(daily)) // due, but within the slack: left to the schedule
+        clock += 2 * 3_600_000L
+        assertFalse(jobs.catchUpIfOverdue(daily.copy(backupSchedule = BackupSchedule.MANUAL)))
+        assertFalse(jobs.catchUpIfOverdue(daily.copy(backupSchedule = BackupSchedule.WEEKLY)))
+        assertTrue(jobs.catchUpIfOverdue(daily))
+        assertEquals(listOf("soon false"), platform.scheduled)
     }
 
     @Test
