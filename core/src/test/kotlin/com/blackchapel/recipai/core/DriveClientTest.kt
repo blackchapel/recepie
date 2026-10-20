@@ -136,6 +136,27 @@ class DriveClientTest {
     }
 
     @Test
+    fun anUploadDriveNeverFinishesStopsInsteadOfLooping() {
+        val folder = client.createFolder("f")
+        val puts = ArrayList<String?>()
+        // Every PUT reads the body, then answers "all 10 bytes arrived" without ever completing.
+        val stuck = object : HttpTransport {
+            override fun <T> execute(request: HttpRequest, handle: (HttpResponse) -> T): T {
+                if (request.method != "PUT") return drive.execute(request, handle)
+                puts += request.headers["Content-Range"]
+                request.body?.writeTo(java.io.ByteArrayOutputStream())
+                return handle(HttpResponse(308, mapOf("Range" to listOf("bytes=0-9")), java.io.ByteArrayInputStream(ByteArray(0))))
+            }
+        }
+        val c = DriveClient(stuck, "token", sleeper = { sleeps += it })
+        val e = assertFailsWith<DriveException> { c.upload(folder, "b.zip", file(ByteArray(10)), "application/zip", emptyMap()) }
+        assertEquals(308, e.code)
+        // After the first send, only status queries: never an empty "bytes 10-9/10" range.
+        assertEquals(null, puts.first())
+        assertTrue(puts.drop(1).all { it == "bytes */10" }, "$puts")
+    }
+
+    @Test
     fun readsTheResumeOffset() {
         assertEquals(0, DriveClient.nextOffset(null, 10))
         assertEquals(5, DriveClient.nextOffset("bytes=0-4", 10))

@@ -47,6 +47,15 @@ object BackupText {
         return "$day at $time"
     }
 
+    /**
+     * [whenText] inside a sentence ("Restore the backup from today at 2:00 AM?"):
+     * the relative words go lower case, weekday and month names keep their capital.
+     */
+    fun inSentence(whenText: String): String =
+        if (RELATIVE.any { whenText.startsWith("$it ") }) whenText.replaceFirstChar { it.lowercase() } else whenText
+
+    private val RELATIVE = listOf("Today", "Yesterday", "Tomorrow")
+
     /** "just now", "5 minutes ago", "1 hour ago", "yesterday", "3 days ago". */
     fun ago(thenMillis: Long, nowMillis: Long): String {
         val s = ((nowMillis - thenMillis) / 1000.0).roundToLong().coerceAtLeast(0)

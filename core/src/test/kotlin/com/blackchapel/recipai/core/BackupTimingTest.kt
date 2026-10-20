@@ -71,6 +71,14 @@ class BackupTextTest {
     }
 
     @Test
+    fun whenTextInsideASentence() {
+        assertEquals("today at 2:00 AM", BackupText.inSentence("Today at 2:00 AM"))
+        assertEquals("yesterday at 9:05 PM", BackupText.inSentence("Yesterday at 9:05 PM"))
+        assertEquals("Sunday at 8:00 PM", BackupText.inSentence("Sunday at 8:00 PM"))
+        assertEquals("Oct 3 at 3:00 PM", BackupText.inSentence("Oct 3 at 3:00 PM"))
+    }
+
+    @Test
     fun agoText() {
         val t = 1_000_000_000L
         assertEquals("just now", BackupText.ago(t, t + 10_000))

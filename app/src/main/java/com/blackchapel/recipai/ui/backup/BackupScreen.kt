@@ -534,7 +534,7 @@ private fun RestoreSheet(entry: BackupEntry, onDismiss: () -> Unit, onRestore: (
             }
             VSpace(14.dp)
             Text(
-                "Restore the backup from ${whenText.replaceFirstChar { it.lowercase() }}?",
+                "Restore the backup from ${BackupText.inSentence(whenText)}?",
                 style = RecipaiType.sheetTitle.copy(fontSize = 21.sp),
                 color = c.ink,
             )

@@ -285,12 +285,15 @@ class DriveClient(
                         return step.file
                     }
                     is UploadStep.Resume -> {
-                        // A send that ends without the whole file arriving counts as a failure, so this can't loop forever.
-                        if (known && step.from <= offset && ++failures >= maxAttempts) {
+                        // A send that ends without moving forward, or Drive holding every byte without
+                        // finishing, counts as a failure, so this can't loop forever.
+                        val stalled = (known && step.from <= offset) || step.from >= total
+                        if (stalled && ++failures >= maxAttempts) {
                             throw DriveException("The upload kept stopping. Try again on a better connection.", 308)
                         }
                         offset = step.from
-                        known = true
+                        // Nothing left to send: ask Drive again rather than send an empty range.
+                        known = step.from < total
                     }
                 }
             } catch (e: DriveException) {
