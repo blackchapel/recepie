@@ -8,13 +8,16 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.blackchapel.recipai.core.ParsedRecipe
+import com.blackchapel.recipai.core.RecipeDraft
 import com.blackchapel.recipai.core.SortOrder
 import com.blackchapel.recipai.core.TagFilter
+import com.blackchapel.recipai.core.TextRecipeParser
 import com.blackchapel.recipai.core.toRecipe
 import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.RecipeRepository
 import com.blackchapel.recipai.data.SettingsStore
 import com.blackchapel.recipai.ui.components.Ico
+import com.blackchapel.recipai.ui.editor.EditorState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -244,4 +247,55 @@ class AppController(
     }
 
     // ---- Module additions go below, one section per module, so merges stay simple.
+
+    // ---- editor ----
+
+    /** Each open editor's working copy, kept here so it survives rotation. */
+    private val editors = HashMap<EditorPage, EditorState>()
+
+    /**
+     * The editor state for [page], made on first use: the saved recipe, the
+     * import being reviewed, or a blank recipe. Null when the recipe to edit
+     * no longer exists.
+     */
+    fun editorFor(page: EditorPage): EditorState? {
+        editors[page]?.let { return it }
+        editors.keys.retainAll { it in stack }
+        val newId = { UUID.randomUUID().toString() }
+        val recipeId = page.recipeId
+        val preset = page.preset
+        val draft = when {
+            recipeId != null -> RecipeDraft.from(repo.get(recipeId) ?: return null, newId)
+            preset != null -> RecipeDraft.fromImport(preset, newId)
+            else -> RecipeDraft.blank(newId)
+        }
+        return EditorState(draft).also { editors[page] = it }
+    }
+
+    /**
+     * Saves an editor's draft (check its errors first): a new recipe or an
+     * update with a fresh `updatedAt`. Closes the editor onto the recipe's
+     * detail page (the one underneath, or a new one).
+     */
+    fun saveEditor(page: EditorPage, draft: RecipeDraft) {
+        // Already saved or closed (a second tap on Save before the page left).
+        if (stack.none { it === page }) return
+        val original = draft.recipeId?.let { repo.get(it) }
+        val recipe = draft.toRecipe(now = System.currentTimeMillis(), original = original) { UUID.randomUUID().toString() }
+        repo.upsert(recipe)
+        // A reviewed paste-text import is done with: clear its draft text.
+        val preset = page.preset
+        if (preset != null && importText.isNotBlank() && TextRecipeParser.parse(importText) == preset) importText = ""
+        closeEditor(page)
+        val top = stack.lastOrNull()
+        if (!(top is DetailPage && top.recipeId == recipe.id)) openRecipe(recipe.id)
+        showToast(if (original != null) "Changes saved" else "Saved “${recipe.title}”", Ico.Check)
+    }
+
+    /** Leaves the editor without saving (Cancel, or Discard changes). */
+    fun closeEditor(page: EditorPage) {
+        editors.remove(page)
+        val i = stack.indexOfLast { it === page }
+        if (i >= 0) stack.removeAt(i)
+    }
 }
