@@ -12,6 +12,23 @@ M1 is done and passed its first Test Release: library, detail with live
 scaling, paste-text import, search, settings, JSON storage, haptics.
 User feedback on that build is folded into the modules below.
 
+## Status
+
+| Module | Branch | Status |
+|---|---|---|
+| 1. Editor (M2) | `module/editor` | Built, merged |
+| 2. Timers and cook mode (M3) | `module/timers-cook` | Built, merged |
+| 3. Link import (M4) | `module/link-import` | Built, merged |
+| 4. Photos (M5) + detail image animation | `module/photos` | Built, merged |
+| 5. Google Drive backup (M6) | `module/backup` | Built, merged |
+| 6. Polish: haptics, gestures, motion | `module/polish` | Built, merged |
+| Coordinator | `feature/app-scaffold` | Merged in the planned order, integrated, docs updated |
+| Release gate | -- | Next: Test Release (first Android compile of the modules), independent review, device test |
+
+Every module passed the desktop check on its own branch, and the merged
+branch passes it too (`:core:test :ui:compileKotlin :ui:test`). The
+Android-only files have only been reviewed, never compiled.
+
 ## Ground rules for every module
 
 - **Read first:** `CLAUDE.md`, `docs/DESIGN.md`, the prototype
@@ -50,6 +67,7 @@ User feedback on that build is folded into the modules below.
 ## Modules
 
 ### 1. Editor (M2)
+Status: built and merged.
 Owns `ui/editor/**`, editor logic in `:core` (e.g. `RecipeDraft.kt`).
 - Modal page (`EditorPage`, slides up; already routed): Cancel / Save
   top bar, Cancel with unsaved changes asks first (action sheet).
@@ -69,6 +87,7 @@ Owns `ui/editor/**`, editor logic in `:core` (e.g. `RecipeDraft.kt`).
 - Touchpoints: none beyond `AppController` additions if needed.
 
 ### 2. Timers and cook mode (M3)
+Status: built and merged.
 Owns `ui/timers/**`, `ui/cook/**`, `platform/timers/**`, timer logic in
 `:core` (e.g. `Timers.kt`, `IngredientUses.kt`).
 - Step time chip (`StepTimeChip`): tap starts a timer (medium haptic),
@@ -92,6 +111,7 @@ Owns `ui/timers/**`, `ui/cook/**`, `platform/timers/**`, timer logic in
   Timer sound.
 
 ### 3. Link import (M4)
+Status: built and merged.
 Owns `ui/importer/**` (extend), `platform/net/**`, import logic in
 `:core` (e.g. `JsonLdRecipeReader.kt`, `HtmlText.kt`).
 - `:core`: read schema.org `Recipe` JSON-LD from page HTML (script
@@ -108,6 +128,7 @@ Owns `ui/importer/**` (extend), `platform/net/**`, import logic in
   make a shared link convert on its own (medium haptic).
 
 ### 4. Photos (M5) and the detail image animation
+Status: built and merged.
 Owns `ui/photos/**`, `platform/photos/**`.
 - Photo picker (`PickVisualMedia`, no storage permission), copy into
   `filesDir/photos/<uuid>.jpg` downscaled (max 2048 px, EXIF orientation
@@ -128,6 +149,7 @@ Owns `ui/photos/**`, `platform/photos/**`.
   addition and the SheetHost actions list.
 
 ### 5. Google Drive backup (M6)
+Status: built and merged.
 Owns `ui/backup/**`, `platform/backup/**`, the backup format in `:core`
 (e.g. `BackupSnapshot.kt`).
 - Format: one `.zip` per backup with `backup.json` (versioned: recipes,
@@ -149,6 +171,7 @@ Owns `ui/backup/**`, `platform/backup/**`, the backup format in `:core`
   now. Search "Back up now" / "Backup settings" actions.
 
 ### 6. Polish: haptics, gestures, motion
+Status: built and merged.
 Owns `haptics/**`, `ui/components/Controls.kt`, `ui/components/Chrome.kt`
 (haptic choices only), `ui/library/**` (gestures/motion), the page
 transition in `ui/RecipaiApp.kt` (back gesture only).
