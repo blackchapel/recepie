@@ -58,6 +58,7 @@ import com.blackchapel.recipai.ui.importer.ImportSheet
 import com.blackchapel.recipai.ui.library.LibraryScreen
 import com.blackchapel.recipai.ui.search.SearchScreen
 import com.blackchapel.recipai.ui.settings.SettingsScreen
+import com.blackchapel.recipai.ui.welcome.WelcomeScreen
 import com.blackchapel.recipai.ui.theme.LocalColors
 import com.blackchapel.recipai.ui.theme.RecipaiTheme
 import com.blackchapel.recipai.ui.theme.isDarkTheme
@@ -177,8 +178,19 @@ fun RecipaiApp(app: AppController, versionName: String) {
             }
             if (loaded) TimerOverlay(app, Modifier.align(Alignment.BottomCenter))
             PhotoHost(app)
+            // The first-run tour covers the whole app until it is finished. While the answer is
+            // still unknown (the first frames of a launch) an empty canvas stands in for it, so a
+            // new install never flashes the library before the tour.
+            Crossfade(settings.welcomeSeen, animationSpec = tween(350), label = "welcome") { seen ->
+                when (seen) {
+                    null -> Box(Modifier.fillMaxSize().background(c.canvas))
+                    false -> WelcomeScreen(onFinish = app::finishWelcome)
+                    true -> Unit
+                }
+            }
             ToastHost(app, Modifier.align(Alignment.TopCenter))
-            SheetHost(app, recipes)
+            // Not over the tour: a link shared into a fresh install waits for it to end.
+            if (settings.welcomeSeen == true) SheetHost(app, recipes)
             com.blackchapel.recipai.ui.backup.BackupHost(app)
         }
     }

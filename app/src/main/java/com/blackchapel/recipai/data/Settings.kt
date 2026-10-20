@@ -24,6 +24,13 @@ data class AppSettings(
     val backupHour: Int = 2,
     val backupIncludePhotos: Boolean = true,
     val backupWifiOnly: Boolean = true,
+    /**
+     * The first-run welcome tour. null = not decided yet (the first launch of
+     * this version decides: a fresh install shows the tour, an update does
+     * not); false = show it; true = seen, or not for this phone. Never part
+     * of a backup.
+     */
+    val welcomeSeen: Boolean? = null,
 )
 
 /** Where settings live. The app uses DataStore ([DataStoreSettings]). */

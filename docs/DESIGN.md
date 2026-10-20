@@ -108,6 +108,19 @@ Only when I tap) with time of day and the next run; options (Include
 photos, Wi-Fi only); the six most recent backups with Restore. Restoring
 first takes a "Before restore" backup so it can be undone.
 
+**Welcome tour** (not in the prototype) -- shown once, on a brand-new
+install, before the library. Three full-window pages in a swipeable
+pager: (1) the recipe app (live scaling, step timers, cook mode, photos
+and tags), (2) import (paste text or share a link; review before
+saving), (3) Google Drive backup (daily or weekly, restore, optional).
+Each has a 300 dp illustration drawn in Compose from the theme tokens,
+an eyebrow, a title, two lines of body and feature chips. Skip (top
+right, pages 1 and 2), page dots (the current one is a pill), and a
+bottom button: **Next**, then **Get started** on the last page. Follows
+the system light/dark theme; content stays inside the system bars while
+the background fills the window. Back steps to the previous page, and
+leaves the tour from page 1. Replay: Settings > About > Welcome tour.
+
 ## Gestures
 
 | Gesture | Where | Result |
@@ -214,6 +227,10 @@ markers.
 
 Recorded so they aren't "fixed" back by accident. The prototype still
 wins everywhere else.
+
+Onboarding
+- The first-run Welcome tour is new in the app; the prototype has no
+  onboarding screen.
 
 Gestures and motion
 - The swipe-row selection tick fires on every crossing of the action

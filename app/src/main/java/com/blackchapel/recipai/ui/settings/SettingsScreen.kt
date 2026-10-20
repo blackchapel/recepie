@@ -123,6 +123,14 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
             item("about") {
                 Section("About") {
                     Group {
+                        Cell(
+                            "Welcome tour",
+                            icon = Ico.Spark,
+                            iconColor = c.saffron,
+                            subtitle = "See the introduction to Recipai again",
+                            onClick = { app.replayWelcome() },
+                        )
+                        Hairline(start = 56.dp)
                         Cell("Recipai", icon = Ico.Info, iconColor = c.faint, subtitle = "Works offline. Your recipes stay on this phone, and in your own Google Drive if you back up.")
                         Hairline(start = 56.dp)
                         // Test builds have long names (0.1-branch.sha), so the version gets its own line.

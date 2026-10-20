@@ -510,4 +510,22 @@ class AppController(
 
     /** Settings and Search "Back up now": backs up, or opens the Backup page to connect first. */
     fun backUpNow() = backup.backUpNow()
+
+    // ---- welcome ----
+
+    /**
+     * Decides, once, whether this phone gets the welcome tour: only a brand-new
+     * install does ([freshInstall], see InstallInfo), never an update. Does
+     * nothing when an answer is already stored, so a tour that was shown and
+     * not finished comes back next launch, and a finished one never does.
+     */
+    suspend fun decideWelcome(freshInstall: Boolean) {
+        settingsStore.update { if (it.welcomeSeen == null) it.copy(welcomeSeen = !freshInstall) else it }
+    }
+
+    /** The tour was finished or skipped. */
+    fun finishWelcome() = updateSettings { it.copy(welcomeSeen = true) }
+
+    /** Settings > About > Welcome tour. */
+    fun replayWelcome() = updateSettings { it.copy(welcomeSeen = false) }
 }

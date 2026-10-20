@@ -27,6 +27,7 @@ class DataStoreSettings(context: Context) : SettingsStore {
         val backupHour = intPreferencesKey("backup_hour")
         val backupIncludePhotos = booleanPreferencesKey("backup_include_photos")
         val backupWifiOnly = booleanPreferencesKey("backup_wifi_only")
+        val welcomeSeen = booleanPreferencesKey("welcome_seen")
     }
 
     override val settings: Flow<AppSettings> = store.data.map(::read)
@@ -44,6 +45,7 @@ class DataStoreSettings(context: Context) : SettingsStore {
             prefs[Keys.backupHour] = next.backupHour
             prefs[Keys.backupIncludePhotos] = next.backupIncludePhotos
             prefs[Keys.backupWifiOnly] = next.backupWifiOnly
+            next.welcomeSeen?.let { prefs[Keys.welcomeSeen] = it } ?: prefs.remove(Keys.welcomeSeen)
         }
     }
 
@@ -60,6 +62,7 @@ class DataStoreSettings(context: Context) : SettingsStore {
             backupHour = prefs[Keys.backupHour] ?: defaults.backupHour,
             backupIncludePhotos = prefs[Keys.backupIncludePhotos] ?: defaults.backupIncludePhotos,
             backupWifiOnly = prefs[Keys.backupWifiOnly] ?: defaults.backupWifiOnly,
+            welcomeSeen = prefs[Keys.welcomeSeen],
         )
     }
 }

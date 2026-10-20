@@ -66,6 +66,12 @@ up to your own Google Drive.
   Connecting needs a Google Cloud OAuth client and the Drive API turned
   on (see `docs/RELEASING.md`); without them Connect explains that
   sign-in isn't set up for this build.
+- **First-run tour:** on a brand-new install only, three pages (the
+  app, paste/link import, Drive backup) with an illustration and a short
+  note each, Next / Skip / Get started, in the system light or dark
+  theme. Updating the app never shows it. Replay it from Settings >
+  About > Welcome tour. (To see it on a phone that already has Recipai,
+  uninstall first.)
 - Light/dark/auto theme, tuned haptic feedback (with an off switch), a
   predictive back swipe on Android 14+ where the page follows the
   finger. The library starts empty (an illustration and two ways to add

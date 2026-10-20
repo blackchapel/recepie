@@ -4,8 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.blackchapel.recipai.data.DataStoreSettings
+import com.blackchapel.recipai.platform.install.InstallInfo
 import com.blackchapel.recipai.platform.storage.RecipeRuntime
 import com.blackchapel.recipai.ui.AppController
+import kotlinx.coroutines.launch
 
 /**
  * Owns the app state so it survives rotation and other configuration changes.
@@ -22,6 +24,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     )
 
     init {
+        // The first launch decides whether this phone gets the welcome tour: only a
+        // brand-new install does, never an update (see InstallInfo). Decided once;
+        // later launches leave the answer as it is.
+        val fresh = InstallInfo.isFreshInstall(application, RecipeRuntime.FILE_NAME)
+        viewModelScope.launch { app.decideWelcome(fresh) }
         // Google Drive backup: the process-wide runner the background worker shares.
         app.backup.attach(com.blackchapel.recipai.platform.backup.BackupRuntime.jobs(application))
     }

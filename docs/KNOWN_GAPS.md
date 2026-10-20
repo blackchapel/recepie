@@ -28,6 +28,21 @@ part of the change that touches them -- see `CLAUDE.md`.
 - **The pipeline has run once** (M1's Test Release). The Production
   Release workflow has never run.
 
+## First-run tour
+
+- **Fresh-install detection is a heuristic.** It needs
+  `firstInstallTime == lastUpdateTime` (within 5 s) and no
+  `recipes.json`. A build installed over an older one by an installer
+  that resets those timestamps, or a user who cleared storage on an
+  existing install, may see the tour once; any error reading the package
+  info counts as "not fresh" so the tour is skipped rather than shown to
+  existing users. An app that upgraded from a build with no
+  `welcome_seen` key is treated as an update (it has recipes or a
+  different update time) and never sees the tour.
+- **Illustrations are unrendered.** The three pages are checked only by
+  the compile and by reading the code; spacing on small phones (the art
+  scales down to fit) and in both themes needs a look on a device.
+
 ## Release pipeline
 
 - **Test and production builds share one signing key** (as in RideLink)
