@@ -336,8 +336,6 @@ class AppController(
     /** Detail pages whose hero already played its entrance (once per visit). */
     private val heroEntered = mutableSetOf<DetailPage>()
 
-    private var photosCleanedUp = false
-
     /** Scope for copying picked photos, so a rotation mid-copy doesn't drop them. */
     val photoScope: CoroutineScope get() = scope
 
@@ -404,13 +402,14 @@ class AppController(
     }
 
     /**
-     * Once per launch, after the recipes loaded: delete photo files no recipe
-     * uses (removed in the editor, deleted recipes, cancelled edits). Skipped
-     * when the recipe file couldn't be read, so its photos are never lost.
+     * Once per process (not per controller: a second ViewModel must not
+     * clean up behind the first one's open editors), after the recipes
+     * loaded: delete photo files no recipe uses (removed in the editor,
+     * deleted recipes, cancelled edits). Skipped when the recipe file
+     * couldn't be read, so its photos are never lost.
      */
     fun cleanUpPhotos(store: PhotoStore) {
-        if (photosCleanedUp || !repo.loaded.value || repo.loadError.value != null) return
-        photosCleanedUp = true
+        if (!repo.loaded.value || repo.loadError.value != null || !repo.claimPhotoCleanUp()) return
         val referenced = repo.recipes.value.flatMapTo(HashSet()) { it.photos }
         scope.launch(Dispatchers.IO) {
             try {

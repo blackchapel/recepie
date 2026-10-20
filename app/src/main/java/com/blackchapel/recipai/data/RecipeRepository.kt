@@ -15,6 +15,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * All recipes, kept in memory and saved as one JSON file ([RecipeJson]) in
@@ -58,6 +59,16 @@ class RecipeRepository(
     }
 
     fun get(id: String): Recipe? = _recipes.value.firstOrNull { it.id == id }
+
+    private val photoCleanUpClaimed = AtomicBoolean(false)
+
+    /**
+     * True for the first caller only, once per repository (so once per
+     * process, as the repository is shared): the launch-time photo cleanup
+     * must not run again for a second ViewModel, whose view of the open
+     * editors' photos is empty.
+     */
+    fun claimPhotoCleanUp(): Boolean = photoCleanUpClaimed.compareAndSet(false, true)
 
     /** Adds [recipe] at the top, or replaces the recipe with the same id. */
     fun upsert(recipe: Recipe) = mutate { list ->

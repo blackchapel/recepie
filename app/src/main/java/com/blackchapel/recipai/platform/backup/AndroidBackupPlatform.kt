@@ -10,6 +10,7 @@ import com.blackchapel.recipai.core.RecipeJson
 import com.blackchapel.recipai.core.UrlConnectionTransport
 import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.DataStoreSettings
+import com.blackchapel.recipai.platform.storage.RecipeRuntime
 import com.blackchapel.recipai.ui.backup.AuthOutcome
 import com.blackchapel.recipai.ui.backup.BackupJobs
 import com.blackchapel.recipai.ui.backup.BackupPlatform
@@ -29,9 +30,6 @@ import kotlin.coroutines.resume
 
 /** Google Drive access limited to the files this app creates (a non-sensitive scope). */
 const val DRIVE_FILE_SCOPE = "https://www.googleapis.com/auth/drive.file"
-
-/** The recipe file `MainViewModel` gives the repository. */
-private const val RECIPES_FILE = "recipes.json"
 
 /**
  * One [BackupJobs] per process, shared by the activity's ViewModel and the
@@ -104,7 +102,7 @@ class AndroidBackupPlatform(context: Context) : BackupPlatform {
     }
 
     override suspend fun savedRecipes(): List<Recipe>? = withContext(Dispatchers.IO) {
-        val file = File(app.filesDir, RECIPES_FILE)
+        val file = File(app.filesDir, RecipeRuntime.FILE_NAME)
         if (!file.isFile) return@withContext null
         try {
             RecipeJson.decode(file.readText())
