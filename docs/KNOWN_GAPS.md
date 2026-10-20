@@ -47,7 +47,8 @@ part of the change that touches them -- see `CLAUDE.md`.
 
 - **Needs a public repository.** The check is anonymous. While the repo
   is private GitHub answers 404, which the app reads as "no release yet",
-  so it says "up to date" and never offers an update.
+  so no update is ever offered. Failures are silent by design, so a
+  phone that can't reach GitHub just shows nothing.
 - **Nothing is installed by the app.** Tapping Update only opens the
   release page; the user downloads the APK in the browser and allows
   installs from it. A release's APK must be signed with the same key as
@@ -57,7 +58,8 @@ part of the change that touches them -- see `CLAUDE.md`.
   the repo again needs a release of the app (GitHub redirects the old API
   name for a while, which is why it keeps working in the meantime).
 - **Test builds only hear about releases** newer than their base
-  `MAJOR.MINOR.0`. No notification or badge: it shows only in Settings.
+  `MAJOR.MINOR.0`. No notification or badge: the card shows only in
+  Settings, and only after the check at app open has found a release.
 
 ## Release pipeline
 

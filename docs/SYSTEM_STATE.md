@@ -99,22 +99,26 @@ independent review, the user's device test).
 - **Settings tab:** Backup (Google Drive row with live status, Back up
   now), Appearance (theme), Cooking (Haptic feedback, Keep screen on in
   cook mode, Timer sound), Library (recipe and photo counts), About with
-  the version name and a Welcome tour row (replays the tour).
+  the version name and a Welcome tour row (replays the tour); an update
+  card on top when a newer release exists.
 - **Update check** (`core/UpdateCheck.kt`, `platform/net/UpdateFetcher`,
-  `AppController.updateState`, `UpdateRow` in `SettingsScreen`):
-  `UpdateChecker` GETs `api.github.com/repos/blackchapel/recipai/releases/latest`
+  `AppController.checkForUpdate` / `availableUpdate`, `UpdateCard` in
+  `SettingsScreen`): `MainActivity.onStart` (every time the app is opened)
+  calls `checkForUpdate`, which runs silently in the background, at most
+  one at a time and not within 10 minutes of the last. `UpdateChecker`
+  GETs `api.github.com/repos/blackchapel/recipai/releases/latest`
   anonymously (public repo, 60 requests/hour/network; `UpdateChecker.REPO`
   is the one place the repository name lives), parses the tag
   (`v<major>.<minor>.<patch>`, as the Production Release workflow
-  writes it) and compares numbers with the installed `VERSION_NAME` (a test
-  build `0.1-branch.sha` counts as `0.1.0`). Newer -> `UpdateState.Available`
-  and the row opens `html_url` (only a `https://github.com/` address is
-  used, else `/releases/latest`) with `LocalUriHandler`. 404 (no release
-  yet) reads as up to date; offline, rate-limited and other failures are
-  named. Runs once per launch when Settings first shows, quietly (a
-  failure shows nothing), and on tap. The app never downloads or installs
-  anything: the browser does, and Android installs over the old build,
-  keeping its data. Covered by `UpdateCheckTest`.
+  writes it) and compares numbers with the installed `VERSION_NAME` (a
+  test build `0.1-branch.sha` counts as `0.1.0`). Newer ->
+  `availableUpdate` is set and Settings shows a card at the top; its tap
+  opens `html_url` (only a `https://github.com/` address is used, else
+  `/releases/latest`) with `LocalUriHandler`. No release (404), up to
+  date, offline or any failure changes nothing on screen: there is no
+  manual check and no checking/error state. The app never downloads or
+  installs anything: the browser does, and Android installs over the old
+  build, keeping its data. Covered by `UpdateCheckTest` (the checker).
 - **Welcome tour** (`ui/welcome/WelcomeScreen.kt`, art in
   `WelcomeArt.kt`): three pages in a `HorizontalPager` (the app, import,
   backup) with Compose-drawn illustrations from the theme tokens, so it

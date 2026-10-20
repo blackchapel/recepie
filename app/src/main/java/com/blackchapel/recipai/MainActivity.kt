@@ -39,6 +39,13 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) handleShare(intent)
     }
 
+    override fun onStart() {
+        super.onStart()
+        // Each time the app is opened: look for a newer GitHub release in the
+        // background (silent; Settings shows a card only if there is one).
+        viewModel.app.checkForUpdate(BuildConfig.VERSION_NAME)
+    }
+
     /**
      * launchMode is singleTask, so a share from another app and a tap on a
      * timer notification both arrive here, at the one MainActivity, instead

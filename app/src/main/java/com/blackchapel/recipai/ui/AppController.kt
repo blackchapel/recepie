@@ -106,17 +106,8 @@ sealed interface Sheet {
     data class PhotoViewer(val recipeId: String, val index: Int) : Sheet
 }
 
-/** The update check's result as Settings shows it. */
-sealed interface UpdateState {
-    data object Idle : UpdateState
-    data object Checking : UpdateState
-    data object UpToDate : UpdateState
-
-    /** A newer release: [name] is its number, [url] its page on GitHub. */
-    data class Available(val name: String, val url: String) : UpdateState
-
-    data class Failed(val reason: com.blackchapel.recipai.core.UpdateFailure) : UpdateState
-}
+/** A newer release than the installed one: [name] is its number, [url] its page on GitHub. */
+data class AvailableUpdate(val name: String, val url: String)
 
 data class Toast(
     val message: String,
@@ -547,35 +538,39 @@ class AppController(
 
     // ---- updates ----
 
-    /** The app-update check shown in Settings > About: [UpdateState.Idle] until a check runs. */
-    var updateState by mutableStateOf<UpdateState>(UpdateState.Idle)
+    /** Set when the latest GitHub release is newer than this build; Settings shows a card for it. */
+    var availableUpdate by mutableStateOf<AvailableUpdate?>(null)
         private set
 
     private var updateJob: Job? = null
+    private var lastUpdateCheck = 0L
 
     /**
-     * Asks GitHub whether a newer release exists. Does nothing while a check
-     * is running. [quiet] (the automatic check when Settings opens) leaves
-     * the state alone on failure, so a phone that is offline shows nothing
-     * instead of an error nobody asked for.
+     * The background update check, run each time the app is opened. Silent:
+     * a failure, no release, or an up-to-date build changes nothing on
+     * screen. At most one at a time, and not again within [UPDATE_CHECK_GAP_MS]
+     * (GitHub allows 60 anonymous requests an hour).
      */
-    fun checkForUpdate(installedVersionName: String, quiet: Boolean = false) {
-        if (updateJob?.isActive == true || updateState is UpdateState.Available) return
-        val before = updateState
-        if (!quiet) updateState = UpdateState.Checking
+    fun checkForUpdate(installedVersionName: String, now: Long = System.currentTimeMillis()) {
+        if (updateJob?.isActive == true || now - lastUpdateCheck < UPDATE_CHECK_GAP_MS) return
+        lastUpdateCheck = now
         updateJob = scope.launch {
             val result = try {
                 UpdateFetcher.check(installedVersionName)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                UpdateResult.Failed(com.blackchapel.recipai.core.UpdateFailure.FAILED)
+                return@launch
             }
-            updateState = when (result) {
-                is UpdateResult.Available -> UpdateState.Available(result.name, result.url)
-                UpdateResult.UpToDate -> UpdateState.UpToDate
-                is UpdateResult.Failed -> if (quiet) before else UpdateState.Failed(result.reason)
+            when (result) {
+                is UpdateResult.Available -> availableUpdate = AvailableUpdate(result.name, result.url)
+                UpdateResult.UpToDate -> availableUpdate = null
+                is UpdateResult.Failed -> Unit // keep what is shown
             }
         }
+    }
+
+    private companion object {
+        const val UPDATE_CHECK_GAP_MS = 10 * 60 * 1000L
     }
 }
