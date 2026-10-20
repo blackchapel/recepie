@@ -29,13 +29,6 @@ jobs:
           # below need them; the default shallow clone has neither.
           fetch-depth: 0
 
-      - name: Check the Gradle project exists
-        run: |
-          if [ ! -f gradlew ]; then
-            echo "::error::No Gradle project on main yet (gradlew is missing). The app scaffold has not been added."
-            exit 1
-          fi
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -156,10 +149,6 @@ jobs:
           TAG_NAME: ${{ needs.build.outputs.tag_name }}
           RELEASE_URL: ${{ needs.release.outputs.release_url }}
         run: |
-          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
-            echo "DISCORD_WEBHOOK_URL is not set -- skipping the Discord notification."
-            exit 0
-          fi
           if [ "$BUILD_RESULT" = "success" ] && [ "$RELEASE_RESULT" = "success" ]; then
             TITLE="🚀 Recipai production release published"
             COLOR=3066993
