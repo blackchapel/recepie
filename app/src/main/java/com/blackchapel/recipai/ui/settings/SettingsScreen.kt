@@ -24,14 +24,17 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.blackchapel.recipai.core.Recipe
+import com.blackchapel.recipai.core.UpdateFailure
 import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.ThemeMode
 import com.blackchapel.recipai.haptics.HapticType
 import com.blackchapel.recipai.ui.AppController
 import com.blackchapel.recipai.ui.Tab
+import com.blackchapel.recipai.ui.UpdateState
 import com.blackchapel.recipai.ui.backup.BackupSettingsSection
 import com.blackchapel.recipai.ui.cook.CookingSettingsRows
 import com.blackchapel.recipai.ui.components.Cell
@@ -61,6 +64,8 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
     val collapsed by remember { derivedStateOf { state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > with(density) { 44.dp.toPx() } } }
     val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+    // Once per launch, when Settings first shows: is there a newer release? Quiet if it can't tell.
+    LaunchedEffect(Unit) { if (app.updateState == UpdateState.Idle) app.checkForUpdate(versionName, quiet = true) }
 
     Box(Modifier.fillMaxSize().background(c.canvas)) {
         LazyColumn(
@@ -123,6 +128,8 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
             item("about") {
                 Section("About") {
                     Group {
+                        UpdateRow(app, versionName)
+                        Hairline(start = 56.dp)
                         Cell(
                             "Welcome tour",
                             icon = Ico.Spark,
@@ -140,6 +147,48 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
             }
         }
         TopBar(title = "Settings", scrolled = scrolled, collapsed = collapsed)
+    }
+}
+
+/**
+ * The update check. A newer GitHub release shows as "Update available"; tapping
+ * it opens that release's page in the browser, where the new APK is downloaded
+ * and installed over this one (the app's data is kept).
+ */
+@Composable
+private fun UpdateRow(app: AppController, versionName: String) {
+    val c = LocalColors.current
+    val uriHandler = LocalUriHandler.current
+    when (val state = app.updateState) {
+        UpdateState.Idle -> Cell("Check for updates", icon = Ico.Reset, iconColor = c.ocean, subtitle = "Looks for a newer Recipai on GitHub", onClick = { app.checkForUpdate(versionName) })
+        UpdateState.Checking -> Cell("Checking for updates", icon = Ico.Reset, iconColor = c.ocean, subtitle = "Asking GitHub for the latest release")
+        UpdateState.UpToDate -> Cell("Recipai is up to date", icon = Ico.Check, iconColor = c.ocean, subtitle = "Tap to check again", onClick = { app.checkForUpdate(versionName) })
+        is UpdateState.Available -> Cell(
+            "Update available: ${state.name}",
+            icon = Ico.Spark,
+            iconColor = c.saffron,
+            titleColor = c.accentInk,
+            subtitle = "Tap to open the release page and download the new APK",
+            onClick = {
+                try {
+                    uriHandler.openUri(state.url)
+                } catch (e: Exception) {
+                    // No browser installed, or it refused the link.
+                    app.showToast("Couldn't open the browser", Ico.Info)
+                }
+            },
+        )
+        is UpdateState.Failed -> Cell(
+            "Couldn't check for updates",
+            icon = Ico.Reset,
+            iconColor = c.faint,
+            subtitle = when (state.reason) {
+                UpdateFailure.OFFLINE -> "No connection. Tap to try again"
+                UpdateFailure.RATE_LIMITED -> "GitHub is busy. Tap to try again later"
+                UpdateFailure.FAILED -> "Something went wrong. Tap to try again"
+            },
+            onClick = { app.checkForUpdate(versionName) },
+        )
     }
 }
 

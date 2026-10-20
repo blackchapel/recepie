@@ -72,6 +72,12 @@ up to your own Google Drive.
   theme. Updating the app never shows it. Replay it from Settings >
   About > Welcome tour. (To see it on a phone that already has Recipai,
   uninstall first.)
+- **Update check:** Settings > About looks at the latest GitHub Release
+  (once when Settings opens, and on tap). If it is newer than the
+  installed version the row reads "Update available" and tapping it opens
+  that release page in the browser, where you download the new APK and
+  install it over the old one (your recipes stay). Needs the repository
+  to be public; a private one shows "up to date".
 - Light/dark/auto theme, tuned haptic feedback (with an off switch), a
   predictive back swipe on Android 14+ where the page follows the
   finger. The library starts empty (an illustration and two ways to add

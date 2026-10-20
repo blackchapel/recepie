@@ -43,6 +43,22 @@ part of the change that touches them -- see `CLAUDE.md`.
   the compile and by reading the code; spacing on small phones (the art
   scales down to fit) and in both themes needs a look on a device.
 
+## Update check
+
+- **Needs a public repository.** The check is anonymous. While the repo
+  is private GitHub answers 404, which the app reads as "no release yet",
+  so it says "up to date" and never offers an update.
+- **Nothing is installed by the app.** Tapping Update only opens the
+  release page; the user downloads the APK in the browser and allows
+  installs from it. A release's APK must be signed with the same key as
+  the installed build or Android refuses the update (test and production
+  builds share one key, see below).
+- **The repository name is a constant** (`UpdateChecker.REPO`); renaming
+  the repo again needs a release of the app (GitHub redirects the old API
+  name for a while, which is why it keeps working in the meantime).
+- **Test builds only hear about releases** newer than their base
+  `MAJOR.MINOR.0`. No notification or badge: it shows only in Settings.
+
 ## Release pipeline
 
 - **Test and production builds share one signing key** (as in RideLink)

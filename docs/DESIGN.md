@@ -121,6 +121,13 @@ the system light/dark theme; content stays inside the system bars while
 the background fills the window. Back steps to the previous page, and
 leaves the tour from page 1. Replay: Settings > About > Welcome tour.
 
+**Update row** (not in the prototype) -- first row of Settings > About.
+States: Check for updates (tap), Checking, "Recipai is up to date" (tap
+to check again), "Update available: x.y.z" in the accent color (tap
+opens the release page in the browser), or "Couldn't check for updates"
+with the reason (tap to retry). Checked quietly once per launch when
+Settings first shows; a failed quiet check shows nothing.
+
 ## Gestures
 
 | Gesture | Where | Result |
@@ -228,7 +235,9 @@ markers.
 Recorded so they aren't "fixed" back by accident. The prototype still
 wins everywhere else.
 
-Onboarding
+Onboarding and updates
+- The Settings > About update row is new too: it only opens the GitHub
+  release page; the app never downloads or installs an APK itself.
 - The first-run Welcome tour is new in the app; the prototype has no
   onboarding screen.
 

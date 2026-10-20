@@ -25,12 +25,16 @@ import com.blackchapel.recipai.core.toRecipe
 import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.RecipeRepository
 import com.blackchapel.recipai.data.SettingsStore
+import com.blackchapel.recipai.core.UpdateResult
 import com.blackchapel.recipai.platform.net.PageFetcher
+import com.blackchapel.recipai.platform.net.UpdateFetcher
 import com.blackchapel.recipai.ui.components.Ico
 import com.blackchapel.recipai.ui.importer.LinkImport
 import com.blackchapel.recipai.ui.timers.TimerStore
 import com.blackchapel.recipai.ui.editor.EditorState
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -100,6 +104,18 @@ sealed interface Sheet {
 
     /** Full-screen photo viewer (photos module). */
     data class PhotoViewer(val recipeId: String, val index: Int) : Sheet
+}
+
+/** The update check's result as Settings shows it. */
+sealed interface UpdateState {
+    data object Idle : UpdateState
+    data object Checking : UpdateState
+    data object UpToDate : UpdateState
+
+    /** A newer release: [name] is its number, [url] its page on GitHub. */
+    data class Available(val name: String, val url: String) : UpdateState
+
+    data class Failed(val reason: com.blackchapel.recipai.core.UpdateFailure) : UpdateState
 }
 
 data class Toast(
@@ -528,4 +544,38 @@ class AppController(
 
     /** Settings > About > Welcome tour. */
     fun replayWelcome() = updateSettings { it.copy(welcomeSeen = false) }
+
+    // ---- updates ----
+
+    /** The app-update check shown in Settings > About: [UpdateState.Idle] until a check runs. */
+    var updateState by mutableStateOf<UpdateState>(UpdateState.Idle)
+        private set
+
+    private var updateJob: Job? = null
+
+    /**
+     * Asks GitHub whether a newer release exists. Does nothing while a check
+     * is running. [quiet] (the automatic check when Settings opens) leaves
+     * the state alone on failure, so a phone that is offline shows nothing
+     * instead of an error nobody asked for.
+     */
+    fun checkForUpdate(installedVersionName: String, quiet: Boolean = false) {
+        if (updateJob?.isActive == true || updateState is UpdateState.Available) return
+        val before = updateState
+        if (!quiet) updateState = UpdateState.Checking
+        updateJob = scope.launch {
+            val result = try {
+                UpdateFetcher.check(installedVersionName)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                UpdateResult.Failed(com.blackchapel.recipai.core.UpdateFailure.FAILED)
+            }
+            updateState = when (result) {
+                is UpdateResult.Available -> UpdateState.Available(result.name, result.url)
+                UpdateResult.UpToDate -> UpdateState.UpToDate
+                is UpdateResult.Failed -> if (quiet) before else UpdateState.Failed(result.reason)
+            }
+        }
+    }
 }
