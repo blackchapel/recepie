@@ -112,7 +112,15 @@ class BackupController(private val app: AppController, private val scope: Corout
         // DataStore loads never cancel a real schedule.
         scope.launch {
             combine(app.settings, jobs.status.map { it.connected }.distinctUntilChanged()) { _, _ -> }
-                .collect { jobs.reschedule(jobs.platform.savedSettings()) }
+                .collect {
+                    try {
+                        jobs.reschedule(jobs.platform.savedSettings())
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        // Scheduling is retried on the next settings change or launch.
+                    }
+                }
         }
     }
 
@@ -220,9 +228,15 @@ class BackupController(private val app: AppController, private val scope: Corout
     fun disconnect() {
         val jobs = jobs ?: return unavailable()
         scope.launch {
-            jobs.disconnect()
-            listError = null
-            app.showToast("Google Drive disconnected. Your backups are still in Drive.", Ico.Cloud)
+            try {
+                jobs.disconnect()
+                listError = null
+                app.showToast("Google Drive disconnected. Your backups are still in Drive.", Ico.Cloud)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                app.showToast(BackupJobs.messageFor(e), Ico.Info)
+            }
         }
     }
 
@@ -314,8 +328,12 @@ class BackupController(private val app: AppController, private val scope: Corout
     suspend fun estimate(recipes: List<Recipe>, settings: AppSettings): BackupEstimate {
         val photoDir = jobs?.platform?.photoDir ?: return BackupEstimate(recipes.size, 0, 0)
         return withContext(Dispatchers.IO) {
-            val snapshot = BackupEngine.snapshot(recipes, settings.toBackup(), BackupKind.MANUAL, settings.backupIncludePhotos, "", 0, photoDir)
-            BackupEstimate(recipes.size, snapshot.photos.size, BackupEngine.estimateBytes(snapshot))
+            try {
+                val snapshot = BackupEngine.snapshot(recipes, settings.toBackup(), BackupKind.MANUAL, settings.backupIncludePhotos, "", 0, photoDir)
+                BackupEstimate(recipes.size, snapshot.photos.size, BackupEngine.estimateBytes(snapshot))
+            } catch (e: Exception) {
+                BackupEstimate(recipes.size, 0, 0)
+            }
         }
     }
 
