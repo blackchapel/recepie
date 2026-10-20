@@ -228,6 +228,18 @@ class BackupJobsTest {
     }
 
     @Test
+    fun afterARestoreTheFingerprintFollowsThisPhonesPhotosOption() = runTest {
+        jobs.connect("token")
+        // The backup includes photos, but this phone has Include photos off.
+        val old = jobs.backUp(input(recipes("Soup")), BackupKind.MANUAL, tokens)!!
+        val phone = BackupInput(recipes("Pie"), BackupSettings(theme = "DARK", backupIncludePhotos = false), includePhotos = false)
+        jobs.restore(old, { phone }, tokens)
+        // Later backups use the phone's option, so nothing looks unsaved or gets re-uploaded.
+        assertEquals(BackupFingerprint.of(recipes("Soup"), includePhotos = false), jobs.status.value.lastFingerprint)
+        assertNull(jobs.backUp(BackupInput(recipes("Soup"), phone.settings, includePhotos = false), BackupKind.AUTOMATIC, tokens, skipIfUnchanged = true))
+    }
+
+    @Test
     fun restoreSavesWhatIsHereAfterTheDownloadNotBefore() = runTest {
         jobs.connect("token")
         val old = jobs.backUp(input(recipes("Soup")), BackupKind.MANUAL, tokens)!!

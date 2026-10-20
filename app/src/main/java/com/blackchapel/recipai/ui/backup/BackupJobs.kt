@@ -226,8 +226,11 @@ class BackupJobs(
         _run.value = BackupRun("Downloading the backup", 0f, restoring = true)
         try {
             val (archive, _) = withDrive(tokens) { engine -> engine.download(entry, progress(0f, 0.35f, restoring = true)) }
+            // This phone's Include photos option: a restore leaves it as it was.
+            var phonePhotos: Boolean? = null
             val restored = try {
                 val input = current()
+                phonePhotos = input.settings.backupIncludePhotos
                 withDrive(tokens) { engine ->
                     val folder = folderOf(engine)
                     val fingerprint = BackupFingerprint.of(input.recipes, includePhotos = true)
@@ -247,7 +250,9 @@ class BackupJobs(
                 archive.delete()
             }
             // What is on the phone now matches a backup in Drive (the one restored).
-            val photos = restored.snapshot.includesPhotos
+            // The fingerprint follows this phone's option (what later backups and the
+            // unsaved-changes check use), not the restored backup's.
+            val photos = phonePhotos ?: restored.snapshot.includesPhotos
             update { it.copy(lastFingerprint = BackupFingerprint.of(restored.recipes, photos), lastError = null, lastErrorAt = null) }
             restored
         } catch (e: Throwable) {
