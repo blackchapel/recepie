@@ -106,4 +106,22 @@ class RecipeRepositoryTest {
         // The library starts empty in its place.
         assertTrue(r.recipes.value.isEmpty())
     }
+
+    @Test
+    fun aFileFromTheFirstBuildKeepsFavoritesTagsAndNotesAfterAnUpdate() = runTest {
+        val file = File(tmp.root, "recipes.json")
+        // Literal text from the first build's format: nothing here may be lost when the app updates.
+        file.writeText(
+            """{"version":1,"recipes":[{"id":"r1","title":"Soup","servings":4,"tags":["dinner"],"notes":"Better next day","favorite":true,"createdAt":1,"updatedAt":2}]}""",
+        )
+        val r = repo(file)
+        advanceUntilIdle()
+        assertNull(r.loadError.value)
+        val soup = r.get("r1")!!
+        assertTrue(soup.favorite)
+        assertEquals(listOf("dinner"), soup.tags)
+        assertEquals("Better next day", soup.notes)
+        // Opening the app did not rewrite or damage the file.
+        assertEquals(listOf("r1"), RecipeJson.decode(file.readText()).map { it.id })
+    }
 }

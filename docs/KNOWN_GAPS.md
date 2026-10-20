@@ -59,11 +59,16 @@ part of the change that touches them -- see `CLAUDE.md`.
 - **Consent-screen verification.** `drive.file` is a non-sensitive scope,
   so verification should not be required, but this is unconfirmed until
   the consent screen is configured.
-- **Background backups are best-effort.** WorkManager defers work under
-  Doze and battery saver, and periodic work drifts from the exact hour
-  (a 24 h or 7 d period from the first run); "daily at 2 AM" means
-  "roughly daily, when the OS allows". An overdue schedule is caught up
-  once when the app opens, but only once a first backup exists.
+- **Background backups are best-effort.** Each run is a one-time job
+  aimed at the chosen hour and queues the next at that hour, so runs do
+  not drift. A run starts at that time or as soon after as its
+  constraints hold (a network, Wi-Fi unless turned off, battery not low)
+  and Android allows background work: Doze (typical at the 2 AM
+  Overnight time) and battery saver can still delay it, by minutes up to
+  hours. An overdue schedule is caught up once when the app opens, but
+  only once a first backup exists. Not yet seen on a phone: the first
+  report of the 8 PM Evening run starting at 9:15 PM is what this
+  rework addresses (it came from the old periodic job).
 - **Stale tokens** are cleared through `GoogleAuthUtil.clearToken`
   called by reflection (play-services-auth 21.2.0 has no
   `AuthorizationClient.clearToken`). If that class is missing or

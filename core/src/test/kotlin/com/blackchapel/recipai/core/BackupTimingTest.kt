@@ -54,6 +54,27 @@ class BackupTimingTest {
         assertTrue(a != BackupTiming.signature(BackupFrequency.WEEKLY, 7, 2, false))
         assertEquals("manual", BackupTiming.signature(BackupFrequency.MANUAL, 1, 8, false))
     }
+
+    @Test
+    fun scheduledSignaturesAreVersionedSoOldPhonesReRegisterOnce() {
+        // Earlier builds scheduled a periodic job under "daily|7|20|wifi"; the chained
+        // one-time jobs use a new signature, so the app registers them after the update.
+        val now = BackupTiming.signature(BackupFrequency.DAILY, 7, 20, true)
+        assertTrue(now.startsWith("v2|"))
+        assertTrue(now != "daily|7|20|wifi")
+    }
+
+    @Test
+    fun aRunDelayedPastItsTimeStillAimsTheNextOneAtTheChosenHour() {
+        // The 8 PM run actually started at 9:15 PM (waiting for Wi-Fi, say): the next is
+        // tomorrow at 8 PM, not 24 hours after 9:15.
+        val late = ZonedDateTime.of(2026, 10, 20, 21, 15, 0, 0, zone)
+        val next = BackupTiming.nextRun(late, BackupFrequency.DAILY, 7, 20)!!
+        assertEquals(ZonedDateTime.of(2026, 10, 21, 20, 0, 0, 0, zone), next)
+        // Weekly keeps its weekday too (20 Oct 2026 is a Tuesday).
+        val weekly = BackupTiming.nextRun(late, BackupFrequency.WEEKLY, 2, 20)!!
+        assertEquals(ZonedDateTime.of(2026, 10, 27, 20, 0, 0, 0, zone), weekly)
+    }
 }
 
 class BackupTextTest {

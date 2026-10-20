@@ -49,5 +49,7 @@ object BackupTiming {
      * re-registers background work when something actually changed.
      */
     fun signature(frequency: BackupFrequency, isoWeekday: Int, hour: Int, wifiOnly: Boolean): String =
-        if (frequency == BackupFrequency.MANUAL) "manual" else "${frequency.name.lowercase()}|$isoWeekday|$hour|${if (wifiOnly) "wifi" else "any"}"
+        // "v2": the chained one-time jobs. Earlier builds registered a periodic job under
+        // a signature without the prefix, so their phones re-register once after updating.
+        if (frequency == BackupFrequency.MANUAL) "manual" else "v2|${frequency.name.lowercase()}|$isoWeekday|$hour|${if (wifiOnly) "wifi" else "any"}"
 }

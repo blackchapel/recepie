@@ -134,7 +134,7 @@ vibrator).
 
 | Type | Used for | Composition / predefined / fallback |
 |---|---|---|
-| selection | Tag chips, scale presets and steppers, toggles, radios and the day picker, reordering (editor move up/down), picking a unit, adding a tag, choosing a scaling mode, using a detected time, a swipe row crossing its action point, cook-mode Next/Previous and step swipes, photo swipes, picking a hero thumbnail, setting the cover, a link conversion finishing, pausing/resuming a timer | `PRIMITIVE_CLICK` 0.65 / `EFFECT_CLICK` / `VIRTUAL_KEY` |
+| selection | Tag chips, scale presets and steppers, toggles, radios and the day picker, reordering (editor move up/down), picking a unit, adding a tag, choosing a scaling mode, using a detected time, a swipe row crossing its action point, cook-mode Next/Previous and step swipes, photo swipes, picking a hero thumbnail, setting the cover, a link conversion finishing, pausing/resuming a timer | `PRIMITIVE_CLICK` 0.8 / `EFFECT_CLICK` / `VIRTUAL_KEY` |
 | light | The tabs, the Import (center) and + buttons, the empty state's Import button, unchecking, dismissing a sheet, removing a favorite, Start cooking, Cancel in the editor, adding or removing a row/section/step/tag, pasting rows, opening the scaling-mode pill, Convert / Paste link / Clear in link import, the Add photo tile, removing a photo, opening or closing the viewer, clearing a finished timer, Back up now | `PRIMITIVE_CLICK` 0.85 / `EFFECT_CLICK` / `VIRTUAL_KEY` |
 | medium | Press-and-hold menu, starting a timer, an incoming shared link, the Restore backup confirm | `PRIMITIVE_CLICK` 1.0 / `EFFECT_HEAVY_CLICK` / `LONG_PRESS` |
 | success | Saving a recipe, adding a favorite, cook mode's Finish, photos added, a completed backup, restore or connect | `CLICK` 0.9 / `EFFECT_CLICK` / `VIRTUAL_KEY` |
@@ -146,7 +146,7 @@ action, and the types differ only in strength. User feedback shaped the
 tuning: the Import and + buttons were too strong at the full long-press
 buzz, then everyday feedback was too weak at 0.6, so buttons, tabs, the
 Import and + buttons now sit at about 70% of the original Import button
-(light, 0.85), selection a step below (0.65). Going back (the back
+(light, 0.85), selection just below (0.8), so chips, segmented controls and sheets never feel weaker than buttons. Going back (the back
 button, the back swipe) is silent. An action that plays its own feedback
 (e.g. favoriting from a sheet) turns the tap's feedback off, so the tap
 and the result never both vibrate. Moving to the next step in
@@ -190,6 +190,10 @@ Dark (default) / light.
   Geist Mono (amounts, times, counts, eyebrows, timers, tabular digits).
 - **Shape:** cards 20 dp, sheets 28 dp top corners, buttons 14-16 dp,
   chips and tags fully rounded, FAB 20 dp.
+- **Edge to edge.** The app draws behind the status and navigation bars,
+  so everything interactive keeps clear of them: pages and bars pad for
+  the insets, and bottom sheets stop below the status bar (a tall sheet
+  such as Import never puts its grabber, title or close button under it).
 - **Surfaces:** layered by surface / surface-2 / surface-3, hairline
   borders, near-opaque bars (about 95%) for the top bar, tab bar and
   bottom bars, so text scrolling behind them stays readable (the app

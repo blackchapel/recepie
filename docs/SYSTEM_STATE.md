@@ -189,9 +189,15 @@ ExifInterface 1.3.7, play-services-auth 21.2.0, WorkManager 2.9.1.
   the consent bridge. `BackupHost` at the root plays backup haptics and
   shows Google's consent screen. `platform/backup` has
   `AndroidBackupPlatform` / `BackupRuntime` (AuthorizationClient, files,
-  WorkManager), `BackupConsentHost`, `BackupScheduler` (unique periodic
-  work "recipai-automatic-backup" plus the one-time catch-up
-  "recipai-catch-up-backup") and `BackupWorker`.
+  WorkManager), `BackupConsentHost`, `BackupScheduler` (a chain of
+  one-time jobs, each aimed at the chosen clock time and tagged
+  "recipai-automatic-backup"; every run queues the next one as it
+  starts, so runs never drift off the hour; plus the one-time catch-up
+  "recipai-catch-up-backup") and `BackupWorker`. It is not a WorkManager
+  periodic job: those only run "once per period, somewhere in a window"
+  and count the next run from when the last one actually ran. The
+  schedule signature is versioned ("v2|...") so phones that had the old
+  periodic job re-register once after updating, which also cancels it.
 - Restore downloads and checks the backup, then reads the current
   recipes and settings (after the download, so edits made while it
   downloaded are kept), saves a "Before restore" backup (always with
@@ -407,8 +413,10 @@ Neither runs automatically; merging to `main` releases nothing.
   Release `v<version>` with generated notes (grouped by PR label via
   `.github/release.yml`) and the APK `recipai-v<version>.apk` attached.
 
-Both post a Discord embed if `DISCORD_WEBHOOK_URL` is set, and skip it
-silently if not.
+Both post the same Discord embed as RideLink's (title, version and
+code, branch, commit, artifact link). The step is identical to
+RideLink's apart from the app name, so `DISCORD_WEBHOOK_URL` must be set
+(without it the `curl` fails and the notify job goes red).
 
 **Contract the Gradle project must honor** (the workflows depend on it):
 - `app/version.properties` with `VERSION_NAME=MAJOR.MINOR`.
@@ -419,10 +427,11 @@ silently if not.
 - `./gradlew :core:test testDebugUnitTest` and `./gradlew assembleRelease` work and
   write `app/build/outputs/apk/release/app-release.apk`.
 
-Differences from RideLink's pipeline: the production workflow refuses to
-run off `main`; both run unit tests first; both skip Discord when the
-webhook secret is absent; the Test Release job has read-only permissions;
-the released APK is named `recipai-v<version>.apk` rather than
+Differences from RideLink's pipeline (everything else, including the
+Discord steps, is the same text): the production workflow refuses to run
+off `main`; both run `:core:test testDebugUnitTest` before building;
+the Test Release job has read-only permissions; names say Recipai; the
+released APK is named `recipai-v<version>.apk` rather than
 `app-release.apk`.
 
 Signing and secrets: see `RELEASING.md`. Google Drive backup also needs
