@@ -75,4 +75,19 @@ class IntegrationFlowTest {
         assertTrue((app.stack.single() as DetailPage).recipeId == other)
         scope.cancel()
     }
+
+    @Test
+    fun sharedTextKeepsAnOpenEditor() = runTest {
+        val (app, scope) = app()
+        app.newRecipe()
+        app.handleSharedText(ImportSamples.TOFU_BOWLS)
+        assertTrue(app.stack.single() is EditorPage)
+        assertEquals(Sheet.Import(ImportTab.TEXT), app.sheet)
+
+        app.stack.clear()
+        app.openRecipe(app.repo.recipes.value.first().id)
+        app.handleSharedText(ImportSamples.TOFU_BOWLS)
+        assertTrue(app.stack.isEmpty())
+        scope.cancel()
+    }
 }

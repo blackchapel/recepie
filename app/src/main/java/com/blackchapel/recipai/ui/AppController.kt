@@ -253,7 +253,9 @@ class AppController(
     fun handleSharedText(text: String) {
         val t = text.trim()
         if (t.isEmpty()) return
-        stack.clear()
+        // Back to the tabs, unless an editor is open: its unsaved draft would
+        // be lost without asking. The import sheet then opens over it.
+        if (stack.none { it is EditorPage }) stack.clear()
         val url = Links.findUrl(t)
         if (url != null && t.length < url.length + 120) {
             shareLink(url)
