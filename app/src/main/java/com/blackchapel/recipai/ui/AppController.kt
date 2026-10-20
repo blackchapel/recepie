@@ -18,6 +18,7 @@ import com.blackchapel.recipai.data.SettingsStore
 import com.blackchapel.recipai.platform.net.PageFetcher
 import com.blackchapel.recipai.ui.components.Ico
 import com.blackchapel.recipai.ui.importer.LinkImport
+import com.blackchapel.recipai.ui.timers.TimerStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -281,4 +282,13 @@ class AppController(
         openRecipe(recipe.id)
         showToast("Saved “${recipe.title}”", Ico.Check)
     }
+
+    // ---- timers-cook ----
+
+    /**
+     * Step timers. Process-wide, not per controller: the timers foreground
+     * service keeps them counting after the activity (and this ViewModel)
+     * is gone, and a new activity picks the same timers up.
+     */
+    val timers: TimerStore get() = TimerStore.shared
 }
