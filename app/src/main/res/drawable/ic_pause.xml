@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Line icon from the approved prototype (docs/design/recipai-prototype.html). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M7.2,4h1.6a1.2,1.2 0 0,1 1.2,1.2v13.6a1.2,1.2 0 0,1 -1.2,1.2h-1.6a1.2,1.2 0 0,1 -1.2,-1.2v-13.6a1.2,1.2 0 0,1 1.2,-1.2z"
+        android:fillColor="#FF000000" />
+    <path
+        android:pathData="M15.2,4h1.6a1.2,1.2 0 0,1 1.2,1.2v13.6a1.2,1.2 0 0,1 -1.2,1.2h-1.6a1.2,1.2 0 0,1 -1.2,-1.2v-13.6a1.2,1.2 0 0,1 1.2,-1.2z"
+        android:fillColor="#FF000000" />
+</vector>

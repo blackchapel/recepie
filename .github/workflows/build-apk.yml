@@ -22,7 +22,12 @@ jobs:
       version_code: ${{ steps.version.outputs.version_code }}
       safe_branch: ${{ steps.version.outputs.safe_branch }}
       short_sha: ${{ steps.version.outputs.short_sha }}
-      artifact_url: ${{ steps.upload.outputs.artifact-url }}
+      # The id, not the URL: the URL contains the repo name, which is also the
+      # value of a repository secret (the key alias), and GitHub drops any job
+      # output that contains a secret's value ("Skip output ... may contain
+      # secret"), so the Artifact field never reached Discord. The notify job
+      # builds the link from this id instead.
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - name: Checkout ${{ inputs.branch }}
         uses: actions/checkout@v4
@@ -31,13 +36,6 @@ jobs:
           # Full history -- versionCode is derived from commit count below,
           # which a shallow (default depth-1) clone would always report as 1.
           fetch-depth: 0
-
-      - name: Check the Gradle project exists
-        run: |
-          if [ ! -f gradlew ]; then
-            echo "::error::No Gradle project on this branch yet (gradlew is missing). The app scaffold has not been added."
-            exit 1
-          fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -73,7 +71,9 @@ jobs:
           echo "short_sha=$SHORT_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Run unit tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        # :core is a plain JVM module (scaling, import, storage format), so it
+        # has its own test task; testDebugUnitTest covers :app.
+        run: ./gradlew :core:test testDebugUnitTest --stacktrace
 
       - name: Decode signing keystore
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > "${{ runner.temp }}/release.jks"
@@ -110,11 +110,11 @@ jobs:
           VERSION_CODE: ${{ needs.build.outputs.version_code }}
           BRANCH_NAME: ${{ inputs.branch }}
           SHORT_SHA: ${{ needs.build.outputs.short_sha }}
-          ARTIFACT_URL: ${{ needs.build.outputs.artifact_url }}
+          ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
         run: |
-          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
-            echo "DISCORD_WEBHOOK_URL is not set -- skipping the Discord notification."
-            exit 0
+          ARTIFACT_URL=""
+          if [ -n "$ARTIFACT_ID" ]; then
+            ARTIFACT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
           fi
           if [ "$BUILD_RESULT" = "success" ]; then
             TITLE="✅ Recipai test release built"

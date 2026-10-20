@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Link import (fetching a recipe page) and Google Drive backup. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Step timers: a foreground service with a notification. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Timers: keep the CPU awake until a running timer ends (screen off). -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Haptics with tuned strength (VibrationEffect compositions). -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- enableOnBackInvokedCallback: predictive back, so a pushed page can
+         follow the finger during the back swipe (Android 14+).
+         allowBackup="false" turns off cloud backup only: since Android 12 a
+         phone-to-phone transfer still copies app files, and
+         data_extraction_rules.xml says what must stay behind. -->
+    <application
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:enableOnBackInvokedCallback="true"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Recipai">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <!-- Share a recipe link or text to Recipai. -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+        </activity>
+
+        <!-- Step timers keep counting with the screen off (timers module). -->
+        <service
+            android:name=".platform.timers.TimerService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="cooking timers" />
+        </service>
+    </application>
+
+</manifest>

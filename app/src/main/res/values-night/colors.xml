@@ -1,0 +1,3 @@
+<resources>
+    <color name="window_background">@color/canvas_dark</color>
+</resources>

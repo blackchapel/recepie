@@ -35,7 +35,7 @@ New repository secret:
 | `KEYSTORE_PASSWORD` | the store password |
 | `KEY_ALIAS` | `recipai` (or whatever you passed to `-alias`) |
 | `KEY_PASSWORD` | the key password |
-| `DISCORD_WEBHOOK_URL` | optional: a Discord channel webhook; omit it to skip notifications |
+| `DISCORD_WEBHOOK_URL` | a Discord channel webhook: the build and release notifications are posted to it (as in RideLink, the notify job fails without it) |
 
 With the GitHub CLI:
 

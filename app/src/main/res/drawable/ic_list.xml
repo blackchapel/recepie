@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Line icon from the approved prototype (docs/design/recipai-prototype.html). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M4.5,4h3a1.5,1.5 0 0,1 1.5,1.5v3a1.5,1.5 0 0,1 -1.5,1.5h-3a1.5,1.5 0 0,1 -1.5,-1.5v-3a1.5,1.5 0 0,1 1.5,-1.5z"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M4.5,14h3a1.5,1.5 0 0,1 1.5,1.5v3a1.5,1.5 0 0,1 -1.5,1.5h-3a1.5,1.5 0 0,1 -1.5,-1.5v-3a1.5,1.5 0 0,1 1.5,-1.5z"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:pathData="M13 6h8M13 9h5M13 16h8M13 19h5"
+        android:fillColor="#00000000"
+        android:strokeColor="#FF000000"
+        android:strokeWidth="1.8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>
