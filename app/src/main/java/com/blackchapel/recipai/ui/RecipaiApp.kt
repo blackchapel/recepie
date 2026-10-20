@@ -50,6 +50,7 @@ import com.blackchapel.recipai.ui.backup.BackupScreen
 import com.blackchapel.recipai.ui.cook.CookScreen
 import com.blackchapel.recipai.ui.detail.DetailScreen
 import com.blackchapel.recipai.ui.editor.EditorScreen
+import com.blackchapel.recipai.ui.photos.PhotoHost
 import com.blackchapel.recipai.ui.photos.PhotoViewer
 import com.blackchapel.recipai.ui.timers.TimerOverlay
 import com.blackchapel.recipai.ui.timers.TimersSheet
@@ -83,7 +84,7 @@ fun RecipaiApp(app: AppController, versionName: String) {
         val c = LocalColors.current
         val top = app.stack.lastOrNull()
         val pushed = top != null
-        SystemBarIcons(lightIcons = dark || (top is DetailPage && app.heroUnderStatusBar))
+        SystemBarIcons(lightIcons = dark || (top is DetailPage && app.heroUnderStatusBar) || app.sheet is Sheet.PhotoViewer)
         // How far the current tab is shifted under a pushed page (0..1).
         val under = remember { Animatable(if (pushed) 1f else 0f) }
         LaunchedEffect(pushed) { under.animateTo(if (pushed) 1f else 0f, tween(450, easing = NavEasing)) }
@@ -171,6 +172,7 @@ fun RecipaiApp(app: AppController, versionName: String) {
                 )
             }
             if (loaded) TimerOverlay(app, Modifier.align(Alignment.BottomCenter))
+            PhotoHost(app)
             ToastHost(app, Modifier.align(Alignment.TopCenter))
             SheetHost(app, recipes)
         }
@@ -256,6 +258,7 @@ private fun SheetHost(app: AppController, recipes: List<Recipe>) {
                         if (r.steps.isNotEmpty()) add(SheetAction("Start cooking", Ico.Flame) { app.startCooking(r.id) })
                     }
                     add(SheetAction("Edit recipe", Ico.Pencil) { app.editRecipe(r.id) })
+                    if (!sheet.preview) add(SheetAction("Add photo", Ico.Camera) { app.addPhoto(r.id) })
                     add(
                         SheetAction(if (r.favorite) "Remove from favorites" else "Add to favorites", Ico.Heart) {
                             val now = app.toggleFavorite(r.id)
