@@ -36,9 +36,14 @@ part of the change that touches them -- see `CLAUDE.md`.
   that resets those timestamps, or a user who cleared storage on an
   existing install, may see the tour once; any error reading the package
   info counts as "not fresh" so the tour is skipped rather than shown to
-  existing users. An app that upgraded from a build with no
-  `welcome_seen` key is treated as an update (it has recipes or a
-  different update time) and never sees the tour.
+  existing users. Only the first launch of a build that has the tour
+  decides; after that the stored answer is final, so a wrong "fresh" can
+  happen at most once per phone. A phone that updates from a build
+  without the tour, has an empty library (no `recipes.json`) and whose
+  installer resets `firstInstallTime` could still see it once.
+- **The tour shows once even if not finished.** Closing the app midway
+  (or updating) does not bring it back; use Settings > About > Welcome
+  tour.
 - **Illustrations are unrendered.** The three pages are checked only by
   the compile and by reading the code; spacing on small phones (the art
   scales down to fit) and in both themes needs a look on a device.

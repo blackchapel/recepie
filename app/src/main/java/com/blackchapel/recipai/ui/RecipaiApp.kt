@@ -181,20 +181,28 @@ fun RecipaiApp(app: AppController, versionName: String) {
             // The first-run tour covers the whole app until it is finished. While the answer is
             // still unknown (the first frames of a launch) an empty canvas stands in for it, so a
             // new install never flashes the library before the tour.
-            Crossfade(settings.welcomeSeen, animationSpec = tween(350), label = "welcome") { seen ->
-                when (seen) {
-                    null -> Box(Modifier.fillMaxSize().background(c.canvas))
-                    false -> WelcomeScreen(onFinish = app::finishWelcome)
-                    true -> Unit
+            val welcome = when {
+                settings.welcomeSeen == null -> WelcomeStage.UNDECIDED
+                app.showWelcome -> WelcomeStage.TOUR
+                else -> WelcomeStage.DONE
+            }
+            Crossfade(welcome, animationSpec = tween(350), label = "welcome") { stage ->
+                when (stage) {
+                    WelcomeStage.UNDECIDED -> Box(Modifier.fillMaxSize().background(c.canvas))
+                    WelcomeStage.TOUR -> WelcomeScreen(onFinish = app::finishWelcome)
+                    WelcomeStage.DONE -> Unit
                 }
             }
             ToastHost(app, Modifier.align(Alignment.TopCenter))
             // Not over the tour: a link shared into a fresh install waits for it to end.
-            if (settings.welcomeSeen == true) SheetHost(app, recipes)
+            if (welcome == WelcomeStage.DONE) SheetHost(app, recipes)
             com.blackchapel.recipai.ui.backup.BackupHost(app)
         }
     }
 }
+
+/** What covers the app at launch: nothing decided yet, the first-run tour, or nothing. */
+private enum class WelcomeStage { UNDECIDED, TOUR, DONE }
 
 /**
  * System back for pushed pages. A predictive back swipe (Android 14+) drags

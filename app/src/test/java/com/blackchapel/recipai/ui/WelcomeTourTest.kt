@@ -14,7 +14,9 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -48,11 +50,13 @@ class WelcomeTourTest {
     }
 
     @Test
-    fun aFreshInstallShowsTheTour() = runTest {
+    fun aFreshInstallShowsTheTourOnceAndMarksItSeen() = runTest {
         val store = MemorySettings()
         val (app, scope) = app(store)
         app.decideWelcome(freshInstall = true)
-        assertEquals(false, store.settings.value.welcomeSeen)
+        assertTrue(app.showWelcome)
+        // Seen from the moment it appears: closing or updating mid-tour never brings it back.
+        assertEquals(true, store.settings.value.welcomeSeen)
         scope.cancel()
     }
 
@@ -61,6 +65,7 @@ class WelcomeTourTest {
         val store = MemorySettings()
         val (app, scope) = app(store)
         app.decideWelcome(freshInstall = false)
+        assertFalse(app.showWelcome)
         assertEquals(true, store.settings.value.welcomeSeen)
         scope.cancel()
     }
@@ -68,27 +73,36 @@ class WelcomeTourTest {
     @Test
     fun theDecisionIsMadeOnlyOnce() = runTest {
         val store = MemorySettings()
+        val (first, firstScope) = app(store)
+        first.decideWelcome(freshInstall = true)
+        firstScope.cancel()
+        // A later launch (a new controller, as after the app was closed mid-tour) looks like an update.
+        val (second, secondScope) = app(store)
+        second.decideWelcome(freshInstall = true)
+        assertFalse(second.showWelcome)
+        assertEquals(true, store.settings.value.welcomeSeen)
+        secondScope.cancel()
+    }
+
+    @Test
+    fun anEarlierBuildsShowItAnswerIsReadAsSeen() = runTest {
+        val store = MemorySettings(AppSettings(welcomeSeen = false))
         val (app, scope) = app(store)
         app.decideWelcome(freshInstall = true)
-        app.decideWelcome(freshInstall = false) // a later launch looks like an update
-        assertEquals(false, store.settings.value.welcomeSeen)
-        app.finishWelcome()
-        advanceUntilIdle()
-        app.decideWelcome(freshInstall = true)
+        assertFalse(app.showWelcome)
         assertEquals(true, store.settings.value.welcomeSeen)
         scope.cancel()
     }
 
     @Test
     fun finishingAndReplayingTheTour() = runTest {
-        val store = MemorySettings(AppSettings(welcomeSeen = false))
+        val store = MemorySettings(AppSettings(welcomeSeen = true))
         val (app, scope) = app(store)
-        app.finishWelcome()
-        advanceUntilIdle()
-        assertEquals(true, store.settings.value.welcomeSeen)
         app.replayWelcome()
-        advanceUntilIdle()
-        assertEquals(false, store.settings.value.welcomeSeen)
+        assertTrue(app.showWelcome)
+        app.finishWelcome()
+        assertFalse(app.showWelcome)
+        assertEquals(true, store.settings.value.welcomeSeen)
         scope.cancel()
     }
 }

@@ -520,21 +520,35 @@ class AppController(
 
     // ---- welcome ----
 
+    /** True while the welcome tour is on screen (kept here, so rotation keeps it). */
+    var showWelcome by mutableStateOf(false)
+        private set
+
     /**
-     * Decides, once, whether this phone gets the welcome tour: only a brand-new
-     * install does ([freshInstall], see InstallInfo), never an update. Does
-     * nothing when an answer is already stored, so a tour that was shown and
-     * not finished comes back next launch, and a finished one never does.
+     * Decides, once, whether this phone gets the welcome tour: only a
+     * brand-new install does ([freshInstall], see InstallInfo), never an
+     * update. The answer is stored as "seen" at once, whether or not the tour
+     * is shown: it appears the one time and never comes back by itself, even
+     * if the app is closed or updated halfway through it. (A phone whose
+     * stored answer is the earlier "show it" is marked seen too, without
+     * showing it.) Replay is Settings > About > Welcome tour.
      */
     suspend fun decideWelcome(freshInstall: Boolean) {
-        settingsStore.update { if (it.welcomeSeen == null) it.copy(welcomeSeen = !freshInstall) else it }
+        settingsStore.update {
+            if (it.welcomeSeen == null) showWelcome = freshInstall
+            if (it.welcomeSeen == true) it else it.copy(welcomeSeen = true)
+        }
     }
 
     /** The tour was finished or skipped. */
-    fun finishWelcome() = updateSettings { it.copy(welcomeSeen = true) }
+    fun finishWelcome() {
+        showWelcome = false
+    }
 
     /** Settings > About > Welcome tour. */
-    fun replayWelcome() = updateSettings { it.copy(welcomeSeen = false) }
+    fun replayWelcome() {
+        showWelcome = true
+    }
 
     // ---- updates ----
 

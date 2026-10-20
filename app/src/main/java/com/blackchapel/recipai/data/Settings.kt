@@ -27,8 +27,9 @@ data class AppSettings(
     /**
      * The first-run welcome tour. null = not decided yet (the first launch of
      * this version decides: a fresh install shows the tour, an update does
-     * not); false = show it; true = seen, or not for this phone. Never part
-     * of a backup.
+     * not); true = decided, and the tour never shows by itself again. false
+     * was written by early test builds ("show it") and is read as seen. Never
+     * part of a backup.
      */
     val welcomeSeen: Boolean? = null,
 )

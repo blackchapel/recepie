@@ -123,17 +123,20 @@ independent review, the user's device test).
   `WelcomeArt.kt`): three pages in a `HorizontalPager` (the app, import,
   backup) with Compose-drawn illustrations from the theme tokens, so it
   follows the system light/dark theme. It is an overlay in `RecipaiApp`
-  shown while `AppSettings.welcomeSeen == false`. **New installs only:**
+  shown while `AppController.showWelcome` (in-memory, so rotation keeps
+  it). **Once, on new installs only:**
   at launch `MainViewModel` asks `platform/install/InstallInfo`
   (`PackageInfo.firstInstallTime == lastUpdateTime`, within 5 s, and no
-  `recipes.json` yet) and `AppController.decideWelcome` stores the
-  answer once in DataStore (`welcome_seen`; null = undecided, so the
-  library is hidden behind a blank canvas for that first instant). An
-  update or any later launch
-  reads the stored answer and never shows it. The flag is not part of
-  backups, so restoring on a new phone still shows the tour once.
-  Finish/Skip call `finishWelcome`; Settings > About > Welcome tour
-  calls `replayWelcome`. Covered by `WelcomeTourTest`.
+  `recipes.json` yet) and `AppController.decideWelcome` sets
+  `showWelcome` for a fresh install and stores `welcome_seen = true` in
+  DataStore **at once**, shown or not (null = undecided, so the library
+  is hidden behind a blank canvas for that first instant). So the tour
+  appears one time and never returns by itself: not after an update, and
+  not when the app was closed or updated halfway through it. A stored
+  `false` (written by early test builds, "show it") is read as seen. The
+  flag is not part of backups, so restoring on a new phone still shows
+  the tour once. Finish/Skip call `finishWelcome`; Settings > About >
+  Welcome tour calls `replayWelcome` (both only flip `showWelcome`). Covered by `WelcomeTourTest`.
 - **Backup page** (pushed from Settings): not connected (explainer with
   floating recipe pictures, Connect Google account, a waiting state
   while Google's consent screen is up); connected (account row with
