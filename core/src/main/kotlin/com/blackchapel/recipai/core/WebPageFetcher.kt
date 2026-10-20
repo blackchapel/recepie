@@ -10,12 +10,53 @@ import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.UnknownHostException
 import java.nio.charset.Charset
+import java.util.concurrent.ScheduledThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import java.util.zip.InflaterInputStream
 import javax.net.ssl.SSLException
 
-/** Why a page couldn't be fetched; [LinkMessages] turns it into words. */
-enum class FetchFailure { OFFLINE, TIMEOUT, NOT_FOUND, BLOCKED, SERVER_ERROR, NOT_A_PAGE, TOO_MANY_REDIRECTS, INSECURE, FAILED }
+/**
+ * Why a page couldn't be fetched; [LinkMessages] turns it into words.
+ * [HTTP_ONLY]: the link was http and the site has no https version (refuses
+ * port 443, or sends the https page back to http). Retrying can't help.
+ */
+enum class FetchFailure { OFFLINE, TIMEOUT, NOT_FOUND, BLOCKED, SERVER_ERROR, NOT_A_PAGE, TOO_MANY_REDIRECTS, INSECURE, HTTP_ONLY, FAILED }
+
+/**
+ * Stops a running [WebPageFetcher.fetch] from another thread: [abort] closes
+ * its socket, so a read blocked on a slow server returns at once and the
+ * thread is free. Make one per fetch.
+ */
+class FetchAbort {
+    @Volatile
+    var aborted = false
+        private set
+
+    /** Set when the stop came from the fetcher's own overall deadline. */
+    @Volatile
+    var timedOut = false
+        private set
+
+    @Volatile
+    private var connection: HttpURLConnection? = null
+
+    fun abort() {
+        aborted = true
+        connection?.disconnect()
+    }
+
+    internal fun expire() {
+        timedOut = true
+        abort()
+    }
+
+    internal fun attach(conn: HttpURLConnection?) {
+        connection = conn
+        // Aborted between opening and attaching: close it now.
+        if (aborted) conn?.disconnect()
+    }
+}
 
 sealed interface FetchResult {
     /** [url] is where the page ended up after redirects. [truncated]: it was larger than the cap and was cut. */
@@ -42,6 +83,8 @@ class WebPageFetcher(
     private val connectTimeoutMs: Int = 15_000,
     private val readTimeoutMs: Int = 20_000,
     private val maxRedirects: Int = 6,
+    /** The whole fetch, redirects and reading included (the other timeouts apply per step). */
+    private val overallTimeoutMs: Long = 45_000,
     private val userAgent: String = USER_AGENT,
     private val open: (URL) -> HttpURLConnection = { it.openConnection() as HttpURLConnection },
 ) {
@@ -53,11 +96,36 @@ class WebPageFetcher(
         const val USER_AGENT =
             "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36"
         private val charsetParam = Regex("charset\\s*=\\s*[\"']?([A-Za-z0-9_\\-:.]+)", RegexOption.IGNORE_CASE)
+
+        /** One daemon thread that fires the overall deadlines; it never does the fetching. */
+        private val watchdog: ScheduledThreadPoolExecutor by lazy {
+            ScheduledThreadPoolExecutor(1) { r -> Thread(r, "page-fetch-watchdog").apply { isDaemon = true } }
+                .apply { removeOnCancelPolicy = true }
+        }
     }
 
-    fun fetch(url: String): FetchResult {
+    /**
+     * Fetches [url]. Gives up with [FetchFailure.TIMEOUT] after
+     * [overallTimeoutMs] in all: the read timeout only limits the wait for
+     * each chunk, so a server dripping a few bytes at a time would never
+     * trip it. [abort] lets another thread stop the fetch early (the user
+     * cleared the link): it closes the socket, which ends a blocked read.
+     */
+    fun fetch(url: String, abort: FetchAbort = FetchAbort()): FetchResult {
+        val deadline = watchdog.schedule(Runnable { abort.expire() }, overallTimeoutMs, TimeUnit.MILLISECONDS)
+        try {
+            return fetchHops(url, abort)
+        } finally {
+            deadline.cancel(false)
+        }
+    }
+
+    private fun fetchHops(url: String, abort: FetchAbort): FetchResult {
         var current = upgrade(url)
+        // True when [current] is an http link that was rewritten to https.
+        var upgraded = current != url
         repeat(maxRedirects + 1) {
+            if (abort.aborted) return stopped(abort, current)
             val target = try {
                 URL(current)
             } catch (e: Exception) {
@@ -66,8 +134,9 @@ class WebPageFetcher(
             val conn = try {
                 open(target)
             } catch (e: Exception) {
-                return failure(e, current)
+                return failure(e, current, upgraded, abort)
             }
+            abort.attach(conn)
             try {
                 conn.instanceFollowRedirects = false
                 conn.connectTimeout = connectTimeoutMs
@@ -89,7 +158,16 @@ class WebPageFetcher(
                         }
                         val protocol = next.protocol.lowercase()
                         if (protocol != "http" && protocol != "https") return FetchResult.Failed(FetchFailure.NOT_A_PAGE, current, status)
-                        current = upgrade(next.toString())
+                        val nextUrl = next.toString()
+                        val upgradedNext = upgrade(nextUrl)
+                        // The page we just got over https sends us back to http: upgrading
+                        // that gives the same URL again, so it could only loop. The site
+                        // doesn't offer a secure version of this page.
+                        if (upgradedNext != nextUrl && upgradedNext == current) {
+                            return FetchResult.Failed(FetchFailure.HTTP_ONLY, current, status)
+                        }
+                        current = upgradedNext
+                        upgraded = upgradedNext != nextUrl
                     }
                     status == 404 || status == 410 -> return FetchResult.Failed(FetchFailure.NOT_FOUND, current, status)
                     status == 401 || status == 403 || status == 429 || status == 451 ->
@@ -99,19 +177,24 @@ class WebPageFetcher(
                     else -> {
                         val type = conn.contentType.orEmpty().lowercase()
                         if (type.isNotEmpty() && !isReadable(type)) return FetchResult.Failed(FetchFailure.NOT_A_PAGE, current, status)
-                        val (bytes, truncated) = decoded(conn.inputStream, conn.contentEncoding).use { readCapped(it) }
+                        val (bytes, truncated) = decoded(conn.inputStream, conn.contentEncoding).use { readCapped(it, abort) }
                         val charset = charsetOf(type, bytes)
                         return FetchResult.Page(current, String(bytes, charset), truncated)
                     }
                 }
             } catch (e: Exception) {
-                return failure(e, current)
+                return failure(e, current, upgraded, abort)
             } finally {
+                abort.attach(null)
                 conn.disconnect()
             }
         }
         return FetchResult.Failed(FetchFailure.TOO_MANY_REDIRECTS, current)
     }
+
+    /** Why a fetch stopped before it finished: the overall deadline, or [FetchAbort.abort]. */
+    private fun stopped(abort: FetchAbort, url: String): FetchResult.Failed =
+        FetchResult.Failed(if (abort.timedOut) FetchFailure.TIMEOUT else FetchFailure.FAILED, url)
 
     private fun upgrade(url: String): String =
         if (upgradeHttp && url.startsWith("http://", ignoreCase = true)) "https://" + url.substring(7) else url
@@ -126,11 +209,13 @@ class WebPageFetcher(
         else -> stream
     }
 
-    private fun readCapped(input: InputStream): Pair<ByteArray, Boolean> {
+    private fun readCapped(input: InputStream, abort: FetchAbort): Pair<ByteArray, Boolean> {
         val out = ByteArrayOutputStream(64 * 1024)
         val buffer = ByteArray(16 * 1024)
         while (true) {
             val n = input.read(buffer)
+            // The watchdog closes the socket; this also covers a stream that kept serving buffered bytes.
+            if (abort.aborted) throw SocketTimeoutException("Fetch stopped")
             if (n < 0) return out.toByteArray() to false
             val room = maxBytes - out.size()
             if (n >= room) {
@@ -151,7 +236,19 @@ class WebPageFetcher(
         }
     }
 
-    private fun failure(e: Exception, url: String): FetchResult.Failed = FetchResult.Failed(
+    /** [upgraded]: the URL was an http link rewritten to https (see [FetchFailure.HTTP_ONLY]). */
+    private fun failure(e: Exception, url: String, upgraded: Boolean, abort: FetchAbort): FetchResult.Failed {
+        // Whatever the socket threw when it was closed under the read, the cause is the stop.
+        if (abort.aborted) return stopped(abort, url)
+        // A refused connection on port 443 for a link that said http://: the site most
+        // likely has no https at all. ("Network is unreachable" is really being offline.)
+        if (upgraded && e is ConnectException && e.message?.contains("unreachable", ignoreCase = true) != true) {
+            return FetchResult.Failed(FetchFailure.HTTP_ONLY, url)
+        }
+        return classify(e, url)
+    }
+
+    private fun classify(e: Exception, url: String): FetchResult.Failed = FetchResult.Failed(
         when (e) {
             is UnknownHostException, is ConnectException, is NoRouteToHostException -> FetchFailure.OFFLINE
             is SocketTimeoutException -> FetchFailure.TIMEOUT

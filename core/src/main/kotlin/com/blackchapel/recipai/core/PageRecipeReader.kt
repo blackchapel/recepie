@@ -60,6 +60,7 @@ object LinkMessages {
         FetchFailure.NOT_A_PAGE -> "That link isn’t a web page Recipai can read. Copy the recipe and paste the text instead."
         FetchFailure.TOO_MANY_REDIRECTS -> "$host kept redirecting, so Recipai gave up. Open it in your browser and paste the text instead."
         FetchFailure.INSECURE -> "Couldn’t make a secure connection to $host. Copy the recipe and paste the text instead."
+        FetchFailure.HTTP_ONLY -> "$host doesn’t seem to offer this page over a secure (https) connection, and Recipai only reads secure pages. Open it in your browser, copy the recipe and paste the text instead."
         FetchFailure.FAILED -> "Couldn’t read this page from $host. Copy the recipe and paste the text instead."
     }
 

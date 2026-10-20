@@ -4,9 +4,13 @@ import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpServer
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.net.ConnectException
+import java.net.HttpURLConnection
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.URL
+import java.net.UnknownHostException
+import java.util.concurrent.Executors
 import java.util.zip.GZIPOutputStream
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
@@ -62,6 +66,22 @@ class WebPageFetcherTest {
             Thread.sleep(1500)
             it.html("too late")
         }
+        route("/drip") {
+            // Sends a byte every 100 ms for four seconds, so no single read ever waits long.
+            it.responseHeaders.add("Content-Type", "text/html")
+            it.sendResponseHeaders(200, 0)
+            try {
+                repeat(40) { _ ->
+                    it.responseBody.write('a'.code)
+                    it.responseBody.flush()
+                    Thread.sleep(100)
+                }
+            } catch (e: IOException) {
+                // The client gave up: that is what the test is about.
+            }
+        }
+        // Handlers run beside each other, so a dripping one doesn't hold up the server.
+        server.executor = Executors.newCachedThreadPool { r -> Thread(r).apply { isDaemon = true } }
         server.start()
     }
 
@@ -121,5 +141,70 @@ class WebPageFetcherTest {
         val upgrading = WebPageFetcher(open = { url -> opened += url; throw IOException("offline in this test") })
         assertEquals(FetchFailure.FAILED, assertIs<FetchResult.Failed>(upgrading.fetch("http://kitchen.example.com/r")).reason)
         assertEquals("https://kitchen.example.com/r", opened.single().toString())
+    }
+
+    private fun failingWith(e: Exception) = WebPageFetcher(open = { throw e })
+
+    @Test fun anHttpLinkWhoseSiteRefusesHttpsIsHttpOnlyNotOffline() {
+        val refused = failingWith(ConnectException("failed to connect to /192.0.2.1 (port 443): ECONNREFUSED (Connection refused)"))
+        assertEquals(FetchFailure.HTTP_ONLY, assertIs<FetchResult.Failed>(refused.fetch("http://old-blog.example.com/soup")).reason)
+        // The same refusal for a link that was https all along is a real connection problem.
+        assertEquals(FetchFailure.OFFLINE, assertIs<FetchResult.Failed>(refused.fetch("https://old-blog.example.com/soup")).reason)
+        // Really being offline is still offline, whatever the scheme.
+        val offline = failingWith(ConnectException("connect failed: ENETUNREACH (Network is unreachable)"))
+        assertEquals(FetchFailure.OFFLINE, assertIs<FetchResult.Failed>(offline.fetch("http://old-blog.example.com/soup")).reason)
+        assertEquals(FetchFailure.OFFLINE, assertIs<FetchResult.Failed>(failingWith(UnknownHostException("x")).fetch("http://x.example.com/")).reason)
+    }
+
+    /** A connection that answers every request with a redirect, without any network. */
+    private class RedirectConnection(url: URL, private val location: String) : HttpURLConnection(url) {
+        override fun connect() {}
+        override fun disconnect() {}
+        override fun usingProxy() = false
+        override fun getResponseCode() = 302
+        override fun getHeaderField(name: String?): String? = if (name == "Location") location else null
+    }
+
+    @Test fun anHttpsPageThatRedirectsBackToHttpIsHttpOnlyNotARedirectLoop() {
+        val downgrading = WebPageFetcher(open = { RedirectConnection(it, "http://old-blog.example.com/soup") })
+        val failed = assertIs<FetchResult.Failed>(downgrading.fetch("http://old-blog.example.com/soup"))
+        assertEquals(FetchFailure.HTTP_ONLY, failed.reason)
+        assertEquals("https://old-blog.example.com/soup", failed.url)
+        // A redirect to some other http page is still followed (upgraded), not mistaken for that.
+        var n = 0
+        val moved = WebPageFetcher(maxRedirects = 2, open = { RedirectConnection(it, "http://old-blog.example.com/${++n}") })
+        assertEquals(FetchFailure.TOO_MANY_REDIRECTS, assertIs<FetchResult.Failed>(moved.fetch("https://old-blog.example.com/a")).reason)
+    }
+
+    @Test fun aServerDrippingBytesHitsTheOverallDeadline() {
+        // Every read gets its byte well inside the read timeout, so only the overall deadline can stop it.
+        val patient = WebPageFetcher(upgradeHttp = false, readTimeoutMs = 400, overallTimeoutMs = 600)
+        val started = System.nanoTime()
+        val failed = assertIs<FetchResult.Failed>(patient.fetch("$base/drip"))
+        val tookMs = (System.nanoTime() - started) / 1_000_000
+        assertEquals(FetchFailure.TIMEOUT, failed.reason)
+        assertTrue(tookMs < 3000, "stopped by the deadline, not by the end of the stream ($tookMs ms)")
+    }
+
+    @Test fun abortingStopsABlockedFetchAtOnce() {
+        val abort = FetchAbort()
+        val patient = WebPageFetcher(upgradeHttp = false, readTimeoutMs = 5000, overallTimeoutMs = 60_000)
+        var result: FetchResult? = null
+        val worker = Thread { result = patient.fetch("$base/drip", abort) }
+        val started = System.nanoTime()
+        worker.start()
+        Thread.sleep(300)
+        abort.abort()
+        worker.join(5000)
+        val tookMs = (System.nanoTime() - started) / 1_000_000
+        assertTrue(!worker.isAlive, "the fetch returned")
+        assertTrue(tookMs < 3000, "returned long before the stream ended ($tookMs ms)")
+        // Not a timeout: the caller stopped it, nobody reads the result.
+        assertEquals(FetchFailure.FAILED, assertIs<FetchResult.Failed>(result).reason)
+    }
+
+    @Test fun aFetchThatFinishesInTimeIsNotAffectedByTheDeadline() {
+        val quick = WebPageFetcher(upgradeHttp = false, overallTimeoutMs = 5000)
+        assertIs<FetchResult.Page>(quick.fetch("$base/recipe"))
     }
 }
