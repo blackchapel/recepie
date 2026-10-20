@@ -13,7 +13,9 @@ How it works: `:ui` compiles `app/src/main/java` against Compose
 Multiplatform Desktop 1.7.0, whose APIs match the app's Compose BOM
 (Compose 1.7, Material3 1.3). Android-only code is excluded (see the list
 in `ui/build.gradle.kts`): anything in a `platform` package, plus a few
-named files. `stubs/` gives each excluded file a same-API stand-in.
+named files. `stubs/` gives each excluded file a same-API stand-in, at
+the same package path (`stubs/com/blackchapel/recipai/platform/...`); the
+excludes apply to the app's sources only, never to `stubs/`.
 
 Rules for app code, so this check stays useful:
 
