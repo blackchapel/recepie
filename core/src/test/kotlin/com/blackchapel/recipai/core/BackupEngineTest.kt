@@ -145,4 +145,55 @@ class BackupEngineTest {
         assertTrue(a != BackupFingerprint.of(recipes().drop(1)))
         assertEquals(64, a.length)
     }
+
+    @Test
+    fun theFingerprintChangesWithThePhotosOption() {
+        val withPhotos = BackupFingerprint.of(recipes(), includePhotos = true)
+        val without = BackupFingerprint.of(recipes(), includePhotos = false)
+        assertTrue(withPhotos != without)
+        // Photos on is the plain recipe hash: fingerprints stored by earlier versions still match.
+        assertEquals(BackupFingerprint.of(recipes()), withPhotos)
+        assertEquals(without, BackupFingerprint.of(recipes(), includePhotos = false))
+    }
+
+    @Test
+    fun pruneNeverDeletesAProtectedBackup() {
+        val folder = engine.folder(null)
+        val entries = (1..6).map { i -> engine.backUp(folder, snapshot(1_000L * i)) }
+        val oldest = entries.first()
+        // Without protection the 7th backup pushes the oldest out.
+        val plain = engine.backUp(folder, snapshot(7_000L))
+        assertTrue(engine.list(folder).none { it.id == oldest.id })
+        assertEquals(6, engine.list(folder).size)
+        assertEquals(plain.id, engine.list(folder).first().id)
+
+        // Protected, the second-oldest survives and the next one goes instead; still six in all.
+        val protectedOne = engine.list(folder).last()
+        engine.backUp(folder, snapshot(8_000L), protect = setOf(protectedOne.id))
+        val left = engine.list(folder)
+        assertEquals(6, left.size)
+        assertTrue(left.any { it.id == protectedOne.id })
+        assertEquals(listOf(8_000L, 7_000L, 6_000L, 5_000L, 4_000L, protectedOne.createdAt), left.map { it.createdAt })
+    }
+
+    @Test
+    fun leftoverArchivesFromAKilledRunAreRemovedAtTheStartOfTheNext() {
+        val folder = engine.folder(null)
+        workDir.mkdirs()
+        val oldBackup = File(workDir, "backup-123.zip").also { it.writeBytes(ByteArray(10)) }
+        val oldRestore = File(workDir, "restore-456.zip").also { it.writeBytes(ByteArray(10)) }
+        val other = File(workDir, "keep-me.txt").also { it.writeText("x") }
+
+        // A backup clears only backup archives: a restore's download is still needed during it.
+        val entry = engine.backUp(folder, snapshot(1_000L))
+        assertTrue(!oldBackup.exists())
+        assertTrue(oldRestore.exists())
+
+        // A download clears older restore archives, then leaves its own.
+        val (archive, _) = engine.download(entry)
+        assertTrue(!oldRestore.exists())
+        assertTrue(archive.exists())
+        archive.delete()
+        assertTrue(other.exists())
+    }
 }

@@ -137,4 +137,14 @@ class PhotosTest {
         )
         assertEquals(listOf(b, "$a.tmp"), Photos.unreferenced(stored, setOf(a), now))
     }
+
+    @Test fun cleanupAlsoRemovesTempFilesLeftByAKilledRestore() {
+        val now = 10 * Photos.CLEANUP_GRACE_MS
+        val stored = listOf(
+            StoredFile("$a.restore.tmp", now - Photos.CLEANUP_GRACE_MS), // killed restore
+            StoredFile("$b.restore.tmp", now - 1000), // a restore that may still be running
+            StoredFile("$c.restore.part", now - Photos.CLEANUP_GRACE_MS), // not a name we write
+        )
+        assertEquals(listOf("$a.restore.tmp"), Photos.unreferenced(stored, setOf(a, b, c), now))
+    }
 }

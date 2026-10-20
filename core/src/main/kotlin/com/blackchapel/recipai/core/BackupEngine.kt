@@ -51,6 +51,8 @@ class BackupEngine(
         const val KEEP = 6
         const val MIME = "application/zip"
         const val FILE_PREFIX = "recipai-backup-"
+        private const val BACKUP_TEMP_PREFIX = "backup-"
+        private const val RESTORE_TEMP_PREFIX = "restore-"
 
         private val NAME_TIME = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss").withZone(ZoneOffset.UTC)
 
@@ -159,12 +161,20 @@ class BackupEngine(
     /**
      * Packs [snapshot] with its photos, uploads it into [folderId], checks
      * the upload's size and checksum, then deletes the oldest backups beyond
-     * [keep]. Returns the new backup.
+     * [keep]. Backups in [protect] (the one being restored) are never
+     * deleted. Returns the new backup.
      */
-    fun backUp(folderId: String, snapshot: BackupSnapshot, onProgress: (BackupProgress) -> Unit = {}): BackupEntry {
+    fun backUp(
+        folderId: String,
+        snapshot: BackupSnapshot,
+        protect: Set<String> = emptySet(),
+        onProgress: (BackupProgress) -> Unit = {},
+    ): BackupEntry {
         onProgress(BackupProgress("Preparing your recipes", 0.02f))
         workDir.mkdirs()
-        val archive = File.createTempFile("backup-", ".zip", workDir)
+        // A run killed mid-upload never reached its finally: drop what it left.
+        clearLeftovers(BACKUP_TEMP_PREFIX)
+        val archive = File.createTempFile(BACKUP_TEMP_PREFIX, ".zip", workDir)
         try {
             val md5 = MessageDigest.getInstance("MD5")
             DigestOutputStream(FileOutputStream(archive), md5).use { out ->
@@ -198,7 +208,7 @@ class BackupEngine(
                 kind = snapshot.kind,
                 includesPhotos = snapshot.includesPhotos,
             )
-            prune(folderId, entry.id)
+            prune(folderId, entry.id, protect)
             onProgress(BackupProgress("Checking the backup", 1f))
             return entry.copy(bytes = size)
         } finally {
@@ -206,14 +216,19 @@ class BackupEngine(
         }
     }
 
-    /** Deletes backups beyond the newest [keep] (never [justMade]). Best effort. */
-    private fun prune(folderId: String, justMade: String) {
+    /**
+     * Deletes backups beyond the newest [keep]: never [justMade], and never
+     * those in [protect], which count towards the [keep]. Best effort.
+     */
+    private fun prune(folderId: String, justMade: String, protect: Set<String>) {
         val all = try {
             list(folderId)
         } catch (e: java.io.IOException) {
             return
         }
-        all.filter { it.id != justMade }.drop((keep - 1).coerceAtLeast(0)).forEach { old ->
+        val others = all.filter { it.id != justMade }
+        val protectedCount = others.count { it.id in protect }
+        others.filter { it.id !in protect }.drop((keep - 1 - protectedCount).coerceAtLeast(0)).forEach { old ->
             try {
                 drive.delete(old.id)
             } catch (e: java.io.IOException) {
@@ -228,7 +243,8 @@ class BackupEngine(
      */
     fun download(entry: BackupEntry, onProgress: (BackupProgress) -> Unit = {}): Pair<File, BackupSnapshot> {
         workDir.mkdirs()
-        val archive = File.createTempFile("restore-", ".zip", workDir)
+        clearLeftovers(RESTORE_TEMP_PREFIX)
+        val archive = File.createTempFile(RESTORE_TEMP_PREFIX, ".zip", workDir)
         try {
             onProgress(BackupProgress("Downloading the backup", 0f))
             drive.download(entry.id, archive, entry.bytes) { got, total ->
@@ -238,6 +254,19 @@ class BackupEngine(
         } catch (e: Exception) {
             archive.delete()
             throw e
+        }
+    }
+
+    /**
+     * Deletes archives an earlier run left in [workDir] because the process
+     * was killed before its cleanup ran. Called only at the start of a run,
+     * which BackupJobs serialises, so nothing in use is deleted. [backUp]
+     * clears only its own prefix: a restore's downloaded archive is still
+     * needed while the "Before restore" backup is made.
+     */
+    private fun clearLeftovers(prefix: String) {
+        workDir.listFiles()?.forEach { f ->
+            if (f.isFile && f.name.startsWith(prefix) && f.name.endsWith(".zip")) f.delete()
         }
     }
 
@@ -253,10 +282,18 @@ class BackupEngine(
     }
 }
 
-/** A fingerprint of the recipe list, to tell whether anything changed since the last backup. */
+/**
+ * A fingerprint of what a backup would hold, to tell whether anything
+ * changed since the last one: the recipe list, and whether photos go with
+ * it. Turning "Include photos" on must not look like "nothing changed".
+ */
 object BackupFingerprint {
-    fun of(recipes: List<Recipe>): String =
-        MessageDigest.getInstance("SHA-256").digest(RecipeJson.encode(recipes).toByteArray(Charsets.UTF_8)).toHex()
+    fun of(recipes: List<Recipe>, includePhotos: Boolean = true): String {
+        // With photos (the default) it is the plain recipe hash, so the
+        // fingerprints stored by earlier versions stay valid.
+        val text = RecipeJson.encode(recipes) + if (includePhotos) "" else "|no-photos"
+        return MessageDigest.getInstance("SHA-256").digest(text.toByteArray(Charsets.UTF_8)).toHex()
+    }
 }
 
 internal fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it.toInt() and 0xff) }

@@ -176,14 +176,14 @@ class BackupJobs(
         tokens: TokenSource,
         skipIfUnchanged: Boolean = false,
     ): BackupEntry? = mutex.withLock {
-        val fingerprint = BackupFingerprint.of(input.recipes)
+        val fingerprint = BackupFingerprint.of(input.recipes, input.includePhotos)
         val status = _status.value
         if (skipIfUnchanged && status.lastBackupAt != null && status.lastFingerprint == fingerprint) return@withLock null
         _run.value = BackupRun("Preparing your recipes", 0f)
         try {
             val entry = withDrive(tokens) { engine ->
                 val snapshot = BackupEngine.snapshot(input.recipes, input.settings, kind, input.includePhotos, platform.appVersion, clock(), platform.photoDir)
-                engine.backUp(folderOf(engine), snapshot, progress(0f, 1f, restoring = false))
+                engine.backUp(folderOf(engine), snapshot, onProgress = progress(0f, 1f, restoring = false))
             }
             recordBackup(entry, fingerprint)
             entry
@@ -214,28 +214,41 @@ class BackupJobs(
      * is here now ("Before restore", always with photos, so it can be
      * undone), then copies the photos out. The caller puts the returned
      * recipes and settings in place.
+     *
+     * [current] is asked for what is here only after the download, because
+     * a big download takes minutes and the app stays usable meanwhile:
+     * recipes edited during it must be in the "Before restore" backup, or
+     * restoring would discard them for good. The backup being restored is
+     * kept in Drive whatever the "Before restore" backup would push out, so
+     * a restore that then fails does not cost the user their backup.
      */
-    suspend fun restore(entry: BackupEntry, current: BackupInput, tokens: TokenSource): RestoredBackup = mutex.withLock {
+    suspend fun restore(entry: BackupEntry, current: suspend () -> BackupInput, tokens: TokenSource): RestoredBackup = mutex.withLock {
         _run.value = BackupRun("Downloading the backup", 0f, restoring = true)
         try {
-            val restored = withDrive(tokens) { engine ->
-                val (archive, _) = engine.download(entry, progress(0f, 0.35f, restoring = true))
-                try {
+            val (archive, _) = withDrive(tokens) { engine -> engine.download(entry, progress(0f, 0.35f, restoring = true)) }
+            val restored = try {
+                val input = current()
+                withDrive(tokens) { engine ->
                     val folder = folderOf(engine)
-                    val fingerprint = BackupFingerprint.of(current.recipes)
+                    val fingerprint = BackupFingerprint.of(input.recipes, includePhotos = true)
                     val snapshot = BackupEngine.snapshot(
-                        current.recipes, current.settings, BackupKind.BEFORE_RESTORE, includePhotos = true,
+                        input.recipes, input.settings, BackupKind.BEFORE_RESTORE, includePhotos = true,
                         appVersion = platform.appVersion, createdAt = clock(), photoDir = platform.photoDir,
                     )
-                    val before = engine.backUp(folder, snapshot, progress(0.35f, 0.5f, restoring = true, label = "Saving what you have now"))
+                    val before = engine.backUp(
+                        folder, snapshot,
+                        protect = setOf(entry.id),
+                        onProgress = progress(0.35f, 0.5f, restoring = true, label = "Saving what you have now"),
+                    )
                     recordBackup(before, fingerprint)
                     engine.restore(archive, progress(0.85f, 0.15f, restoring = true))
-                } finally {
-                    archive.delete()
                 }
+            } finally {
+                archive.delete()
             }
             // What is on the phone now matches a backup in Drive (the one restored).
-            update { it.copy(lastFingerprint = BackupFingerprint.of(restored.recipes), lastError = null, lastErrorAt = null) }
+            val photos = restored.snapshot.includesPhotos
+            update { it.copy(lastFingerprint = BackupFingerprint.of(restored.recipes, photos), lastError = null, lastErrorAt = null) }
             restored
         } catch (e: Throwable) {
             recordFailure(e)
