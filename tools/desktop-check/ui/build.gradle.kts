@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.util.PatternSet
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -9,22 +10,28 @@ java { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaV
 kotlin { compilerOptions { jvmTarget.set(JvmTarget.JVM_17) } }
 
 val app = rootDir.resolve("../../app/src").canonicalFile
+val stubs = rootDir.resolve("stubs").canonicalFile
 
 // Android-only code: never compiled here. Everything in a `platform`
 // package, plus these files. Each has a stub with the same public API in
-// ../stubs (files named *Stub.kt so these excludes don't hide them).
-val androidOnly = listOf(
+// ../stubs, in the same package path (files named <Name>Stub.kt). The
+// excludes apply to the app's sources only, never to the stubs.
+val androidOnly = PatternSet().include(
     "**/platform/**",
     "**/MainActivity.kt", "**/MainViewModel.kt", "**/RecipaiApplication.kt",
     "**/data/DataStoreSettings.kt", "**/haptics/Haptics.kt",
     "**/ui/theme/Fonts.kt", "**/ui/components/Icons.kt", "**/ui/Platform.kt",
-)
+).asSpec
+val excludeAndroidOnly = Spec<FileTreeElement> {
+    // Files only: an include pattern matches every directory a match could be under.
+    !it.isDirectory && !it.file.startsWith(stubs) && androidOnly.isSatisfiedBy(it)
+}
 sourceSets["main"].kotlin.srcDir(app.resolve("main/java"))
-sourceSets["main"].kotlin.srcDir(rootDir.resolve("stubs"))
-sourceSets["main"].kotlin.exclude(androidOnly)
+sourceSets["main"].kotlin.srcDir(stubs)
+sourceSets["main"].kotlin.exclude(excludeAndroidOnly)
 // The app's JVM unit tests (app/src/test) run here too.
 sourceSets["test"].kotlin.srcDir(app.resolve("test/java"))
-sourceSets["test"].kotlin.exclude(androidOnly)
+sourceSets["test"].kotlin.exclude(excludeAndroidOnly)
 
 dependencies {
     implementation(project(":core"))
@@ -50,3 +57,4 @@ configurations.all {
     exclude(group = "androidx.lifecycle")
     exclude(group = "androidx.arch.core")
 }
+

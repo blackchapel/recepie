@@ -130,7 +130,11 @@ fun DetailScreen(app: AppController, page: DetailPage, recipe: Recipe?) {
             item("method-head") {
                 SectionHead(
                     "Method",
-                    if (r.steps.isNotEmpty()) "Tap a number when it's done" else null,
+                    when {
+                        r.steps.any { it.minutes > 0 } -> "Tap a time to start a timer"
+                        r.steps.isNotEmpty() -> "Tap a number when it's done"
+                        else -> null
+                    },
                     Modifier.padding(start = Gutter, end = Gutter, top = 24.dp, bottom = 10.dp),
                 )
             }

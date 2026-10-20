@@ -1,6 +1,7 @@
 package com.blackchapel.recipai.ui.search
 
 import com.blackchapel.recipai.ui.photos.RecipeImage
+import com.blackchapel.recipai.ui.timers.timerPillClearance
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -93,7 +94,7 @@ fun SearchScreen(app: AppController, recipes: List<Recipe>) {
     Box(Modifier.fillMaxSize().background(c.canvas)) {
         LazyColumn(
             state = state,
-            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + TabBarHeight + 28.dp),
+            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + TabBarHeight + 28.dp + timerPillClearance(app)),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxSize(),
         ) {

@@ -68,8 +68,9 @@ import kotlinx.coroutines.launch
 private val NavEasing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
 
 /**
- * The whole app: four tab roots, pages pushed over them (recipe detail),
- * the tab bar and + button, toasts, and at most one bottom sheet.
+ * The whole app: four tab roots, pages pushed over them (recipe detail,
+ * editor, cook mode, Backup), the tab bar and + button, the mini timer,
+ * toasts, and at most one bottom sheet.
  */
 @Composable
 fun RecipaiApp(app: AppController, versionName: String) {
@@ -259,7 +260,7 @@ private fun SheetHost(app: AppController, recipes: List<Recipe>) {
                         if (r.steps.isNotEmpty()) add(SheetAction("Start cooking", Ico.Flame) { app.startCooking(r.id) })
                     }
                     add(SheetAction("Edit recipe", Ico.Pencil) { app.editRecipe(r.id) })
-                    if (!sheet.preview) add(SheetAction("Add photo", Ico.Camera) { app.addPhoto(r.id) })
+                    add(SheetAction("Add photo", Ico.Camera) { app.addPhoto(r.id) })
                     add(
                         SheetAction(if (r.favorite) "Remove from favorites" else "Add to favorites", Ico.Heart) {
                             val now = app.toggleFavorite(r.id)

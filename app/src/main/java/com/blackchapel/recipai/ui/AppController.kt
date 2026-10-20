@@ -187,7 +187,12 @@ class AppController(
 
     fun deleteRecipe(id: String) {
         val (index, gone) = repo.delete(id) ?: return
-        stack.removeAll { it is DetailPage && it.recipeId == id }
+        // Every page about the recipe goes: its detail, an editor or cook mode for it.
+        stack.removeAll {
+            (it is DetailPage && it.recipeId == id) ||
+                (it is EditorPage && it.recipeId == id) ||
+                (it is CookPage && it.recipeId == id)
+        }
         showToast("Deleted “${gone.title}”", Ico.Trash, "Undo") {
             repo.restore(index, gone)
             showToast("Recipe restored", Ico.Check)
@@ -442,6 +447,11 @@ class AppController(
         // A reviewed paste-text import is done with: clear its draft text.
         val preset = page.preset
         if (preset != null && importText.isNotBlank() && TextRecipeParser.parse(importText) == preset) importText = ""
+        // A reviewed link import is done with too: clear the link tab, as saveLinkImport does.
+        if (preset?.source != null && linkImport.result == preset) {
+            linkImport.reset()
+            importUrl = ""
+        }
         closeEditor(page)
         val top = stack.lastOrNull()
         if (!(top is DetailPage && top.recipeId == recipe.id)) openRecipe(recipe.id)

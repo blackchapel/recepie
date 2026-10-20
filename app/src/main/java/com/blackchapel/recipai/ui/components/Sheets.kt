@@ -187,7 +187,9 @@ fun ConfirmDeleteSheet(recipe: Recipe, onDismiss: () -> Unit, onDelete: () -> Un
             Spacer(Modifier.height(14.dp))
             Text("Delete “${recipe.title}”?", style = RecipaiType.sheetTitle.copy(fontSize = RecipaiType.secTitle.fontSize.times(21f / 19f)), color = c.ink)
             Spacer(Modifier.height(6.dp))
-            Text("This removes the recipe. You can undo for a few seconds.", style = RecipaiType.body, color = c.mute)
+            val photos = recipe.photos.size
+            val also = if (photos > 0) " and its $photos ${if (photos == 1) "photo" else "photos"}" else ""
+            Text("This removes the recipe$also. You can undo for a few seconds.", style = RecipaiType.body, color = c.mute)
             Spacer(Modifier.height(20.dp))
             DangerButton("Delete recipe") { closer.close(onDelete) }
             Spacer(Modifier.height(8.dp))

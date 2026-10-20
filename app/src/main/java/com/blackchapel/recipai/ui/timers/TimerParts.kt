@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -106,4 +107,15 @@ fun TimerCountBadge(count: Int, size: Dp, modifier: Modifier = Modifier) {
     ) {
         Text("$count", style = clockStyle(11f), color = OnFlame, maxLines = 1)
     }
+}
+
+/**
+ * Extra bottom padding for a scrolling screen while the mini-timer pill
+ * shows, so its last row isn't hidden under the pill (the prototype's
+ * `.has-timer`).
+ */
+@Composable
+fun timerPillClearance(app: AppController): Dp {
+    val board by app.timers.board.collectAsState()
+    return if (board.isEmpty) 0.dp else 64.dp
 }

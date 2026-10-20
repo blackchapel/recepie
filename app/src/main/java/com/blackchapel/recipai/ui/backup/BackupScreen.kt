@@ -1,5 +1,6 @@
 package com.blackchapel.recipai.ui.backup
 
+import com.blackchapel.recipai.ui.timers.timerPillClearance
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -101,7 +102,7 @@ fun BackupScreen(app: AppController, page: BackupPage) {
     Box(Modifier.fillMaxSize().background(c.canvas)) {
         LazyColumn(
             state = state,
-            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + 28.dp),
+            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + 28.dp + timerPillClearance(app)),
             modifier = Modifier.fillMaxSize(),
         ) {
             item("title") { LargeTitle("Google Drive", "Backup") }

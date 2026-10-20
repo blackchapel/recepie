@@ -1,5 +1,6 @@
 package com.blackchapel.recipai.ui.settings
 
+import com.blackchapel.recipai.ui.timers.timerPillClearance
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,7 +65,7 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
     Box(Modifier.fillMaxSize().background(c.canvas)) {
         LazyColumn(
             state = state,
-            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + TabBarHeight + 28.dp),
+            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + TabBarHeight + 28.dp + timerPillClearance(app)),
             modifier = Modifier.fillMaxSize(),
         ) {
             item("title") { LargeTitle("Recipai", "Settings") }
@@ -111,6 +112,10 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
                             Text("${recipes.size}", style = RecipaiType.cell, color = c.mute)
                         }
                         Hairline(start = 56.dp)
+                        Cell("Photos", icon = Ico.Camera, iconColor = c.ocean) {
+                            Text("${recipes.sumOf { it.photos.size }}", style = RecipaiType.cell, color = c.mute)
+                        }
+                        Hairline(start = 56.dp)
                         Cell(
                             "Restore example recipes",
                             icon = Ico.Reset,
@@ -126,7 +131,7 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
             item("about") {
                 Section("About") {
                     Group {
-                        Cell("Recipai", icon = Ico.Info, iconColor = c.faint, subtitle = "Works offline. Your recipes stay on this phone.")
+                        Cell("Recipai", icon = Ico.Info, iconColor = c.faint, subtitle = "Works offline. Your recipes stay on this phone, and in your own Google Drive if you back up.")
                         Hairline(start = 56.dp)
                         // Test builds have long names (0.1-branch.sha), so the version gets its own line.
                         Cell("Version", icon = Ico.Tag, iconColor = c.faint, subtitle = versionName)
