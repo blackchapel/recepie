@@ -5,13 +5,14 @@ package com.blackchapel.recipai.core
  * recipe and each of its rows (the app passes random UUIDs; tests pass a
  * counter).
  */
-fun ParsedRecipe.toRecipe(now: Long, source: String? = null, newId: () -> String): Recipe {
+fun ParsedRecipe.toRecipe(now: Long, source: String? = this.source, newId: () -> String): Recipe {
     val id = newId()
     return Recipe(
         id = id,
         title = title.ifBlank { "Imported recipe" },
         description = description,
         servings = servings.coerceAtLeast(1),
+        servingsLabel = servingsLabel?.takeIf { it.isNotBlank() },
         tags = tags,
         ingredients = ingredients.map {
             Ingredient(
