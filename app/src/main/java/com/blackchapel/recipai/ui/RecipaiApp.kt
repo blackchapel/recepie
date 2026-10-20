@@ -5,8 +5,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
@@ -24,6 +25,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import com.blackchapel.recipai.core.Recipe
 import com.blackchapel.recipai.haptics.HapticType
 import com.blackchapel.recipai.haptics.LocalHaptics
+import com.blackchapel.recipai.platform.nav.PageBackHandler
 import com.blackchapel.recipai.ui.components.ActionSheet
 import com.blackchapel.recipai.ui.components.ConfirmDeleteSheet
 import com.blackchapel.recipai.ui.components.Ico
@@ -56,6 +60,8 @@ import com.blackchapel.recipai.ui.settings.SettingsScreen
 import com.blackchapel.recipai.ui.theme.LocalColors
 import com.blackchapel.recipai.ui.theme.RecipaiTheme
 import com.blackchapel.recipai.ui.theme.isDarkTheme
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 /** iOS-like navigation easing from the prototype (--ease-nav). */
 private val NavEasing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
@@ -78,19 +84,22 @@ fun RecipaiApp(app: AppController, versionName: String) {
         val top = app.stack.lastOrNull()
         val pushed = top != null
         SystemBarIcons(lightIcons = dark || (top is DetailPage && app.heroUnderStatusBar))
-        SystemBackHandler(enabled = pushed) { app.back() }
+        // How far the current tab is shifted under a pushed page (0..1).
+        val under = remember { Animatable(if (pushed) 1f else 0f) }
+        LaunchedEffect(pushed) { under.animateTo(if (pushed) 1f else 0f, tween(450, easing = NavEasing)) }
+        val swipe = remember { PageBackSwipe() }
+        PageBack(app, swipe, under)
         LaunchedEffect(loadError) { loadError?.let { app.showToast(it, Ico.Info) } }
         LaunchedEffect(saveError) { saveError?.let { app.showToast(it, Ico.Info) } }
 
         Box(Modifier.fillMaxSize().background(c.canvas)) {
             if (loaded) {
                 // Tab roots. The current one slides back a little under a pushed page.
-                val under by animateFloatAsState(if (pushed) 1f else 0f, tween(450, easing = NavEasing), label = "under")
                 val saveable = rememberSaveableStateHolder()
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .graphicsLayer { translationX = -0.28f * size.width * under },
+                        .graphicsLayer { translationX = -0.28f * size.width * under.value },
                 ) {
                     Crossfade(app.tab, animationSpec = tween(250), label = "tab") { tab ->
                         saveable.SaveableStateProvider(tab.name) {
@@ -103,7 +112,7 @@ fun RecipaiApp(app: AppController, versionName: String) {
                         }
                     }
                 }
-                if (under > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.22f * under)))
+                if (under.value > 0f) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.22f * under.value)))
 
                 // Pushed pages slide in from the right and back out on pop.
                 AnimatedContent(
@@ -114,7 +123,10 @@ fun RecipaiApp(app: AppController, versionName: String) {
                         // The editor and cook mode are modal: they slide up and down; other pages slide sideways.
                         val moving = if (isPop) initialState else targetState
                         val modal = moving is EditorPage || moving is CookPage
-                        val transform = if (isPop) {
+                        val transform = if (isPop && swipe.swipedAway(initialState)) {
+                            // A page swiped away is already off screen: no second slide.
+                            EnterTransition.None togetherWith ExitTransition.None
+                        } else if (isPop) {
                             EnterTransition.None togetherWith
                                 if (modal) slideOutVertically(tween(400, easing = NavEasing)) { it }
                                 else slideOutHorizontally(tween(400, easing = NavEasing)) { it }
@@ -129,12 +141,15 @@ fun RecipaiApp(app: AppController, versionName: String) {
                     },
                     label = "pages",
                 ) { page ->
-                    when (page) {
-                        is DetailPage -> DetailScreen(app, page, recipes.firstOrNull { it.id == page.recipeId })
-                        is EditorPage -> EditorScreen(app, page, recipes)
-                        is CookPage -> CookScreen(app, page, recipes.firstOrNull { it.id == page.recipeId })
-                        is BackupPage -> BackupScreen(app, page)
-                        null -> Box(Modifier.fillMaxSize())
+                    // Follows the finger during a back swipe.
+                    Box(Modifier.fillMaxSize().graphicsLayer { translationX = swipe.offset(page) * size.width }) {
+                        when (page) {
+                            is DetailPage -> DetailScreen(app, page, recipes.firstOrNull { it.id == page.recipeId })
+                            is EditorPage -> EditorScreen(app, page, recipes)
+                            is CookPage -> CookScreen(app, page, recipes.firstOrNull { it.id == page.recipeId })
+                            is BackupPage -> BackupScreen(app, page)
+                            null -> Box(Modifier.fillMaxSize())
+                        }
                     }
                 }
 
@@ -160,6 +175,63 @@ fun RecipaiApp(app: AppController, versionName: String) {
             SheetHost(app, recipes)
         }
     }
+}
+
+/**
+ * System back for pushed pages. A predictive back swipe (Android 14+) drags
+ * the page to the right with the finger and the tab underneath back into
+ * place ([PageBackSwipe]); releasing finishes the slide and pops it with a
+ * light haptic, abandoning springs it back. The back button and older
+ * Android versions pop with the normal animation.
+ */
+@Composable
+private fun PageBack(app: AppController, swipe: PageBackSwipe, under: Animatable<Float, AnimationVector1D>) {
+    val haptics = LocalHaptics.current
+    val scope = rememberCoroutineScope()
+    PageBackHandler(
+        enabled = app.stack.isNotEmpty(),
+        onProgress = { fraction ->
+            val top = app.stack.lastOrNull()
+            if (top != null && PageBackSwipe.canFollow(top, app.stack.size)) {
+                swipe.follow(top, fraction)
+                under.snapTo(1f - fraction)
+            }
+        },
+        onCancel = {
+            scope.launch {
+                val spec = tween<Float>(300, easing = NavEasing)
+                coroutineScope {
+                    launch { swipe.progress.animateTo(0f, spec) }
+                    if (app.stack.isNotEmpty()) under.animateTo(1f, spec)
+                }
+            }
+        },
+        onBack = { swiped ->
+            val top = app.stack.lastOrNull()
+            if (swiped) haptics.perform(HapticType.LIGHT)
+            // The finish-the-slide path only for a real swipe: a later back
+            // press on a page whose swipe was abandoned pops normally.
+            if (swiped && top != null && swipe.isFollowing(top)) {
+                swipe.commit()
+                scope.launch {
+                    try {
+                        // Finish the slide from where the finger let go.
+                        val spec = tween<Float>((320 * (1f - swipe.progress.value)).toInt().coerceAtLeast(80), easing = NavEasing)
+                        coroutineScope {
+                            launch { swipe.progress.animateTo(1f, spec) }
+                            under.animateTo(0f, spec)
+                        }
+                    } finally {
+                        // Pop exactly the page that was swiped (not a sheet
+                        // or another page, should anything have changed).
+                        if (app.stack.lastOrNull() === top) app.stack.removeAt(app.stack.lastIndex)
+                    }
+                }
+            } else {
+                app.back()
+            }
+        },
+    )
 }
 
 @Composable

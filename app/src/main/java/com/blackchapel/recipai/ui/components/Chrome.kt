@@ -138,7 +138,9 @@ fun TabBar(app: AppController, onImport: () -> Unit, modifier: Modifier = Modifi
                 Box(
                     Modifier
                         .semantics { contentDescription = "Import a recipe" }
-                        .tap(pressedScale = 0.9f, haptic = HapticType.MEDIUM, label = "Import a recipe", onClick = onImport)
+                        // Light, not medium: the center button felt too strong on the
+                        // first test build.
+                        .tap(pressedScale = 0.9f, haptic = HapticType.LIGHT, label = "Import a recipe", onClick = onImport)
                         .size(50.dp)
                         .shadow(10.dp, RoundedCornerShape(17.dp), ambientColor = c.paprika, spotColor = c.paprika)
                         .background(FlameBrush, RoundedCornerShape(17.dp)),
@@ -189,7 +191,8 @@ fun NewRecipeFab(visible: Boolean, onClick: () -> Unit, modifier: Modifier = Mod
         Box(
             Modifier
                 .semantics { contentDescription = "New recipe" }
-                .tap(pressedScale = 0.9f, haptic = HapticType.MEDIUM, label = "New recipe", onClick = onClick)
+                // Light, not medium: the + felt too strong on the first test build.
+                .tap(pressedScale = 0.9f, haptic = HapticType.LIGHT, label = "New recipe", onClick = onClick)
                 .size(56.dp)
                 .shadow(14.dp, RoundedCornerShape(20.dp))
                 .background(c.cta, RoundedCornerShape(20.dp)),
