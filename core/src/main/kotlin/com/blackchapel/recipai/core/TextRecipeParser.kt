@@ -105,6 +105,16 @@ object TextRecipeParser : RecipeImporter {
         else -> TimeScale.PARTIAL
     }
 
+    /**
+     * A typed unit in the short form scaling understands: "Tablespoons" ->
+     * "tbsp", "Grams" -> "g". Units it doesn't know come back trimmed, as typed.
+     */
+    fun canonicalUnit(raw: String): String {
+        val typed = raw.trim()
+        val key = typed.removeSuffix(".").replace(spaces, " ").lowercase()
+        return unitAliases[key] ?: typed
+    }
+
     /** "2 cloves garlic, minced" -> 2 clove "garlic" (minced). Null for an empty line. */
     fun parseIngredientLine(line: String): ParsedIngredient? {
         var s = Quantities.normalizeFractions(line).replace(leadingBullets, "").replace(spaces, " ").trim()
