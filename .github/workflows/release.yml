@@ -108,8 +108,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write # push the release tag and create the GitHub Release
-    outputs:
-      release_url: ${{ steps.release.outputs.url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -147,8 +145,14 @@ jobs:
           VERSION_NAME: ${{ needs.build.outputs.version_name }}
           VERSION_CODE: ${{ needs.build.outputs.version_code }}
           TAG_NAME: ${{ needs.build.outputs.tag_name }}
-          RELEASE_URL: ${{ needs.release.outputs.release_url }}
         run: |
+          # Built here, not passed as a job output: the release URL contains the repo
+          # name, which is also a repository secret's value, and GitHub drops outputs
+          # that contain a secret's value, so the Release field would go missing.
+          RELEASE_URL=""
+          if [ "$RELEASE_RESULT" = "success" ]; then
+            RELEASE_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${TAG_NAME}"
+          fi
           if [ "$BUILD_RESULT" = "success" ] && [ "$RELEASE_RESULT" = "success" ]; then
             TITLE="🚀 Recipai production release published"
             COLOR=3066993

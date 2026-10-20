@@ -22,7 +22,12 @@ jobs:
       version_code: ${{ steps.version.outputs.version_code }}
       safe_branch: ${{ steps.version.outputs.safe_branch }}
       short_sha: ${{ steps.version.outputs.short_sha }}
-      artifact_url: ${{ steps.upload.outputs.artifact-url }}
+      # The id, not the URL: the URL contains the repo name, which is also the
+      # value of a repository secret (the key alias), and GitHub drops any job
+      # output that contains a secret's value ("Skip output ... may contain
+      # secret"), so the Artifact field never reached Discord. The notify job
+      # builds the link from this id instead.
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
     steps:
       - name: Checkout ${{ inputs.branch }}
         uses: actions/checkout@v4
@@ -105,8 +110,12 @@ jobs:
           VERSION_CODE: ${{ needs.build.outputs.version_code }}
           BRANCH_NAME: ${{ inputs.branch }}
           SHORT_SHA: ${{ needs.build.outputs.short_sha }}
-          ARTIFACT_URL: ${{ needs.build.outputs.artifact_url }}
+          ARTIFACT_ID: ${{ needs.build.outputs.artifact_id }}
         run: |
+          ARTIFACT_URL=""
+          if [ -n "$ARTIFACT_ID" ]; then
+            ARTIFACT_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts/${ARTIFACT_ID}"
+          fi
           if [ "$BUILD_RESULT" = "success" ]; then
             TITLE="✅ Recipai test release built"
             COLOR=3066993

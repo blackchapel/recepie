@@ -453,7 +453,14 @@ Neither runs automatically; merging to `main` releases nothing.
 Both post the same Discord embed as RideLink's (title, version and
 code, branch, commit, artifact link). The step is identical to
 RideLink's apart from the app name, so `DISCORD_WEBHOOK_URL` must be set
-(without it the `curl` fails and the notify job goes red).
+(without it the `curl` fails and the notify job goes red). One real
+difference: the Artifact / Release link is **built in the notify job**
+from the artifact id (test) or the tag (production), not passed as a job
+output. The repo name is also the value of a repository secret (the key
+alias), and GitHub silently drops any job output containing a secret's
+value (`Skip output ... since it may contain secret`), which made the
+link vanish from the Discord message. RideLink never hit it because its
+repo name matches no secret.
 
 **Contract the Gradle project must honor** (the workflows depend on it):
 - `app/version.properties` with `VERSION_NAME=MAJOR.MINOR`.

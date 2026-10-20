@@ -68,6 +68,11 @@ part of the change that touches them -- see `CLAUDE.md`.
 
 ## Release pipeline
 
+- **Never pass a URL containing the repo name through a job output.**
+  A repository secret (the key alias) has the same value as the repo
+  name, so GitHub drops such outputs; the notify jobs build their links
+  from the artifact id and the tag instead. Don't "simplify" that back.
+
 - **Test and production builds share one signing key** (as in RideLink)
   and one `applicationId`, so a test build installs over a production
   install and vice versa. A separate `applicationIdSuffix` for test
