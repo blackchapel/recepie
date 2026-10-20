@@ -244,4 +244,12 @@ class AppController(
     }
 
     // ---- Module additions go below, one section per module, so merges stay simple.
+
+    // ---- backup ----
+
+    /** Google Drive backup (ui/backup): the Backup page's state and actions. */
+    val backup = com.blackchapel.recipai.ui.backup.BackupController(this, scope)
+
+    /** Settings and Search "Back up now": backs up, or opens the Backup page to connect first. */
+    fun backUpNow() = backup.backUpNow()
 }

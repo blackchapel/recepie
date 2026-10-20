@@ -87,6 +87,9 @@ class RecipeRepository(
         else list.toMutableList().also { it.add(index.coerceIn(0, it.size), recipe) }
     }
 
+    /** Replaces every recipe at once (restoring a backup), in one save. */
+    fun replaceAll(recipes: List<Recipe>) = mutate { recipes }
+
     /** Adds back any example recipe that is missing. Returns how many. */
     fun restoreSamples(): Int {
         val have = _recipes.value.map { it.id }.toSet()

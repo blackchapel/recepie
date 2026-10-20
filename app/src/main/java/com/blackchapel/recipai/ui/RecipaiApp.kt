@@ -158,6 +158,7 @@ fun RecipaiApp(app: AppController, versionName: String) {
             if (loaded) TimerOverlay(app, Modifier.align(Alignment.BottomCenter))
             ToastHost(app, Modifier.align(Alignment.TopCenter))
             SheetHost(app, recipes)
+            com.blackchapel.recipai.ui.backup.BackupHost(app)
         }
     }
 }

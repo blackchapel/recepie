@@ -143,6 +143,9 @@ class BackupEngine(
             BackupFormat.encode(snapshot).toByteArray(Charsets.UTF_8).size / 3L + snapshot.photos.sumOf { it.bytes } + 512
     }
 
+    /** The Google account the token belongs to. */
+    fun account(): DriveUser = drive.about()
+
     /** The backups folder: [knownId] if it still exists, else the one found by name, else a new one. */
     fun folder(knownId: String?): String {
         if (knownId != null && drive.folderExists(knownId)) return knownId
