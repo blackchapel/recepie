@@ -47,6 +47,9 @@ class BackupJobsTest {
         class F(val id: String, val name: String, val parent: String?, val props: Map<String, String>, val bytes: ByteArray, val folder: Boolean)
 
         val files = LinkedHashMap<String, F>()
+
+        /** Called when a backup is downloaded, to let a test change things mid-restore. */
+        var onDownload: () -> Unit = {}
         private val sessions = HashMap<String, Pair<String, String>>()
         private var n = 0
 
@@ -102,7 +105,10 @@ class BackupJobsTest {
                     }
                     request.method == "GET" -> {
                         val f = files[path.substringAfterLast('/')] ?: return handle(resp(404, "{}"))
-                        if (q["alt"] == "media") HttpResponse(200, emptyMap(), ByteArrayInputStream(f.bytes)) else resp(200, """{"id":"${f.id}","trashed":false}""")
+                        if (q["alt"] == "media") {
+                            onDownload()
+                            HttpResponse(200, emptyMap(), ByteArrayInputStream(f.bytes))
+                        } else resp(200, """{"id":"${f.id}","trashed":false}""")
                     }
                     request.method == "DELETE" -> if (files.remove(path.substringAfterLast('/')) != null) resp(204) else resp(404, "{}")
                     else -> resp(400, "{}")
@@ -210,7 +216,7 @@ class BackupJobsTest {
     fun restoreSavesWhatIsHereFirst() = runTest {
         jobs.connect("token")
         val old = jobs.backUp(input(recipes("Soup", "Toast")), BackupKind.MANUAL, tokens)!!
-        val restored = jobs.restore(old, input(recipes("Pie")), tokens)
+        val restored = jobs.restore(old, { input(recipes("Pie")) }, tokens)
         assertEquals(recipes("Soup", "Toast"), restored.recipes)
         assertEquals("DARK", restored.snapshot.settings.theme)
 
@@ -219,6 +225,57 @@ class BackupJobsTest {
         assertEquals(1, history.first().recipes)
         assertEquals(BackupFingerprint.of(recipes("Soup", "Toast")), jobs.status.value.lastFingerprint)
         assertNull(jobs.run.value)
+    }
+
+    @Test
+    fun restoreSavesWhatIsHereAfterTheDownloadNotBefore() = runTest {
+        jobs.connect("token")
+        val old = jobs.backUp(input(recipes("Soup")), BackupKind.MANUAL, tokens)!!
+        // The user edits while the download runs: the recipes are read once it is done.
+        var here = recipes("Pie")
+        drive.onDownload = { here = recipes("Pie", "Edited meanwhile") }
+        jobs.restore(old, { input(here) }, tokens)
+        val before = jobs.list(tokens).first { it.kind == BackupKind.BEFORE_RESTORE }
+        assertEquals(2, before.recipes)
+    }
+
+    @Test
+    fun restoreNeverDeletesTheBackupItRestores() = runTest {
+        jobs.connect("token")
+        val entries = (1..6).map { i -> jobs.backUp(input(recipes("R$i")), BackupKind.MANUAL, tokens)!! }
+        val oldest = entries.first()
+        assertEquals(6, jobs.list(tokens).size)
+        val restored = jobs.restore(oldest, { input(recipes("Here")) }, tokens)
+        assertEquals(recipes("R1"), restored.recipes)
+        val left = jobs.list(tokens)
+        assertEquals(6, left.size)
+        assertTrue(left.any { it.id == oldest.id })
+        assertTrue(left.any { it.kind == BackupKind.BEFORE_RESTORE })
+    }
+
+    @Test
+    fun aFailedRestoreLeavesNoArchiveBehind() = runTest {
+        jobs.connect("token")
+        val old = jobs.backUp(input(recipes("Soup")), BackupKind.MANUAL, tokens)!!
+        try {
+            jobs.restore(old, { throw IllegalStateException("gone") }, tokens)
+            fail("expected the failure")
+        } catch (e: IllegalStateException) {
+            assertTrue(platform.workDir.listFiles().orEmpty().isEmpty())
+            assertNull(jobs.run.value)
+        }
+    }
+
+    @Test
+    fun turningIncludePhotosOnIsABackupEvenWhenTheRecipesAreTheSame() = runTest {
+        jobs.connect("token")
+        val r = recipes("Soup")
+        val noPhotos = BackupInput(r, BackupSettings(theme = "DARK"), includePhotos = false)
+        assertTrue(jobs.backUp(noPhotos, BackupKind.AUTOMATIC, tokens, skipIfUnchanged = true) != null)
+        assertNull(jobs.backUp(noPhotos, BackupKind.AUTOMATIC, tokens, skipIfUnchanged = true))
+        // Photos switched on, nothing else changed: not skipped.
+        assertTrue(jobs.backUp(input(r), BackupKind.AUTOMATIC, tokens, skipIfUnchanged = true) != null)
+        assertNull(jobs.backUp(input(r), BackupKind.AUTOMATIC, tokens, skipIfUnchanged = true))
     }
 
     @Test

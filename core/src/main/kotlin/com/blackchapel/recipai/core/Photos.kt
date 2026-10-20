@@ -42,7 +42,7 @@ object Photos {
     const val CLEANUP_GRACE_MS = 60L * 60 * 1000
 
     private val NAME = Regex("""[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg""")
-    private val TEMP = Regex("""[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg\.tmp""")
+    private val TEMP = Regex("""[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.jpg(\.restore)?\.tmp""")
 
     /** The stored name for a new photo with this random UUID. */
     fun nameFor(uuid: String): String = "${uuid.lowercase()}.jpg"

@@ -1,5 +1,6 @@
 package com.blackchapel.recipai.data
 
+import com.blackchapel.recipai.core.Durable
 import com.blackchapel.recipai.core.Recipe
 import com.blackchapel.recipai.core.RecipeJson
 import kotlinx.coroutines.CoroutineDispatcher
@@ -15,6 +16,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * All recipes, kept in memory and saved as one JSON file ([RecipeJson]) in
@@ -58,6 +60,16 @@ class RecipeRepository(
     }
 
     fun get(id: String): Recipe? = _recipes.value.firstOrNull { it.id == id }
+
+    private val photoCleanUpClaimed = AtomicBoolean(false)
+
+    /**
+     * True for the first caller only, once per repository (so once per
+     * process, as the repository is shared): the launch-time photo cleanup
+     * must not run again for a second ViewModel, whose view of the open
+     * editors' photos is empty.
+     */
+    fun claimPhotoCleanUp(): Boolean = photoCleanUpClaimed.compareAndSet(false, true)
 
     /** Adds [recipe] at the top, or replaces the recipe with the same id. */
     fun upsert(recipe: Recipe) = mutate { list ->
@@ -127,7 +139,8 @@ class RecipeRepository(
         try {
             file.parentFile?.mkdirs()
             val tmp = File(file.parentFile, "${file.name}.tmp")
-            tmp.writeText(RecipeJson.encode(list))
+            // Synced before the rename: a power loss must not leave the new name on empty data.
+            Durable.write(tmp, RecipeJson.encode(list).toByteArray(Charsets.UTF_8))
             Files.move(tmp.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE)
             _saveError.value = null
         } catch (e: IOException) {

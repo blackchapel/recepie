@@ -85,6 +85,17 @@ class RecipeRepositoryTest {
     }
 
     @Test
+    fun photoCleanUpIsClaimedOnlyOncePerRepository() = runTest {
+        // The repository is process-wide, so a second ViewModel asking too
+        // (a task re-created, a config change) must not clean up again.
+        val r = repo(File(tmp.root, "recipes.json"))
+        assertTrue(r.claimPhotoCleanUp())
+        assertFalse(r.claimPhotoCleanUp())
+        // A different repository (a test, never the app) has its own claim.
+        assertTrue(repo(File(tmp.root, "other.json")).claimPhotoCleanUp())
+    }
+
+    @Test
     fun anUnreadableFileIsKeptAndNotOverwritten() = runTest {
         val file = File(tmp.root, "recipes.json")
         file.writeText("{ this is not a recipe file")

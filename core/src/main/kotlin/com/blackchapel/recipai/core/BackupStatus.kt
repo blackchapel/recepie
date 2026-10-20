@@ -85,7 +85,7 @@ class BackupStatusStore(private val file: File) {
         try {
             file.parentFile?.mkdirs()
             val tmp = File(file.parentFile, "${file.name}.tmp")
-            tmp.writeText(json.encodeToString(BackupStatus.serializer(), status))
+            Durable.write(tmp, json.encodeToString(BackupStatus.serializer(), status).toByteArray(Charsets.UTF_8))
             if (!tmp.renameTo(file)) {
                 file.delete()
                 tmp.renameTo(file)

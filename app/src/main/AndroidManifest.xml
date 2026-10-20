@@ -14,9 +14,13 @@
     <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- enableOnBackInvokedCallback: predictive back, so a pushed page can
-         follow the finger during the back swipe (Android 14+). -->
+         follow the finger during the back swipe (Android 14+).
+         allowBackup="false" turns off cloud backup only: since Android 12 a
+         phone-to-phone transfer still copies app files, and
+         data_extraction_rules.xml says what must stay behind. -->
     <application
         android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
         android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -26,7 +30,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:launchMode="singleTop"
+            android:launchMode="singleTask"
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

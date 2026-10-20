@@ -102,11 +102,14 @@ class BackupController(private val app: AppController, private val scope: Corout
         }
         scope.launch { jobs.run.collect { run = it } }
         scope.launch {
-            app.repo.recipes.collectLatest { recipes ->
-                delay(300)
-                fingerprint = withContext(Dispatchers.Default) { BackupFingerprint.of(recipes) }
-                refreshUnsaved()
-            }
+            // The photos option is part of the fingerprint: turning it on is a change to back up.
+            val includePhotos = app.settings.map { it.backupIncludePhotos }.distinctUntilChanged()
+            combine(app.repo.recipes, includePhotos) { recipes, photos -> recipes to photos }
+                .collectLatest { (recipes, photos) ->
+                    delay(300)
+                    fingerprint = withContext(Dispatchers.Default) { BackupFingerprint.of(recipes, photos) }
+                    refreshUnsaved()
+                }
         }
         // Keep the background schedule in step with the settings and the connection.
         // The stored settings are read each time, so the defaults shown before
@@ -311,7 +314,9 @@ class BackupController(private val app: AppController, private val scope: Corout
         starting = true
         scope.launch {
             try {
-                val restored = jobs.restore(entry, input(includePhotos = true), uiTokens)
+                // Read what is here once the download is done, not now: the user
+                // may edit recipes while it runs (see BackupJobs.restore).
+                val restored = jobs.restore(entry, { input(includePhotos = true) }, uiTokens)
                 app.repo.replaceAll(restored.recipes)
                 app.updateSettings { it.restoredFrom(restored.snapshot.settings) }
                 app.libraryTag = TagFilter.All

@@ -1,6 +1,7 @@
 package com.blackchapel.recipai.core
 
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
@@ -86,7 +87,13 @@ object BackupArchive {
             } else if (entry != null) {
                 val tmp = File(photoDir, "${photo.name}.restore.tmp")
                 try {
-                    zip.getInputStream(entry).use { input -> tmp.outputStream().use { copyCapped(input, it, MAX_PHOTO_BYTES) } }
+                    zip.getInputStream(entry).use { input ->
+                        FileOutputStream(tmp).use { out ->
+                            copyCapped(input, out, MAX_PHOTO_BYTES)
+                            // Synced before the rename: no zero-length photo after a power loss.
+                            Durable.sync(out)
+                        }
+                    }
                     if (tmp.renameTo(target)) available += photo.name
                 } finally {
                     tmp.delete()

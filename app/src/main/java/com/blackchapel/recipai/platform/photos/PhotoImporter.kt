@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.Matrix
 import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
+import com.blackchapel.recipai.core.Durable
 import com.blackchapel.recipai.core.PhotoImport
 import com.blackchapel.recipai.core.PhotoStore
 import com.blackchapel.recipai.core.Photos
@@ -44,6 +45,8 @@ internal object PhotoImporter {
             try {
                 FileOutputStream(temp).use { out ->
                     if (!bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)) throw IOException("JPEG encoding failed")
+                    // Synced before commit renames it into place: no zero-byte photo after a power loss.
+                    Durable.sync(out)
                 }
             } finally {
                 bitmap.recycle()
