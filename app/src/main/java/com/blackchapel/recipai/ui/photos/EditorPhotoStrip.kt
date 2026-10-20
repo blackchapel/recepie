@@ -26,7 +26,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,9 +50,24 @@ import com.blackchapel.recipai.ui.theme.FlameBrush
 import com.blackchapel.recipai.ui.theme.LocalColors
 import com.blackchapel.recipai.ui.theme.OnFlame
 import com.blackchapel.recipai.ui.theme.RecipaiType
+import kotlinx.coroutines.CoroutineScope
 
 private val TileSize = 112.dp
 private val TileShape = RoundedCornerShape(18.dp)
+
+/**
+ * Photos being copied into an editor, and the last problem reading them.
+ * Held by the editor's state, not the strip's composition, so a rotation
+ * mid-copy keeps the placeholder tiles and still shows the error.
+ */
+@Stable
+class EditorPhotoAdding {
+    /** How many picked photos are still being copied (placeholder tiles). */
+    var pending by mutableIntStateOf(0)
+
+    /** Why the last pick failed, or null. */
+    var problem by mutableStateOf<String?>(null)
+}
 
 /**
  * The editor's photo strip: an Add photos tile (the system photo picker,
@@ -61,6 +76,12 @@ private val TileShape = RoundedCornerShape(18.dp)
  * the generated illustration. [draft] is the recipe being edited (its
  * photos, cover and, for the illustration, the rest); [onChange] reports
  * the new photo list and cover index.
+ *
+ * Picked photos are copied in [scope], which must outlive the screen (the
+ * app's photo scope), so a rotation mid-copy doesn't drop them. The copy
+ * can finish after this composition is gone, so [onAdded] gets the stored
+ * names to add to the live draft (read when it runs, not captured from
+ * [draft]), and [adding] holds the progress.
  *
  * Spans the full width and scrolls sideways; [contentPadding] is the
  * gutter (place it without horizontal padding of its own). Removing a
@@ -71,29 +92,28 @@ private val TileShape = RoundedCornerShape(18.dp)
 fun EditorPhotoStrip(
     draft: Recipe,
     onChange: (photos: List<String>, coverIndex: Int) -> Unit,
+    adding: EditorPhotoAdding,
+    onAdded: (names: List<String>) -> Unit,
+    scope: CoroutineScope,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(horizontal = 18.dp),
 ) {
     val c = LocalColors.current
     val haptics = LocalHaptics.current
-    val current by rememberUpdatedState(draft)
-    val change by rememberUpdatedState(onChange)
     val set = PhotoSet(draft.photos, Photos.clampCover(draft.photos.size, draft.coverIndex))
-    var pending by remember { mutableIntStateOf(0) }
-    var problem by remember { mutableStateOf<String?>(null) }
+    val pending = adding.pending
+    val problem = adding.problem
     val picker = rememberPhotoPicker(
+        scope = scope,
         onStart = { n ->
-            pending = n
-            problem = null
+            adding.pending = n
+            adding.problem = null
         },
         onDone = { result ->
-            pending = 0
-            if (result.added > 0) {
-                val now = Photos.add(PhotoSet(current.photos, current.coverIndex), result.names)
-                change(now.photos, now.cover)
-            }
+            adding.pending = 0
+            if (result.added > 0) onAdded(result.names)
             haptics.perform(if (result.added > 0) HapticType.SUCCESS else HapticType.ERROR)
-            problem = when (result.failed) {
+            adding.problem = when (result.failed) {
                 0 -> null
                 1 -> "Couldn't read one photo. Try a JPG or PNG."
                 else -> "Couldn't read ${result.failed} photos. Try JPGs or PNGs."
@@ -113,8 +133,8 @@ fun EditorPhotoStrip(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             AddPhotosTile {
-                problem = null
-                if (!picker.launch()) problem = "Couldn't open the photo picker on this phone."
+                adding.problem = null
+                if (!picker.launch()) adding.problem = "Couldn't open the photo picker on this phone."
             }
             set.photos.forEachIndexed { i, name ->
                 key(name) {
@@ -127,12 +147,12 @@ fun EditorPhotoStrip(
                         onCover = {
                             haptics.perform(HapticType.SELECTION)
                             val now = Photos.setCover(set, i)
-                            change(now.photos, now.cover)
+                            onChange(now.photos, now.cover)
                         },
                         onRemove = {
                             haptics.perform(HapticType.LIGHT)
                             val now = Photos.remove(set, i)
-                            change(now.photos, now.cover)
+                            onChange(now.photos, now.cover)
                         },
                     )
                 }
@@ -240,7 +260,7 @@ private fun TileButton(icon: Ico, label: String, onClick: () -> Unit) {
     val shape = RoundedCornerShape(10.dp)
     Box(
         Modifier
-            .tap(pressedScale = 0.88f, haptic = null, label = label, onClick = onClick)
+            .tap(pressedScale = 0.88f, haptic = null, description = label, onClick = onClick)
             .size(30.dp)
             .background(c.glass, shape)
             .border(1.dp, c.glassLine, shape),

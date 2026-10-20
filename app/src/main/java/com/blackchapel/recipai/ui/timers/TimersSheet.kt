@@ -120,7 +120,7 @@ private fun TimerRow(t: CookTimer, now: Long, onToggle: () -> Unit, onAddMinute:
 private fun ActionButton(label: String, haptic: HapticType, onClick: () -> Unit, content: @Composable () -> Unit) {
     Box(
         Modifier
-            .tap(pressedScale = 0.88f, haptic = haptic, label = label, onClick = onClick)
+            .tap(pressedScale = 0.88f, haptic = haptic, description = label, onClick = onClick)
             .size(38.dp)
             .background(LocalColors.current.surface, RoundedCornerShape(12.dp)),
         contentAlignment = Alignment.Center,

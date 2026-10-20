@@ -1,6 +1,7 @@
 package com.blackchapel.recipai.ui
 
 import com.blackchapel.recipai.core.ImportSamples
+import com.blackchapel.recipai.core.TagFilter
 import com.blackchapel.recipai.core.TextRecipeParser
 import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.RecipeRepository
@@ -18,6 +19,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -91,6 +93,68 @@ class IntegrationFlowTest {
         app.openRecipe(app.repo.recipes.value.first().id)
         app.handleSharedText(ImportSamples.TOFU_BOWLS)
         assertTrue(app.stack.isEmpty())
+        scope.cancel()
+    }
+
+    @Test
+    fun savingASharedImportKeepsAnOpenEditorsDraft() = runTest {
+        val (app, scope) = app(seed = 1)
+        val parsed = TextRecipeParser.parse(ImportSamples.TOFU_BOWLS)
+        for (link in listOf(false, true)) {
+            app.stack.clear()
+            app.newRecipe()
+            val page = app.stack.last() as EditorPage
+            val state = app.editorFor(page)!!
+            state.draft = state.draft.copy(title = "Half typed")
+
+            // The share opens the import sheet over the editor; Save pushes the new recipe over it.
+            if (link) app.saveLinkImport(parsed) else app.saveImport(parsed)
+            assertEquals(2, app.stack.size)
+            assertSame(page, app.stack.first())
+            assertTrue(app.stack.last() is DetailPage)
+            assertEquals("Half typed", app.editorFor(page)!!.draft.title)
+
+            // Back from the new recipe returns to the draft, still unsaved.
+            assertTrue(app.back())
+            assertSame(page, app.stack.single())
+            assertEquals("Half typed", app.editorFor(page)!!.draft.title)
+        }
+        scope.cancel()
+    }
+
+    @Test
+    fun savingAnImportWithNoEditorOpenShowsItOnRecipes() = runTest {
+        val (app, scope) = app(seed = 1)
+        val parsed = TextRecipeParser.parse(ImportSamples.TOFU_BOWLS)
+        for (link in listOf(false, true)) {
+            app.selectTab(Tab.SETTINGS)
+            app.openBackup()
+            if (link) app.saveLinkImport(parsed) else app.saveImport(parsed)
+            assertEquals(Tab.RECIPES, app.tab)
+            assertTrue(app.stack.single() is DetailPage)
+        }
+        scope.cancel()
+    }
+
+    @Test
+    fun aTagTapDoesNotLeaveAnOpenEditor() = runTest {
+        val (app, scope) = app(seed = 1)
+        app.newRecipe()
+        val page = app.stack.last() as EditorPage
+        app.editorFor(page)!!.draft = app.editorFor(page)!!.draft.copy(title = "Half typed")
+        app.openRecipe(app.repo.recipes.value.first().id)
+
+        app.showTag(TagFilter.Quick)
+        assertEquals(2, app.stack.size)
+        assertSame(page, app.stack.first())
+        assertEquals(TagFilter.All, app.libraryTag)
+        assertTrue(app.toast != null)
+
+        // With no editor open it still goes to Recipes, filtered.
+        app.stack.clear()
+        app.showTag(TagFilter.Quick)
+        assertEquals(TagFilter.Quick, app.libraryTag)
+        assertEquals(Tab.RECIPES, app.tab)
         scope.cancel()
     }
 

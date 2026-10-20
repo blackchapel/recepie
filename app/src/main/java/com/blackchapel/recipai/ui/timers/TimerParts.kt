@@ -49,7 +49,7 @@ fun AppController.tapStepTimer(recipe: Recipe, step: Step, minutes: Double, hapt
     when (timers.tapStep(recipe.id, recipe.title, step.id, index, minutes)) {
         StepTap.STARTED -> {
             haptics.perform(HapticType.MEDIUM)
-            showToast("Timer started: ${Scaling.formatMinutes(minutes)}", Ico.Timer)
+            showToast("Started a ${Scaling.formatMinutes(minutes)} timer", Ico.Timer)
         }
         StepTap.PAUSED, StepTap.RESUMED -> haptics.perform(HapticType.SELECTION)
         StepTap.CLEARED -> haptics.perform(HapticType.LIGHT)
@@ -118,4 +118,23 @@ fun TimerCountBadge(count: Int, size: Dp, modifier: Modifier = Modifier) {
 fun timerPillClearance(app: AppController): Dp {
     val board by app.timers.board.collectAsState()
     return if (board.isEmpty) 0.dp else 64.dp
+}
+
+/** How far above the navigation bar the mini-timer pill floats on a pushed page. */
+internal val PushedPillOffset = 84.dp
+
+/** The mini-timer pill's height (6 dp padding around the 34 dp ring). */
+private val PillHeight = 46.dp
+
+/**
+ * Bottom padding for a scrolling pushed page that the mini-timer pill
+ * floats over (the editor, Backup; detail and cook mode hide the pill).
+ * [base] is the page's own padding below its last row; while a timer shows,
+ * the padding grows so the last row can scroll clear above the pill, which
+ * sits [PushedPillOffset] above the nav bar rather than above a tab bar.
+ */
+@Composable
+fun pushedPageBottomPadding(app: AppController, base: Dp): Dp {
+    val board by app.timers.board.collectAsState()
+    return if (board.isEmpty) base else maxOf(base, PushedPillOffset + PillHeight + 12.dp)
 }

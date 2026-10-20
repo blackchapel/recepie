@@ -47,6 +47,11 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -62,6 +67,16 @@ import com.blackchapel.recipai.ui.theme.RecipaiType
 /**
  * A tap target that shrinks a little while pressed (the prototype's springy
  * :active state) and plays [haptic]. No ripple: the scale is the feedback.
+ *
+ * Accessibility, for TalkBack:
+ * - [label] is only the click action's label ("double-tap to <label>"). It
+ *   does not name the node, so on a target with no text of its own (an icon
+ *   button) it is not enough.
+ * - [description] is the node's name (its content description). Pass it for
+ *   icon-only targets instead of [label]; it replaces any text inside the
+ *   target when read, so don't pass it where the visible text is the name.
+ * - [isSelected] is for tabs, segmented items and filter chips; [isChecked]
+ *   for switches and checkboxes. Null (the default) says nothing.
  */
 fun Modifier.tap(
     enabled: Boolean = true,
@@ -69,6 +84,9 @@ fun Modifier.tap(
     haptic: HapticType? = HapticType.LIGHT,
     role: Role? = Role.Button,
     label: String? = null,
+    description: String? = null,
+    isSelected: Boolean? = null,
+    isChecked: Boolean? = null,
     onClick: () -> Unit,
 ): Modifier = composed {
     val source = remember { MutableInteractionSource() }
@@ -85,6 +103,14 @@ fun Modifier.tap(
             haptic?.let(haptics::perform)
             onClick()
         }
+        .then(
+            if (description == null && isSelected == null && isChecked == null) Modifier
+            else Modifier.semantics {
+                if (description != null) contentDescription = description
+                if (isSelected != null) selected = isSelected
+                if (isChecked != null) toggleableState = ToggleableState(isChecked)
+            },
+        )
 }
 
 /**
@@ -204,7 +230,7 @@ fun IconButton(
     Box(
         modifier
             .graphicsLayer { alpha = if (enabled) 1f else 0.4f }
-            .tap(enabled = enabled, pressedScale = 0.88f, haptic = haptic, label = label, onClick = onClick)
+            .tap(enabled = enabled, pressedScale = 0.88f, haptic = haptic, description = label, onClick = onClick)
             .size(size)
             .background(background, shape),
         contentAlignment = Alignment.Center,
@@ -215,7 +241,8 @@ fun IconButton(
 
 /**
  * The segmented control with a sliding selected pill. [selected] of -1 (a
- * custom scale) shows no pill.
+ * custom scale) shows no pill. Items report selected to TalkBack. Pass
+ * [itemLabel] when an item is only an icon, so it has a name to read.
  */
 @Composable
 fun Segmented(
@@ -224,6 +251,7 @@ fun Segmented(
     onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
     height: Dp = 32.dp,
+    itemLabel: ((index: Int) -> String)? = null,
     item: @Composable RowScope.(index: Int, isSelected: Boolean) -> Unit,
 ) {
     val c = LocalColors.current
@@ -253,7 +281,13 @@ fun Segmented(
                         .weight(1f)
                         .height(height)
                         .clip(RoundedCornerShape(9.dp))
-                        .tap(pressedScale = 0.97f, haptic = HapticType.SELECTION, role = Role.Tab) { onSelect(i) },
+                        .tap(
+                            pressedScale = 0.97f,
+                            haptic = HapticType.SELECTION,
+                            role = Role.Tab,
+                            description = itemLabel?.invoke(i),
+                            isSelected = on,
+                        ) { onSelect(i) },
                     horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
@@ -272,7 +306,11 @@ fun SegLabel(text: String, style: TextStyle = RecipaiType.uiSmall) {
     Text(text, style = style, color = LocalContentColor.current, maxLines = 1)
 }
 
-/** A filter chip (library tags, quick scale amounts). */
+/**
+ * A filter chip (library tags, quick scale amounts). A [toggle] chip (the
+ * default) reports its [selected] state to TalkBack; pass false for a chip
+ * that is just a button (the quick scale amounts), which has no state.
+ */
 @Composable
 fun FilterChip(
     label: String,
@@ -283,12 +321,19 @@ fun FilterChip(
     count: Int? = null,
     icon: Ico? = null,
     dot: Boolean = false,
+    toggle: Boolean = true,
 ) {
     val c = LocalColors.current
     val shape = CircleShape
     Row(
         modifier
-            .tap(pressedScale = 0.94f, haptic = HapticType.SELECTION, role = Role.Checkbox, onClick = onClick)
+            .tap(
+                pressedScale = 0.94f,
+                haptic = HapticType.SELECTION,
+                role = if (toggle) Role.Checkbox else Role.Button,
+                isSelected = if (toggle) selected else null,
+                onClick = onClick,
+            )
             .height(34.dp)
             .background(if (selected) androidx.compose.ui.graphics.lerp(c.surface, color, 0.2f) else c.surface, shape)
             .border(1.dp, if (selected) color.copy(alpha = 0.55f) else c.line, shape)
@@ -396,7 +441,11 @@ fun Hairline(start: Dp) {
     )
 }
 
-/** A settings/list cell: colored icon square, title, subtitle and a trailing slot. */
+/**
+ * A settings/list cell: colored icon square, title, subtitle and a trailing
+ * slot. A switch row passes its state as [checked] (with `role = Role.Switch`)
+ * so TalkBack can say whether it is on.
+ */
 @Composable
 fun Cell(
     title: String,
@@ -408,12 +457,16 @@ fun Cell(
     onClick: (() -> Unit)? = null,
     role: Role? = Role.Button,
     haptic: HapticType? = HapticType.LIGHT,
+    checked: Boolean? = null,
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     Row(
         modifier
             .fillMaxWidth()
-            .then(if (onClick != null) Modifier.tap(pressedScale = 0.99f, haptic = haptic, role = role, onClick = onClick) else Modifier)
+            .then(
+                if (onClick != null) Modifier.tap(pressedScale = 0.99f, haptic = haptic, role = role, isChecked = checked, onClick = onClick)
+                else Modifier,
+            )
             .heightIn(min = 52.dp)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -502,7 +555,7 @@ fun GlassButton(
     val c = LocalColors.current
     Box(
         modifier
-            .tap(pressedScale = 0.88f, haptic = haptic, label = label, onClick = onClick)
+            .tap(pressedScale = 0.88f, haptic = haptic, description = label, onClick = onClick)
             .size(size)
             .then(if (glass) Modifier.background(c.glass, CircleShape).border(1.dp, c.glassLine, CircleShape) else Modifier),
         contentAlignment = Alignment.Center,

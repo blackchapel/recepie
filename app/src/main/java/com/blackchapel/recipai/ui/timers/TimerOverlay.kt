@@ -110,7 +110,7 @@ fun TimerOverlay(app: AppController, modifier: Modifier = Modifier) {
     // Keep drawing the last timer while the pill animates out.
     val shown = remember { arrayOfNulls<CookTimer>(1) }
     if (featured != null) shown[0] = featured
-    val bottom by animateDpAsState(if (pushed) 84.dp else TabBarHeight + 12.dp, tween(450, easing = NavEasing), label = "pill")
+    val bottom by animateDpAsState(if (pushed) PushedPillOffset else TabBarHeight + 12.dp, tween(450, easing = NavEasing), label = "pill")
 
     Box(
         modifier

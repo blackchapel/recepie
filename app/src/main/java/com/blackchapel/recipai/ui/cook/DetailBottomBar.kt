@@ -80,7 +80,16 @@ fun DetailBottomBar(app: AppController, recipe: Recipe, page: DetailPage, modifi
         ) {
             Row(
                 Modifier
-                    .tap(pressedScale = 0.95f, haptic = HapticType.LIGHT, label = "Timers") {
+                    .tap(
+                        pressedScale = 0.95f,
+                        haptic = HapticType.LIGHT,
+                        // The name has to carry the clock: a content description replaces the Text inside.
+                        description = when {
+                            featured == null -> "Timers"
+                            board.timers.size > 1 -> "Timers, ${featured.clock(now)}, ${board.timers.size} running"
+                            else -> "Timers, ${featured.clock(now)}"
+                        },
+                    ) {
                         if (board.isEmpty) app.showToast("No timers running. Tap a step’s time to start one.", Ico.Timer)
                         else app.sheet = Sheet.Timers
                     }

@@ -26,6 +26,7 @@ fun CookingSettingsRows(app: AppController, settings: AppSettings) {
         iconColor = c.saffron,
         role = Role.Switch,
         haptic = HapticType.SELECTION,
+        checked = settings.keepScreenOn,
         onClick = { app.updateSettings { it.copy(keepScreenOn = !it.keepScreenOn) } },
     ) { RSwitch(settings.keepScreenOn) }
     Hairline(start = 56.dp)
@@ -36,6 +37,7 @@ fun CookingSettingsRows(app: AppController, settings: AppSettings) {
         subtitle = "Plays a chime when a timer ends",
         role = Role.Switch,
         haptic = HapticType.SELECTION,
+        checked = settings.timerSound,
         onClick = { app.updateSettings { it.copy(timerSound = !it.timerSound) } },
     ) { RSwitch(settings.timerSound) }
 }

@@ -1,6 +1,6 @@
 package com.blackchapel.recipai.ui.backup
 
-import com.blackchapel.recipai.ui.timers.timerPillClearance
+import com.blackchapel.recipai.ui.timers.pushedPageBottomPadding
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
@@ -102,7 +102,7 @@ fun BackupScreen(app: AppController, page: BackupPage) {
     Box(Modifier.fillMaxSize().background(c.canvas)) {
         LazyColumn(
             state = state,
-            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + 28.dp + timerPillClearance(app)),
+            contentPadding = PaddingValues(top = top + NavBarHeight, bottom = bottom + pushedPageBottomPadding(app, 28.dp)),
             modifier = Modifier.fillMaxSize(),
         ) {
             item("title") { LargeTitle("Google Drive", "Backup") }
@@ -459,7 +459,7 @@ private fun ToggleRow(title: String, subtitle: String, on: Boolean, onClick: () 
     Row(
         Modifier
             .fillMaxWidth()
-            .tap(pressedScale = 0.99f, haptic = HapticType.SELECTION, role = Role.Switch, onClick = onClick)
+            .tap(pressedScale = 0.99f, haptic = HapticType.SELECTION, role = Role.Switch, isChecked = on, onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),

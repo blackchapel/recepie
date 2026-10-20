@@ -106,7 +106,25 @@ class EditorFlowTest {
         assertEquals("Renamed", now.title)
         assertEquals(original.ingredients.map { it.quantity }, now.ingredients.map { it.quantity })
         assertTrue(now.updatedAt > original.updatedAt)
-        assertEquals("Changes saved", app.toast?.message)
+        assertEquals("Saved your changes", app.toast?.message)
+        scope.cancel()
+    }
+
+    @Test
+    fun photosThatFinishCopyingJoinTheLiveDraft() = runTest {
+        val (app, scope) = app()
+        app.newRecipe()
+        val state = app.editorFor(app.topEditor())!!
+        state.draft = state.draft.copy(photos = listOf("a.jpg", "b.jpg"), coverIndex = 1)
+
+        // A photo was removed after the pick started and before the copy finished:
+        // the new ones merge into what the draft holds now, not what it held then.
+        state.draft = state.draft.copy(photos = listOf("b.jpg"), coverIndex = 0)
+        state.addPhotos(listOf("c.jpg", "d.jpg"))
+
+        assertEquals(listOf("b.jpg", "c.jpg", "d.jpg"), state.draft.photos)
+        assertEquals(0, state.draft.coverIndex)
+        assertTrue(state.dirty)
         scope.cancel()
     }
 
