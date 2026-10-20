@@ -6,7 +6,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.blackchapel.recipai.core.DraftErrors
+import com.blackchapel.recipai.core.PhotoSet
+import com.blackchapel.recipai.core.Photos
 import com.blackchapel.recipai.core.RecipeDraft
+import com.blackchapel.recipai.ui.photos.EditorPhotoAdding
 import java.util.UUID
 
 /**
@@ -36,8 +39,22 @@ class EditorState(val initial: RecipeDraft) {
     /** The ingredient row whose unit field has focus (shows unit suggestions). */
     var unitFocus by mutableStateOf<String?>(null)
 
+    /** Photos being copied in, which can finish after a rotation recreated the screen. */
+    val photoAdding = EditorPhotoAdding()
+
     /** What's typed in the tag field but not yet added. */
     var tagQuery by mutableStateOf("")
+
+    /**
+     * Adds photos that finished copying to the draft as it is now. Photos
+     * are copied in the app's scope and can finish after a rotation, so
+     * this reads the live draft (not one captured when the pick started),
+     * and a photo removed in the meantime stays removed.
+     */
+    fun addPhotos(names: List<String>) {
+        val now = Photos.add(PhotoSet(draft.photos, draft.coverIndex), names)
+        draft = draft.copy(photos = now.photos, coverIndex = now.cover)
+    }
 
     /** The draft as it will be saved: rows still animating out already gone. */
     val effective: RecipeDraft

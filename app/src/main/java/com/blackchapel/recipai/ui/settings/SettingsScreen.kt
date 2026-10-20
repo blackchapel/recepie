@@ -98,6 +98,7 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
                             subtitle = "Gentle taps on swipes, toggles and timers",
                             role = Role.Switch,
                             haptic = null,
+                            checked = settings.haptics,
                             onClick = { app.updateSettings { it.copy(haptics = !it.haptics) } },
                         ) { RSwitch(settings.haptics) }
                         CookingSettingsRows(app, settings)

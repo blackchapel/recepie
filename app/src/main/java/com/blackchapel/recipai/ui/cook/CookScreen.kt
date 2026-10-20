@@ -220,7 +220,7 @@ fun CookScreen(app: AppController, page: CookPage, recipe: Recipe?) {
             Box(
                 Modifier
                     .graphicsLayer { alpha = if (i == 0) 0.4f else 1f }
-                    .tap(enabled = i > 0, pressedScale = 0.94f, haptic = null, label = "Previous step") { go(-1) }
+                    .tap(enabled = i > 0, pressedScale = 0.94f, haptic = null, description = "Previous step") { go(-1) }
                     .size(56.dp)
                     .background(c.surface2, shape)
                     .border(1.dp, c.line, shape),

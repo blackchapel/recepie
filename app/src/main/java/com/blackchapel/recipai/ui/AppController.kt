@@ -53,6 +53,17 @@ class DetailPage(val recipeId: String) : Page {
     val checked = mutableStateListOf<String>()
     val done = mutableStateListOf<String>()
 
+    /**
+     * Where the page was scrolled to (first visible item and its offset in
+     * px), saved when the screen leaves the composition and restored when it
+     * returns. Cook mode and the editor cover this page, which drops its
+     * screen from the composition, and it must come back where it was. Plain
+     * numbers, not a LazyListState, so this long-lived object doesn't hold
+     * on to a dead layout (and an old activity) after a rotation.
+     */
+    var scrollIndex = 0
+    var scrollOffset = 0
+
     fun setScale(f: Double, anchor: String? = null) {
         factor = f.coerceIn(0.05, 50.0)
         anchorId = anchor
@@ -180,8 +191,16 @@ class AppController(
         return false
     }
 
-    /** Shows Recipes filtered by [filter] (from a tag on detail or a Search tile). */
+    /**
+     * Shows Recipes filtered by [filter] (from a tag on detail or a Search
+     * tile). With an editor open (a shared import saved over it) it only
+     * says so: leaving would drop the editor's unsaved draft.
+     */
     fun showTag(filter: TagFilter) {
+        if (stack.any { it is EditorPage }) {
+            showToast("Save or discard your draft first.", Ico.Info)
+            return
+        }
         stack.clear()
         sheet = null
         tab = Tab.RECIPES
@@ -210,7 +229,7 @@ class AppController(
         }
         showToast("Deleted “${gone.title}”", Ico.Trash, "Undo") {
             repo.restore(index, gone)
-            showToast("Recipe restored", Ico.Check)
+            showToast("Restored “${gone.title}”", Ico.Check)
         }
     }
 
@@ -219,8 +238,19 @@ class AppController(
         repo.upsert(recipe)
         importText = ""
         sheet = null
-        stack.clear()
-        tab = Tab.RECIPES
+        showSavedImport(recipe)
+    }
+
+    /**
+     * Opens a just-saved import: Recipes with its detail page. An open
+     * editor is kept, with the detail page pushed over it, so its unsaved
+     * draft isn't lost and Back returns to it.
+     */
+    private fun showSavedImport(recipe: Recipe) {
+        if (stack.none { it is EditorPage }) {
+            stack.clear()
+            tab = Tab.RECIPES
+        }
         openRecipe(recipe.id)
         showToast("Saved “${recipe.title}”", Ico.Check)
     }
@@ -306,10 +336,7 @@ class AppController(
         linkImport.reset()
         importUrl = ""
         sheet = null
-        stack.clear()
-        tab = Tab.RECIPES
-        openRecipe(recipe.id)
-        showToast("Saved “${recipe.title}”", Ico.Check)
+        showSavedImport(recipe)
     }
 
     // ---- timers-cook ----
@@ -361,7 +388,7 @@ class AppController(
         val r = repo.get(recipeId)
         if (r == null) {
             // Deleted while the photos were copied; the files are cleaned up on a later start.
-            if (result.added > 0) showToast("The recipe was deleted, so the photos weren't added", Ico.Info)
+            if (result.added > 0) showToast("Recipai didn't add the photos because the recipe no longer exists.", Ico.Info)
             return
         }
         if (result.added > 0) {
@@ -467,7 +494,7 @@ class AppController(
         closeEditor(page)
         val top = stack.lastOrNull()
         if (!(top is DetailPage && top.recipeId == recipe.id)) openRecipe(recipe.id)
-        showToast(if (original != null) "Changes saved" else "Saved “${recipe.title}”", Ico.Check)
+        showToast(if (original != null) "Saved your changes" else "Saved “${recipe.title}”", Ico.Check)
     }
 
     /** Leaves the editor without saving (Cancel, or Discard changes). */

@@ -235,6 +235,7 @@ private fun Tools(app: AppController, count: Int, favorites: Boolean, settings: 
                 onSelect = { i -> app.updateSettings { it.copy(layout = if (i == 1) LibraryLayout.LIST else LibraryLayout.GRID) } },
                 height = 28.dp,
                 modifier = Modifier.width(84.dp),
+                itemLabel = { i -> if (i == 0) "Grid layout" else "List layout" },
             ) { i, _ -> RIcon(if (i == 0) Ico.Grid else Ico.List, size = 15.dp) }
         }
     }

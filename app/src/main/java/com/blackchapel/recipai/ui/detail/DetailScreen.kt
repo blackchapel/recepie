@@ -109,7 +109,15 @@ fun DetailScreen(app: AppController, page: DetailPage, recipe: Recipe?) {
         return
     }
     val r = recipe
-    val state = rememberLazyListState()
+    // Cook mode or the editor covering this page drops the screen from the
+    // composition, so the position is kept on the page and restored here.
+    val state = rememberLazyListState(page.scrollIndex, page.scrollOffset)
+    DisposableEffect(state) {
+        onDispose {
+            page.scrollIndex = state.firstVisibleItemIndex
+            page.scrollOffset = state.firstVisibleItemScrollOffset
+        }
+    }
     val density = LocalDensity.current
     val collapsePx = with(density) { 250.dp.toPx() }
     val collapsed by remember { derivedStateOf { state.firstVisibleItemIndex > 0 || state.firstVisibleItemScrollOffset > collapsePx } }
@@ -124,8 +132,8 @@ fun DetailScreen(app: AppController, page: DetailPage, recipe: Recipe?) {
         LazyColumn(state = state, contentPadding = PaddingValues(bottom = bottom + DetailBottomBarHeight + 40.dp), modifier = Modifier.fillMaxSize()) {
             item("hero") { DetailHero(app, r, state) }
             item("head") { Head(app, r) }
-            item("photos") { DetailPhotoStrip(app, r) }
             item("stats") { Stats(page, r, scaled) }
+            item("photos") { DetailPhotoStrip(app, r) }
             item("ingredients") { Ingredients(app, page, r, scaled) }
             item("method-head") {
                 SectionHead(
@@ -245,7 +253,7 @@ private fun Stats(page: DetailPage, r: Recipe, scaled: Boolean) {
         val label = r.servingsLabel?.replaceFirstChar { it.uppercase() } ?: "Servings"
         Stat(label, Modifier.weight(1.25f)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                IconButton(Ico.Minus, "Fewer", {
+                IconButton(Ico.Minus, "Fewer servings", {
                     haptics.perform(HapticType.SELECTION)
                     page.setScale(Scaling.stepServings(r.servings, page.factor, -1))
                 }, size = 30.dp, iconSize = 15.dp, background = c.surface2, tint = c.ink, haptic = null)
@@ -257,7 +265,7 @@ private fun Stats(page: DetailPage, r: Recipe, scaled: Boolean) {
                     modifier = Modifier.width(36.dp),
                     maxLines = 1,
                 )
-                IconButton(Ico.Plus, "More", {
+                IconButton(Ico.Plus, "More servings", {
                     haptics.perform(HapticType.SELECTION)
                     page.setScale(Scaling.stepServings(r.servings, page.factor, 1))
                 }, size = 30.dp, iconSize = 15.dp, background = c.surface2, tint = c.ink, haptic = null)
@@ -365,7 +373,7 @@ private fun IngredientRow(ing: Ingredient, page: DetailPage, anchored: Boolean, 
     Row(
         Modifier
             .fillMaxWidth()
-            .tap(pressedScale = 0.99f, haptic = null, role = Role.Checkbox, onClick = onToggle)
+            .tap(pressedScale = 0.99f, haptic = null, role = Role.Checkbox, isChecked = checked, onClick = onToggle)
             .heightIn(min = 54.dp)
             .padding(start = 14.dp, end = 12.dp, top = 11.dp, bottom = 11.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -428,7 +436,8 @@ private fun StepCard(app: AppController, r: Recipe, page: DetailPage, s: Step, i
     ) {
         Box(
             Modifier
-                .tap(pressedScale = 0.88f, haptic = null, role = Role.Checkbox, label = if (done) "Mark step ${index + 1} not done" else "Mark step ${index + 1} done") {
+                // Named "Step N" (the number is its only text) and checked when done.
+                .tap(pressedScale = 0.88f, haptic = null, role = Role.Checkbox, description = "Step ${index + 1}", isChecked = done) {
                     haptics.perform(if (done) HapticType.LIGHT else HapticType.SUCCESS)
                     if (done) page.done.remove(s.id) else page.done.add(s.id)
                 }

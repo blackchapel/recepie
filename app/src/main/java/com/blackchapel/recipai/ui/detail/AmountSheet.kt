@@ -85,7 +85,7 @@ fun AmountSheet(sheet: Sheet.Amount, recipe: Recipe, onDismiss: () -> Unit) {
     RSheet(onDismiss, title = ing.name.replaceFirstChar { it.uppercase() }) { closer ->
         Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 18.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                BigStepButton(Ico.Minus, "Less") { nudge(-1) }
+                BigStepButton(Ico.Minus, "Decrease amount") { nudge(-1) }
                 Row(
                     Modifier
                         .weight(1f)
@@ -123,12 +123,12 @@ fun AmountSheet(sheet: Sheet.Amount, recipe: Recipe, onDismiss: () -> Unit) {
                         )
                     }
                 }
-                BigStepButton(Ico.Plus, "More") { nudge(1) }
+                BigStepButton(Ico.Plus, "Increase amount") { nudge(1) }
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 listOf(0.5 to "½×", 1.0 to "Original", 2.0 to "2×", 3.0 to "3×").forEach { (x, label) ->
-                    FilterChip(label, selected = false, onClick = {
+                    FilterChip(label, selected = false, toggle = false, onClick = {
                         page.setScale(x)
                         closer.close()
                     })

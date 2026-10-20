@@ -78,6 +78,7 @@ import com.blackchapel.recipai.ui.components.SheetAction
 import com.blackchapel.recipai.ui.components.TopBar
 import com.blackchapel.recipai.ui.components.tap
 import com.blackchapel.recipai.ui.photos.EditorPhotoStrip
+import com.blackchapel.recipai.ui.timers.pushedPageBottomPadding
 import com.blackchapel.recipai.ui.theme.LocalColors
 import com.blackchapel.recipai.ui.theme.RecipaiType
 import kotlinx.coroutines.delay
@@ -185,10 +186,11 @@ fun EditorScreen(app: AppController, page: EditorPage, recipes: List<Recipe>) {
                 .fillMaxSize()
                 .imePadding()
                 .verticalScroll(scroll)
-                .padding(top = top + NavBarHeight + 18.dp, bottom = bottom + 40.dp),
+                // Room to scroll Notes clear of the mini-timer pill, which floats over this page.
+                .padding(top = top + NavBarHeight + 18.dp, bottom = bottom + pushedPageBottomPadding(app, 40.dp)),
             verticalArrangement = Arrangement.spacedBy(22.dp),
         ) {
-            PhotosPanel(state)
+            PhotosPanel(app, state)
             BasicsPanel(state, titleMissing = errors.titleMissing, title = actions.focus(FieldKey.TITLE))
             TagsPanel(state, recipes)
             IngredientsPanel(state, errors, actions)
@@ -252,7 +254,7 @@ private fun NavTextButton(text: String, strong: Boolean = false, haptic: HapticT
 }
 
 @Composable
-private fun PhotosPanel(state: EditorState) {
+private fun PhotosPanel(app: AppController, state: EditorState) {
     val draft = state.draft
     // The illustration follows the title and ingredients, but not on every keystroke.
     var art by remember { mutableStateOf(draft) }
@@ -264,9 +266,14 @@ private fun PhotosPanel(state: EditorState) {
         art.preview().copy(photos = draft.photos, coverIndex = draft.coverIndex)
     }
     Panel(Ico.Camera, "Photos", count = draft.photos.size, help = "First photo is the cover", card = false) {
-        EditorPhotoStrip(preview, onChange = { photos, cover ->
-            state.draft = state.draft.copy(photos = photos, coverIndex = cover)
-        })
+        EditorPhotoStrip(
+            preview,
+            onChange = { photos, cover -> state.draft = state.draft.copy(photos = photos, coverIndex = cover) },
+            adding = state.photoAdding,
+            onAdded = state::addPhotos,
+            // The app's scope, so a rotation mid-copy doesn't drop the photos.
+            scope = app.photoScope,
+        )
     }
 }
 
