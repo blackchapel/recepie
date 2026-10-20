@@ -4,7 +4,6 @@ import com.blackchapel.recipai.core.DraftIngredient
 import com.blackchapel.recipai.core.DraftStep
 import com.blackchapel.recipai.core.ImportSamples
 import com.blackchapel.recipai.core.RecipeDraft
-import com.blackchapel.recipai.core.SampleRecipes
 import com.blackchapel.recipai.core.TextRecipeParser
 import com.blackchapel.recipai.data.AppSettings
 import com.blackchapel.recipai.data.RecipeRepository
@@ -42,10 +41,11 @@ class EditorFlowTest {
         override suspend fun update(transform: (AppSettings) -> AppSettings) = settings.update(transform)
     }
 
-    /** An app on a fresh library (the examples), and the scope to cancel when done. */
-    private fun TestScope.app(): Pair<AppController, CoroutineScope> {
+    /** An app on an empty library plus [seed] simple recipes, and the scope to cancel when done. */
+    private fun TestScope.app(seed: Int = 0): Pair<AppController, CoroutineScope> {
         val dispatcher = StandardTestDispatcher(testScheduler)
         val repo = RecipeRepository(File(tmp.root, "recipes.json"), this, dispatcher, clock = { 1_000L })
+        repeat(seed) { repo.upsert(com.blackchapel.recipai.core.Recipe(id = "seed$it", title = "Seed recipe $it", servings = 2)) }
         advanceUntilIdle()
         val scope = CoroutineScope(dispatcher + Job())
         return AppController(repo, MemorySettings(), scope) to scope
@@ -88,7 +88,7 @@ class EditorFlowTest {
 
     @Test
     fun editingFromTheDetailPageReturnsToIt() = runTest {
-        val (app, scope) = app()
+        val (app, scope) = app(seed = 2)
         val original = app.repo.recipes.value.first()
         app.openRecipe(original.id)
         val detail = app.stack.single()
@@ -112,7 +112,7 @@ class EditorFlowTest {
 
     @Test
     fun editingFromThePreviewSheetOpensTheRecipe() = runTest {
-        val (app, scope) = app()
+        val (app, scope) = app(seed = 2)
         val id = app.repo.recipes.value.last().id
         app.editRecipe(id)
         val page = app.topEditor()
@@ -123,7 +123,7 @@ class EditorFlowTest {
 
     @Test
     fun cancellingLeavesTheLibraryAlone() = runTest {
-        val (app, scope) = app()
+        val (app, scope) = app(seed = 2)
         val before = app.repo.recipes.value
         app.editRecipe(before.first().id)
         val page = app.topEditor()
@@ -160,7 +160,7 @@ class EditorFlowTest {
 
         app.saveEditor(page, state.effective)
         assertEquals(parsed.title, app.repo.recipes.value.first().title)
-        assertEquals(SampleRecipes.all(0).size + 1, app.repo.recipes.value.size)
+        assertEquals(1, app.repo.recipes.value.size)
         assertEquals("", app.importText)
         scope.cancel()
     }

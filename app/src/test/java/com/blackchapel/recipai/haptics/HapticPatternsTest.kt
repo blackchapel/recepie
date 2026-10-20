@@ -22,33 +22,30 @@ class HapticPatternsTest {
     }
 
     @Test
-    fun selectionIsAFullTickNotATextureTick() {
-        // Feedback on the first build: everyday haptics felt too weak.
-        val p = HapticPatterns.of(HapticType.SELECTION)
-        assertEquals(listOf(HapticPulse(HapticPrimitive.TICK, 1.0f)), p.pulses)
-        assertEquals(PredefinedHaptic.TICK, p.predefined)
+    fun everyTypeIsASingleClick() {
+        // User feedback: remove double vibrations, make them single.
+        for (type in HapticType.entries) {
+            val p = HapticPatterns.of(type)
+            assertEquals("$type is one pulse", 1, p.pulses.size)
+            assertEquals("$type is a click", HapticPrimitive.CLICK, p.pulses.single().primitive)
+        }
     }
 
     @Test
-    fun lightIsARealClickButSofterThanMedium() {
-        val light = HapticPatterns.of(HapticType.LIGHT)
-        assertEquals(HapticPrimitive.CLICK, light.pulses.single().primitive)
-        assertEquals(PredefinedHaptic.CLICK, light.predefined)
-        assertEquals(ViewHaptic.VIRTUAL_KEY, light.fallback)
-        // The Import and + buttons moved from medium to light: a little softer.
+    fun strengthRisesFromSelectionToMedium() {
+        assertTrue(peak(HapticType.SELECTION) < peak(HapticType.LIGHT))
         assertTrue(peak(HapticType.LIGHT) < peak(HapticType.MEDIUM))
-        assertTrue(peak(HapticType.LIGHT) >= 0.5f)
+        // Everyday taps were too weak (0.6): light is clearly firmer, but
+        // not the full strength of the old Import button.
+        assertTrue(peak(HapticType.LIGHT) in 0.75f..0.9f)
+        assertTrue(peak(HapticType.SELECTION) >= 0.6f)
+        assertEquals(1.0f, peak(HapticType.MEDIUM), 0f)
     }
 
     @Test
-    fun notificationTypesAreSeveralPulses() {
-        assertEquals(2, HapticPatterns.of(HapticType.SUCCESS).pulses.size)
-        assertEquals(2, HapticPatterns.of(HapticType.WARNING).pulses.size)
-        assertEquals(3, HapticPatterns.of(HapticType.ERROR).pulses.size)
-        // Success rises (soft then firm); warning falls (firm then softer).
-        val s = HapticPatterns.of(HapticType.SUCCESS).pulses
-        assertTrue(s[0].scale < s[1].scale)
-        val w = HapticPatterns.of(HapticType.WARNING).pulses
-        assertTrue(w[0].scale > w[1].scale)
+    fun fallbacksStayClicks() {
+        assertEquals(PredefinedHaptic.CLICK, HapticPatterns.of(HapticType.LIGHT).predefined)
+        assertEquals(ViewHaptic.VIRTUAL_KEY, HapticPatterns.of(HapticType.LIGHT).fallback)
+        assertEquals(ViewHaptic.LONG_PRESS, HapticPatterns.of(HapticType.MEDIUM).fallback)
     }
 }

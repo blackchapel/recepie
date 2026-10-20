@@ -12,12 +12,8 @@ package com.blackchapel.recipai.haptics
  * 3. [HapticPattern.fallback]: `View.performHapticFeedback` (older phones,
  *    or no usable vibrator).
  *
- * Tuning notes (user feedback on the first test build): everyday feedback
- * felt too weak, so selection uses a full-strength tick instead of the
- * texture tick behind `CLOCK_TICK`/`SEGMENT_TICK`, and light is a real
- * click. The Import and + buttons felt too strong; they now use [HapticType.LIGHT]
- * instead of [HapticType.MEDIUM] (see Chrome.kt), which is a softer click
- * than medium's full one.
+ * Tuning notes: every type is a single click (no double buzzes); the
+ * types differ only in strength. See [HapticPatterns] for the history.
  */
 data class HapticPattern(
     val pulses: List<HapticPulse>,
@@ -35,19 +31,28 @@ data class HapticPulse(val primitive: HapticPrimitive, val scale: Float, val del
 enum class HapticPrimitive { CLICK, TICK }
 
 /** `VibrationEffect.EFFECT_*` (all API 29). */
-enum class PredefinedHaptic { TICK, CLICK, HEAVY_CLICK, DOUBLE_CLICK }
+enum class PredefinedHaptic { TICK, CLICK, HEAVY_CLICK }
 
 /** `HapticFeedbackConstants` available on every supported Android version (minSdk 26). */
 enum class ViewHaptic { CLOCK_TICK, VIRTUAL_KEY, LONG_PRESS }
 
 object HapticPatterns {
+    // Every type is ONE click: user feedback on the second build was that
+    // taps felt too weak and that success/warning/error buzzed twice. Scales
+    // are the strength of that one click (1.0 is the strongest the
+    // vibrator's click primitive goes; the original Import button was
+    // stronger still, a long-press buzz, and was "too much"). The scale is
+    // not linear to the finger, so the order matters more than the numbers:
+    // selection < light < medium/notifications. Retune here only.
     private val selection = HapticPattern(
-        pulses = listOf(HapticPulse(HapticPrimitive.TICK, 1.0f)),
-        predefined = PredefinedHaptic.TICK,
-        fallback = ViewHaptic.CLOCK_TICK,
+        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 0.65f)),
+        predefined = PredefinedHaptic.CLICK,
+        fallback = ViewHaptic.VIRTUAL_KEY,
     )
+
+    /** Buttons, tabs, the Import and + buttons: about 70% of the old Import button. */
     private val light = HapticPattern(
-        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 0.6f)),
+        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 0.85f)),
         predefined = PredefinedHaptic.CLICK,
         fallback = ViewHaptic.VIRTUAL_KEY,
     )
@@ -56,27 +61,19 @@ object HapticPatterns {
         predefined = PredefinedHaptic.HEAVY_CLICK,
         fallback = ViewHaptic.LONG_PRESS,
     )
-
-    // The multi-pulse types follow the prototype's vibration patterns:
-    // success [10, 50, 16] (soft then firm), warning [18, 70, 18] (firm,
-    // a longer gap, a little softer), error [24, 60, 24, 60, 24].
     private val success = HapticPattern(
-        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 0.55f), HapticPulse(HapticPrimitive.CLICK, 1.0f, delayMs = 50)),
-        predefined = PredefinedHaptic.DOUBLE_CLICK,
-        fallback = ViewHaptic.LONG_PRESS,
+        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 0.9f)),
+        predefined = PredefinedHaptic.CLICK,
+        fallback = ViewHaptic.VIRTUAL_KEY,
     )
     private val warning = HapticPattern(
-        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 1.0f), HapticPulse(HapticPrimitive.CLICK, 0.8f, delayMs = 70)),
+        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 1.0f)),
         predefined = PredefinedHaptic.HEAVY_CLICK,
         fallback = ViewHaptic.LONG_PRESS,
     )
     private val error = HapticPattern(
-        pulses = listOf(
-            HapticPulse(HapticPrimitive.CLICK, 1.0f),
-            HapticPulse(HapticPrimitive.CLICK, 1.0f, delayMs = 60),
-            HapticPulse(HapticPrimitive.CLICK, 1.0f, delayMs = 60),
-        ),
-        predefined = PredefinedHaptic.DOUBLE_CLICK,
+        pulses = listOf(HapticPulse(HapticPrimitive.CLICK, 1.0f)),
+        predefined = PredefinedHaptic.HEAVY_CLICK,
         fallback = ViewHaptic.LONG_PRESS,
     )
 

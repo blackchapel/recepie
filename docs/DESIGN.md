@@ -28,10 +28,17 @@ Bottom tab bar, five slots: **Recipes**, **Favorites**, **Import**
 (center, gradient button), **Search**, **Settings**.
 
 - Pushed pages (slide in from the right): recipe detail, Backup (from
-  Settings). The tab bar slides away while a page is pushed. Back is the
-  top-left button or the system back gesture / swipe from the left edge.
+  Settings). The tab bar slides away while a page is pushed, and the
+  tab behind a sideways page shifts left and dims. Back is the top-left
+  button or the system back gesture / swipe from the left edge, and it
+  is silent (no haptic).
+- **Back walks up, then home.** System back closes an open sheet, then
+  pops pushed pages, then (from Favorites, Search or Settings) returns to
+  Recipes, the home tab; back on Recipes with nothing open exits the
+  app.
 - Editor and cook mode: open as modal pages sliding up from the bottom
-  (the editor has Cancel / Save in its top bar). Cancel with unsaved
+  (the editor has Cancel / Save in its top bar). The page behind them
+  does not move: only the new page slides up. Cancel with unsaved
   changes asks first.
 - Import: a large bottom sheet (Paste text / From a link, live preview of
   the parsed recipe, Review and Save buttons).
@@ -42,12 +49,13 @@ Bottom tab bar, five slots: **Recipes**, **Favorites**, **Import**
 ## Screens
 
 **Recipes** -- large title that collapses into a translucent top bar on
-scroll; search field; example-recipes banner (dismissible, only while
-example recipes exist); tag chips with counts (plus an "Under 30 min"
+scroll; search field; tag chips with counts (plus an "Under 30 min"
 chip); count, sort (Recent / A to Z / Quickest) and grid/list toggle;
 the recipes. Grid cards: square photo, time badge, heart button, title,
 servings. List rows: thumbnail, title, time and servings, tag dots.
-Empty states for no recipes / no matches.
+Empty states: no recipes (an illustration of an empty plate with a fork
+and knife, "No recipes yet", and Import a recipe / Write one yourself),
+no favorites, no matches. There are no sample recipes.
 
 **Favorites** -- the same list, favorites only.
 
@@ -90,7 +98,7 @@ Notes. Validation: a title is required.
 
 **Settings** -- Backup (Google Drive row with status, Back up now),
 Appearance (theme), Cooking (Haptic feedback, Keep screen on in cook
-mode, Timer sound), Library (counts, Restore example recipes), About.
+mode, Timer sound), Library (recipe and photo counts), About.
 
 **Backup** (pushed from Settings) -- not connected: explainer (what is
 saved, where, privacy) and **Connect Google account**. Connected:
@@ -126,16 +134,22 @@ vibrator).
 
 | Type | Used for | Composition / predefined / fallback |
 |---|---|---|
-| selection | Tabs, tag chips, scale presets and steppers, toggles, radios and the day picker, reordering (editor move up/down), picking a unit, adding a tag, choosing a scaling mode, using a detected time, a swipe row crossing its action point, cook-mode Next/Previous and step swipes, photo swipes, picking a hero thumbnail, setting the cover, a link conversion finishing, pausing/resuming a timer | `PRIMITIVE_TICK` 1.0 / `EFFECT_TICK` / `CLOCK_TICK` |
-| light | The Import (center) and + buttons, the empty state's Import button, unchecking, dismissing a sheet, a completed back swipe, removing a favorite, Start cooking, Cancel in the editor, adding or removing a row/section/step/tag, pasting rows, opening the scaling-mode pill, Convert / Paste link / Clear in link import, the Add photo tile, removing a photo, opening or closing the viewer, clearing a finished timer, Back up now | `PRIMITIVE_CLICK` 0.6 / `EFFECT_CLICK` / `VIRTUAL_KEY` |
+| selection | Tag chips, scale presets and steppers, toggles, radios and the day picker, reordering (editor move up/down), picking a unit, adding a tag, choosing a scaling mode, using a detected time, a swipe row crossing its action point, cook-mode Next/Previous and step swipes, photo swipes, picking a hero thumbnail, setting the cover, a link conversion finishing, pausing/resuming a timer | `PRIMITIVE_CLICK` 0.65 / `EFFECT_CLICK` / `VIRTUAL_KEY` |
+| light | The tabs, the Import (center) and + buttons, the empty state's Import button, unchecking, dismissing a sheet, removing a favorite, Start cooking, Cancel in the editor, adding or removing a row/section/step/tag, pasting rows, opening the scaling-mode pill, Convert / Paste link / Clear in link import, the Add photo tile, removing a photo, opening or closing the viewer, clearing a finished timer, Back up now | `PRIMITIVE_CLICK` 0.85 / `EFFECT_CLICK` / `VIRTUAL_KEY` |
 | medium | Press-and-hold menu, starting a timer, an incoming shared link, the Restore backup confirm | `PRIMITIVE_CLICK` 1.0 / `EFFECT_HEAVY_CLICK` / `LONG_PRESS` |
-| success | Saving a recipe, adding a favorite, cook mode's Finish, photos added, a completed backup, restore or connect | `CLICK` 0.55, 50 ms, `CLICK` 1.0 / `EFFECT_DOUBLE_CLICK` / `LONG_PRESS` |
-| warning | Deleting a recipe (including swipe-Delete), a timer finishing, the Disconnect confirm | `CLICK` 1.0, 70 ms, `CLICK` 0.8 / `EFFECT_HEAVY_CLICK` / `LONG_PRESS` |
-| error | A Save blocked by validation, a failed link import or bad link, every picked photo failing to read, a failed backup, restore or connect | 3 × `CLICK` 1.0, 60 ms apart / `EFFECT_DOUBLE_CLICK` / `LONG_PRESS` |
+| success | Saving a recipe, adding a favorite, cook mode's Finish, photos added, a completed backup, restore or connect | `CLICK` 0.9 / `EFFECT_CLICK` / `VIRTUAL_KEY` |
+| warning | Deleting a recipe (including swipe-Delete), a timer finishing, the Disconnect confirm | `CLICK` 1.0 / `EFFECT_HEAVY_CLICK` / `LONG_PRESS` |
+| error | A Save blocked by validation, a failed link import or bad link, every picked photo failing to read, a failed backup, restore or connect | `CLICK` 1.0 / `EFFECT_HEAVY_CLICK` / `LONG_PRESS` |
 
-The Import and + buttons moved from medium to light after user feedback
-that they felt too strong (and everyday feedback too weak: selection is
-now a full-strength tick, light a real click). Moving to the next step in
+Every type is a single click: feedback never buzzes twice for one
+action, and the types differ only in strength. User feedback shaped the
+tuning: the Import and + buttons were too strong at the full long-press
+buzz, then everyday feedback was too weak at 0.6, so buttons, tabs, the
+Import and + buttons now sit at about 70% of the original Import button
+(light, 0.85), selection a step below (0.65). Going back (the back
+button, the back swipe) is silent. An action that plays its own feedback
+(e.g. favoriting from a sheet) turns the tap's feedback off, so the tap
+and the result never both vibrate. Moving to the next step in
 cook mode is selection, not success, so cooking through a recipe doesn't
 buzz hard on every step. A finishing timer in the background uses its
 notification channel's vibration pattern (0-400-200-400-200-600 ms), not
@@ -177,8 +191,9 @@ Dark (default) / light.
 - **Shape:** cards 20 dp, sheets 28 dp top corners, buttons 14-16 dp,
   chips and tags fully rounded, FAB 20 dp.
 - **Surfaces:** layered by surface / surface-2 / surface-3, hairline
-  borders, translucent blurred bars for the top bar, tab bar and bottom
-  bars (use a solid fallback where blur is unavailable).
+  borders, near-opaque bars (about 95%) for the top bar, tab bar and
+  bottom bars, so text scrolling behind them stays readable (the app
+  does not blur; a blur would be a refinement).
 - **Illustrations:** recipes without a photo show a generated top-down
   plated illustration (seeded from the recipe so it is stable). The
   prototype paints these on a canvas; the app can paint them with a

@@ -64,7 +64,8 @@ up to your own Google Drive.
   sign-in isn't set up for this build.
 - Light/dark/auto theme, tuned haptic feedback (with an off switch), a
   predictive back swipe on Android 14+ where the page follows the
-  finger, and 8 example recipes on first launch.
+  finger. The library starts empty (an illustration and two ways to add
+  a recipe); there are no sample recipes.
 
 ## Design
 

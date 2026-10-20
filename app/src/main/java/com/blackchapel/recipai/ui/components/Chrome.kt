@@ -163,7 +163,7 @@ private fun RowScope.TabItem(app: AppController, tab: Tab, icon: Ico, label: Str
         Modifier
             .weight(1f)
             .semantics { selected = on }
-            .tap(pressedScale = 0.9f, haptic = HapticType.SELECTION, role = Role.Tab) { app.selectTab(tab) }
+            .tap(pressedScale = 0.9f, haptic = HapticType.LIGHT, role = Role.Tab) { app.selectTab(tab) }
             .padding(top = 6.dp, bottom = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(3.dp),

@@ -2,7 +2,6 @@ package com.blackchapel.recipai.data
 
 import com.blackchapel.recipai.core.Recipe
 import com.blackchapel.recipai.core.RecipeJson
-import com.blackchapel.recipai.core.SampleRecipes
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
@@ -30,37 +29,38 @@ class RecipeRepositoryTest {
 
     private fun recipe(id: String) = Recipe(id = id, title = "Recipe $id", servings = 2)
 
+    private fun write(file: File, vararg recipes: Recipe) = file.writeText(RecipeJson.encode(recipes.toList()))
+
     @Test
-    fun firstLaunchLoadsTheExamplesAndSavesThem() = runTest {
+    fun firstLaunchIsEmptyWithNoExamples() = runTest {
         val file = File(tmp.root, "recipes.json")
         val r = repo(file)
         assertTrue(r.loaded.value)
-        assertEquals(SampleRecipes.all(1_000L).map { it.id }, r.recipes.value.map { it.id })
-        assertEquals(r.recipes.value, RecipeJson.decode(file.readText()))
+        assertTrue(r.recipes.value.isEmpty())
+        assertNull(r.loadError.value)
     }
 
     @Test
     fun changesSurviveARestart() = runTest {
         val file = File(tmp.root, "recipes.json")
         val first = repo(file)
+        first.upsert(recipe("old"))
         first.upsert(recipe("new"))
-        val sample = first.recipes.value.last().id
         assertEquals(true, first.toggleFavorite("new"))
-        first.delete(sample)
+        first.delete("old")
         advanceUntilIdle()
 
         val second = repo(file)
-        val ids = second.recipes.value.map { it.id }
-        assertEquals("new", ids.first())
+        assertEquals(listOf("new"), second.recipes.value.map { it.id })
         assertTrue(second.get("new")!!.favorite)
-        assertFalse(sample in ids)
     }
 
     @Test
     fun deleteCanBeUndoneInPlace() = runTest {
         val r = repo(File(tmp.root, "recipes.json"))
+        listOf("a", "b", "c").forEach { r.upsert(recipe(it)) }
         val before = r.recipes.value
-        val (index, gone) = r.delete(before[2].id)!!
+        val (index, gone) = r.delete(before[1].id)!!
         assertEquals(before.size - 1, r.recipes.value.size)
         r.restore(index, gone)
         assertEquals(before, r.recipes.value)
@@ -68,12 +68,20 @@ class RecipeRepositoryTest {
     }
 
     @Test
-    fun restoreSamplesAddsOnlyMissingOnes() = runTest {
-        val r = repo(File(tmp.root, "recipes.json"))
-        assertEquals(0, r.restoreSamples())
-        r.delete(r.recipes.value.first().id)
-        assertEquals(1, r.restoreSamples())
-        assertEquals(SampleRecipes.all(0).size, r.recipes.value.size)
+    fun exampleRecipesFromEarlierBuildsAreRemovedAndTheRemovalIsSaved() = runTest {
+        val file = File(tmp.root, "recipes.json")
+        write(
+            file,
+            recipe("mine"),
+            recipe("shakshuka").copy(isSample = true),
+            // An example the user added a photo to becomes an ordinary recipe.
+            recipe("kept").copy(isSample = true, photos = listOf("p1.jpg")),
+        )
+        val r = repo(file)
+        advanceUntilIdle()
+        assertEquals(listOf("mine", "kept"), r.recipes.value.map { it.id })
+        assertFalse(r.get("kept")!!.isSample)
+        assertEquals(r.recipes.value, RecipeJson.decode(file.readText()))
     }
 
     @Test
@@ -84,7 +92,7 @@ class RecipeRepositoryTest {
         assertNotNull(r.loadError.value)
         val kept = tmp.root.listFiles()!!.single { it.name.startsWith("recipes.json.unreadable-") }
         assertEquals("{ this is not a recipe file", kept.readText())
-        // The examples were loaded in its place.
-        assertEquals(SampleRecipes.all(0).size, r.recipes.value.size)
+        // The library starts empty in its place.
+        assertTrue(r.recipes.value.isEmpty())
     }
 }

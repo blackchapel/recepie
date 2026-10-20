@@ -150,7 +150,18 @@ class AppController(
         stack.add(DetailPage(id))
     }
 
-    /** Back: closes the sheet, else pops a page. False when there was nothing to do. */
+    /**
+     * True while back has something to do in the app: a page to pop, or
+     * (on Favorites, Search or Settings) the Recipes tab to return to. On
+     * Recipes with nothing pushed it is false, so the system back exits.
+     */
+    val canGoBack: Boolean get() = stack.isNotEmpty() || tab != Tab.RECIPES
+
+    /**
+     * Back: closes the sheet, else pops a page, else (from another tab)
+     * returns to Recipes, the home tab. False when there was nothing to
+     * do, i.e. on Recipes: the system then exits the app.
+     */
     fun back(): Boolean {
         if (sheet != null) {
             sheet = null
@@ -160,6 +171,10 @@ class AppController(
             // removeAt, not removeLast: List.removeLast is a Java 21 method
             // on newer JDKs and crashes on older Android versions.
             stack.removeAt(stack.lastIndex)
+            return true
+        }
+        if (tab != Tab.RECIPES) {
+            tab = Tab.RECIPES
             return true
         }
         return false
@@ -208,11 +223,6 @@ class AppController(
         tab = Tab.RECIPES
         openRecipe(recipe.id)
         showToast("Saved “${recipe.title}”", Ico.Check)
-    }
-
-    fun restoreSamples() {
-        val n = repo.restoreSamples()
-        showToast(if (n == 0) "All example recipes are already here" else "Added $n example ${if (n == 1) "recipe" else "recipes"}", Ico.Reset)
     }
 
     fun updateSettings(transform: (AppSettings) -> AppSettings) {

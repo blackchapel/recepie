@@ -13,8 +13,6 @@ data class AppSettings(
     val theme: ThemeMode = ThemeMode.AUTO,
     val haptics: Boolean = true,
     val layout: LibraryLayout = LibraryLayout.GRID,
-    /** The "These are example recipes" banner on Recipes. */
-    val showExamplesBanner: Boolean = true,
     /** Cook mode keeps the screen on. */
     val keepScreenOn: Boolean = true,
     /** A finished timer plays a sound. */

@@ -2,7 +2,6 @@ package com.blackchapel.recipai.data
 
 import com.blackchapel.recipai.core.Recipe
 import com.blackchapel.recipai.core.RecipeJson
-import com.blackchapel.recipai.core.SampleRecipes
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -50,9 +49,11 @@ class RecipeRepository(
     init {
         scope.launch {
             val saved = withContext(writer) { readFile() }
-            _recipes.value = saved ?: SampleRecipes.all(clock())
+            val cleaned = saved?.let(::withoutExamples)
+            _recipes.value = cleaned ?: emptyList()
             _loaded.value = true
-            if (saved == null) save()
+            // Earlier builds seeded 8 example recipes; their removal is saved.
+            if (saved != null && cleaned != saved) save()
         }
     }
 
@@ -90,13 +91,15 @@ class RecipeRepository(
     /** Replaces every recipe at once (restoring a backup), in one save. */
     fun replaceAll(recipes: List<Recipe>) = mutate { recipes }
 
-    /** Adds back any example recipe that is missing. Returns how many. */
-    fun restoreSamples(): Int {
-        val have = _recipes.value.map { it.id }.toSet()
-        val missing = SampleRecipes.all(clock()).filter { it.id !in have }
-        if (missing.isNotEmpty()) mutate { it + missing }
-        return missing.size
-    }
+    /**
+     * The app no longer ships example recipes. Files written by earlier
+     * builds still hold them (flagged `isSample`): drop those, except any
+     * the user added photos to, which become ordinary recipes. Edited
+     * examples were already unflagged by the editor.
+     */
+    private fun withoutExamples(list: List<Recipe>): List<Recipe> =
+        list.filter { !it.isSample || it.photos.isNotEmpty() }
+            .map { if (it.isSample) it.copy(isSample = false) else it }
 
     private fun mutate(transform: (List<Recipe>) -> List<Recipe>) {
         _recipes.update(transform)

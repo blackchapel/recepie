@@ -123,7 +123,6 @@ class Haptics(private val view: View, private val enabled: () -> Boolean) : Hapt
             PredefinedHaptic.TICK -> VibrationEffect.EFFECT_TICK
             PredefinedHaptic.CLICK -> VibrationEffect.EFFECT_CLICK
             PredefinedHaptic.HEAVY_CLICK -> VibrationEffect.EFFECT_HEAVY_CLICK
-            PredefinedHaptic.DOUBLE_CLICK -> VibrationEffect.EFFECT_DOUBLE_CLICK
         }
 
         fun viewConstant(h: ViewHaptic): Int = when (h) {

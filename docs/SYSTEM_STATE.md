@@ -16,7 +16,7 @@ the next step is the release gate in `BUILD_PLAN.md` (Test Release,
 independent review, the user's device test).
 
 - **Recipes / Favorites tabs:** large collapsing title, search field,
-  dismissible "example recipes" banner, tag chips with counts plus
+  tag chips with counts plus
   "Under 30 min", sort (Recent / A to Z / Quickest), grid/list toggle
   (remembered), favorite hearts, empty states. Cards and rows play the
   prototype's `rise` entrance (staggered) on the collection's first
@@ -86,8 +86,8 @@ independent review, the user's device test).
   Back up now, Backup settings).
 - **Settings tab:** Backup (Google Drive row with live status, Back up
   now), Appearance (theme), Cooking (Haptic feedback, Keep screen on in
-  cook mode, Timer sound), Library (recipe and photo counts, Restore
-  example recipes), About with the version name.
+  cook mode, Timer sound), Library (recipe and photo counts), About with
+  the version name.
 - **Backup page** (pushed from Settings): not connected (explainer with
   floating recipe pictures, Connect Google account, a waiting state
   while Google's consent screen is up); connected (account row with
@@ -97,6 +97,11 @@ independent review, the user's device test).
   day Overnight / Morning / Evening and the next run; Include photos and
   Wi-Fi only; the six most recent backups with Restore behind a
   confirm).
+- **Back navigation:** system back closes a sheet, pops pushed pages,
+  then returns to Recipes (the home tab) from any other tab; back on
+  Recipes exits. Only sideways pages (detail, Backup) shift the tab
+  behind them; the editor and cook mode slide up over a still page.
+  Going back is silent.
 - **Back gesture:** on Android 14+ a sideways page (detail, Backup) over
   a tab follows the finger during the system back swipe, and the tab
   underneath slides back with its dim fading. The modal editor, cook
@@ -234,7 +239,10 @@ by `./gradlew :core:test`.
 - `Library.kt` -- filter / sort / tag counts / search ranking.
 - `Tags.kt` -- tag normalizing and stable colors.
 - `RecipeJson.kt` -- the versioned recipe file format.
-- `SampleRecipes.kt` -- the 8 examples, generated from the prototype.
+- `SampleRecipes.kt` (in `core/src/test`) -- recipes generated from the
+  prototype, used only as test fixtures. The app ships no sample
+  recipes; the library starts empty, and files written by earlier
+  builds have their saved examples removed on load.
 
 Note: `:core` does network I/O (plain `java.net`) for link import and
 Drive, so it can be unit-tested on the JVM; the plan had put fetching in

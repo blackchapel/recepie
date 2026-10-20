@@ -104,7 +104,17 @@ fun RSheet(
     }
 }
 
-data class SheetAction(val label: String, val icon: Ico, val danger: Boolean = false, val run: () -> Unit)
+/**
+ * [haptic] is the feedback for tapping the row. Pass null when [run] plays
+ * its own (e.g. a favorite toggle), so one tap never vibrates twice.
+ */
+data class SheetAction(
+    val label: String,
+    val icon: Ico,
+    val danger: Boolean = false,
+    val haptic: HapticType? = HapticType.LIGHT,
+    val run: () -> Unit,
+)
 
 /** A list of actions with Cancel, optionally headed by a recipe preview. */
 @Composable
@@ -147,7 +157,7 @@ fun ActionSheet(
                     Row(
                         Modifier
                             .fillMaxWidth()
-                            .tap(pressedScale = 0.99f, haptic = HapticType.LIGHT) { closer.close(a.run) }
+                            .tap(pressedScale = 0.99f, haptic = a.haptic) { closer.close(a.run) }
                             .height(54.dp)
                             .padding(horizontal = 18.dp),
                         verticalAlignment = Alignment.CenterVertically,

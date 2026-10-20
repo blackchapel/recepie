@@ -48,6 +48,7 @@ data class Recipe(
     val notes: String = "",
     val favorite: Boolean = false,
     val source: String? = null,
+    /** Legacy: set on the example recipes earlier builds shipped; only read to clean them up on load. */
     val isSample: Boolean = false,
     /**
      * Photo file names, in app-private storage (photos module). The first

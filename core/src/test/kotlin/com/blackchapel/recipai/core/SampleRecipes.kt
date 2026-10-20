@@ -1,6 +1,6 @@
 package com.blackchapel.recipai.core
 
-// Generated from the approved prototype's example recipes
+// Test fixture (the app no longer ships example recipes). Generated from the prototype's example recipes
 // (docs/design/recipai-prototype.html). Shown until the user has recipes of
 // their own; they are clearly marked as examples in the UI.
 object SampleRecipes {

@@ -69,6 +69,7 @@ import com.blackchapel.recipai.ui.Sheet
 import com.blackchapel.recipai.ui.Tab
 import com.blackchapel.recipai.ui.components.ButtonStyle
 import com.blackchapel.recipai.ui.components.EaseNav
+import com.blackchapel.recipai.ui.components.EmptyLibraryState
 import com.blackchapel.recipai.ui.components.EmptyState
 import com.blackchapel.recipai.ui.components.FilterChip
 import com.blackchapel.recipai.ui.components.GlassButton
@@ -141,9 +142,6 @@ fun LibraryScreen(app: AppController, favorites: Boolean, recipes: List<Recipe>,
                 full("search") {
                     SearchField(app.libraryQuery, { app.libraryQuery = it }, "Search recipes or ingredients…", Modifier.padding(horizontal = Gutter))
                 }
-                if (settings.showExamplesBanner && recipes.any { it.isSample }) {
-                    full("banner") { ExamplesBanner { app.updateSettings { s -> s.copy(showExamplesBanner = false) } } }
-                }
                 full("chips") { TagChips(app, recipes.size, tags) }
             }
             full("tools") { Tools(app, list.size, favorites, settings) }
@@ -192,30 +190,6 @@ private fun ScrollToTopOnReselect(app: AppController, tab: Tab, state: LazyGridS
     val initial = remember { app.reselectTick }
     LaunchedEffect(app.reselectTick) {
         if (app.reselectTick != initial && app.tab == tab) state.animateScrollToItem(0)
-    }
-}
-
-@Composable
-private fun ExamplesBanner(onDismiss: () -> Unit) {
-    val c = LocalColors.current
-    Row(
-        Modifier
-            .padding(horizontal = Gutter)
-            .fillMaxWidth()
-            .background(c.surface, RoundedCornerShape(16.dp))
-            .border(1.dp, c.lineStrong, RoundedCornerShape(16.dp))
-            .padding(start = 14.dp, end = 4.dp, top = 6.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        RIcon(Ico.Spark, size = 15.dp, tint = c.accentInk)
-        Text(
-            "These are example recipes. Scale or delete them freely.",
-            style = RecipaiType.bodySmall,
-            color = c.mute,
-            modifier = Modifier.weight(1f),
-        )
-        IconButton(Ico.X, "Dismiss", onDismiss, size = 36.dp, iconSize = 15.dp, tint = c.mute)
     }
 }
 
@@ -306,9 +280,7 @@ private fun SortPill(app: AppController) {
 private fun Empty(app: AppController, favorites: Boolean, noRecipes: Boolean) {
     when {
         favorites -> EmptyState(Ico.Heart, "No favorites yet", "Tap the heart on any recipe to keep it here.")
-        noRecipes -> EmptyState(Ico.Chef, "Your recipe box is empty", "Import a recipe from pasted text to get started.") {
-            RButton("Import a recipe", { app.sheet = Sheet.Import() }, icon = Ico.Spark, style = ButtonStyle.FLAME)
-        }
+        noRecipes -> EmptyLibraryState(onImport = { app.sheet = Sheet.Import() }, onWrite = { app.newRecipe() })
         else -> EmptyState(Ico.Chef, "Nothing matches", "Try another tag or search word.") {
             RButton("Clear filters", {
                 app.libraryTag = TagFilter.All

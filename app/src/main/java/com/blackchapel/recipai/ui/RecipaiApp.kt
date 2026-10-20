@@ -86,9 +86,12 @@ fun RecipaiApp(app: AppController, versionName: String) {
         val top = app.stack.lastOrNull()
         val pushed = top != null
         SystemBarIcons(lightIcons = dark || (top is DetailPage && app.heroUnderStatusBar) || app.sheet is Sheet.PhotoViewer)
-        // How far the current tab is shifted under a pushed page (0..1).
-        val under = remember { Animatable(if (pushed) 1f else 0f) }
-        LaunchedEffect(pushed) { under.animateTo(if (pushed) 1f else 0f, tween(450, easing = NavEasing)) }
+        // How far the current tab is shifted left under a pushed page (0..1).
+        // Only sideways pages push it: the editor and cook mode slide up
+        // from the bottom, and the page behind them stays where it is.
+        val sideways = app.stack.any { it !is EditorPage && it !is CookPage }
+        val under = remember { Animatable(if (sideways) 1f else 0f) }
+        LaunchedEffect(sideways) { under.animateTo(if (sideways) 1f else 0f, tween(450, easing = NavEasing)) }
         val swipe = remember { PageBackSwipe() }
         PageBack(app, swipe, under)
         LaunchedEffect(loadError) { loadError?.let { app.showToast(it, Ico.Info) } }
@@ -184,16 +187,15 @@ fun RecipaiApp(app: AppController, versionName: String) {
 /**
  * System back for pushed pages. A predictive back swipe (Android 14+) drags
  * the page to the right with the finger and the tab underneath back into
- * place ([PageBackSwipe]); releasing finishes the slide and pops it with a
- * light haptic, abandoning springs it back. The back button and older
+ * place ([PageBackSwipe]); releasing finishes the slide and pops it (no
+ * haptic: going back is silent), abandoning springs it back. The back button and older
  * Android versions pop with the normal animation.
  */
 @Composable
 private fun PageBack(app: AppController, swipe: PageBackSwipe, under: Animatable<Float, AnimationVector1D>) {
-    val haptics = LocalHaptics.current
     val scope = rememberCoroutineScope()
     PageBackHandler(
-        enabled = app.stack.isNotEmpty(),
+        enabled = app.canGoBack,
         onProgress = { fraction ->
             val top = app.stack.lastOrNull()
             if (top != null && PageBackSwipe.canFollow(top, app.stack.size)) {
@@ -212,7 +214,6 @@ private fun PageBack(app: AppController, swipe: PageBackSwipe, under: Animatable
         },
         onBack = { swiped ->
             val top = app.stack.lastOrNull()
-            if (swiped) haptics.perform(HapticType.LIGHT)
             // The finish-the-slide path only for a real swipe: a later back
             // press on a page whose swipe was abandoned pops normally.
             if (swiped && top != null && swipe.isFollowing(top)) {
@@ -262,7 +263,7 @@ private fun SheetHost(app: AppController, recipes: List<Recipe>) {
                     add(SheetAction("Edit recipe", Ico.Pencil) { app.editRecipe(r.id) })
                     add(SheetAction("Add photo", Ico.Camera) { app.addPhoto(r.id) })
                     add(
-                        SheetAction(if (r.favorite) "Remove from favorites" else "Add to favorites", Ico.Heart) {
+                        SheetAction(if (r.favorite) "Remove from favorites" else "Add to favorites", Ico.Heart, haptic = null) {
                             val now = app.toggleFavorite(r.id)
                             haptics.perform(if (now == true) HapticType.SUCCESS else HapticType.LIGHT)
                         },

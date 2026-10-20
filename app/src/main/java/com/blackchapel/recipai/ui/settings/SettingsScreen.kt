@@ -115,15 +115,6 @@ fun SettingsScreen(app: AppController, settings: AppSettings, recipes: List<Reci
                         Cell("Photos", icon = Ico.Camera, iconColor = c.ocean) {
                             Text("${recipes.sumOf { it.photos.size }}", style = RecipaiType.cell, color = c.mute)
                         }
-                        Hairline(start = 56.dp)
-                        Cell(
-                            "Restore example recipes",
-                            icon = Ico.Reset,
-                            iconColor = c.basil,
-                            subtitle = "Adds back any of the 8 examples you deleted",
-                            haptic = HapticType.SUCCESS,
-                            onClick = { app.restoreSamples() },
-                        )
                     }
                 }
             }

@@ -20,7 +20,6 @@ class DataStoreSettings(context: Context) : SettingsStore {
         val theme = stringPreferencesKey("theme")
         val haptics = booleanPreferencesKey("haptics")
         val layout = stringPreferencesKey("layout")
-        val examplesBanner = booleanPreferencesKey("examples_banner")
         val keepScreenOn = booleanPreferencesKey("keep_screen_on")
         val timerSound = booleanPreferencesKey("timer_sound")
         val backupSchedule = stringPreferencesKey("backup_schedule")
@@ -38,7 +37,6 @@ class DataStoreSettings(context: Context) : SettingsStore {
             prefs[Keys.theme] = next.theme.name
             prefs[Keys.haptics] = next.haptics
             prefs[Keys.layout] = next.layout.name
-            prefs[Keys.examplesBanner] = next.showExamplesBanner
             prefs[Keys.keepScreenOn] = next.keepScreenOn
             prefs[Keys.timerSound] = next.timerSound
             prefs[Keys.backupSchedule] = next.backupSchedule.name
@@ -55,7 +53,6 @@ class DataStoreSettings(context: Context) : SettingsStore {
             theme = prefs[Keys.theme]?.let { v -> ThemeMode.entries.firstOrNull { it.name == v } } ?: defaults.theme,
             haptics = prefs[Keys.haptics] ?: defaults.haptics,
             layout = prefs[Keys.layout]?.let { v -> LibraryLayout.entries.firstOrNull { it.name == v } } ?: defaults.layout,
-            showExamplesBanner = prefs[Keys.examplesBanner] ?: defaults.showExamplesBanner,
             keepScreenOn = prefs[Keys.keepScreenOn] ?: defaults.keepScreenOn,
             timerSound = prefs[Keys.timerSound] ?: defaults.timerSound,
             backupSchedule = prefs[Keys.backupSchedule]?.let { v -> BackupSchedule.entries.firstOrNull { it.name == v } } ?: defaults.backupSchedule,

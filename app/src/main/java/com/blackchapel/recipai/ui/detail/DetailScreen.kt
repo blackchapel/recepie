@@ -171,7 +171,7 @@ private fun DetailTopBar(app: AppController, r: Recipe, collapsed: Boolean) {
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
             val tint = if (collapsed) c.ink else Color.White
-            GlassButton(Ico.Left, "Back", { app.back() }, glass = !collapsed, tint = if (collapsed) c.accentInk else Color.White, iconSize = 24.dp)
+            GlassButton(Ico.Left, "Back", { app.back() }, haptic = null, glass = !collapsed, tint = if (collapsed) c.accentInk else Color.White, iconSize = 24.dp)
             Text(
                 r.title,
                 style = RecipaiType.navTitle,

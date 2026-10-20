@@ -198,8 +198,8 @@ part of the change that touches them -- see `CLAUDE.md`.
   rewritten on every change. Fine for hundreds of recipes; revisit
   (Room, or one file per recipe) if libraries get much larger.
 - **An unreadable recipe file is set aside, not repaired.** It is
-  renamed to `recipes.json.unreadable-<time>` and the examples load in
-  its place, with a toast. There is no in-app way to recover it yet
+  renamed to `recipes.json.unreadable-<time>` and the library starts
+  empty in its place, with a toast. There is no in-app way to recover it yet
   (a Drive backup is the way back). Photo clean-up is skipped that run.
 - **A failed save (e.g. disk full) only shows a toast.** The app keeps
   working from memory and retries on the next change; quitting before
@@ -240,8 +240,8 @@ part of the change that touches them -- see `CLAUDE.md`.
   honor the system animation scale; the link progress list and cook
   mode don't yet.
 - **No blur.** The design's bars are translucent and blurred; the app
-  uses the translucent color without blur (the design's stated solid
-  fallback).
+  uses a near-opaque color (about 95%) without blur, so text behind the
+  tab bar doesn't show through. A real blur would be a refinement.
 - **Illustrations are simpler than the prototype's** (a seeded plate
   with generic items), and only recognize English ingredient names.
 - **Bundled fonts add about 0.7 MB** to the APK (three variable TTFs).

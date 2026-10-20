@@ -128,7 +128,7 @@ fun BackupScreen(app: AppController, page: BackupPage) {
             }
         }
         TopBar(title = "Backup", scrolled = scrolled, collapsed = collapsed, left = {
-            IconButton(Ico.Left, "Back", { app.back() }, tint = c.accentInk, iconSize = 24.dp)
+            IconButton(Ico.Left, "Back", { app.back() }, tint = c.accentInk, iconSize = 24.dp, haptic = null)
         })
     }
 
