@@ -80,7 +80,28 @@ part of the change that touches them -- see `CLAUDE.md`.
   free space; entries over 64 MB are refused when reading.
 - **Restore replaces every recipe** (no merge). The "Before restore"
   backup is the undo, and it counts toward the six kept, so it can push
-  the oldest backup out.
+  the oldest backup out, but never the backup being restored.
+- **Restore race (small).** The current recipes are read after the
+  download; edits made while the "Before restore" backup is uploading
+  are in neither that backup nor the restored library.
+- **A manual backup or restore is cancelled when the app is left with
+  Back** (it runs in the ViewModel scope and Back finishes the activity).
+  A restore cancelled before the recipes are replaced leaves the
+  extracted photos behind, which the next launch's photo cleanup removes;
+  the library is unchanged.
+- **Automatic backups have a time limit (ANDROID-3).** A WorkManager
+  (non-foreground) worker must build and upload within about 10 minutes,
+  the JobScheduler limit. If it takes longer the system stops it and the
+  retry starts the zip and upload from scratch (the resumable session is
+  not kept across runs), so a very large photo library on a slow uplink
+  may never finish automatically. Workaround: "Back up now" in the app.
+  A later fix could persist the resumable session URI and the built zip
+  across attempts. `setForeground` is no answer: Android 12+ blocks
+  starting foreground services from the background.
+- **A reset WorkManager database loses the schedule.** If it is reset
+  while `backup-status.json` says scheduled, the schedule is not
+  re-registered until a backup setting changes. Hardening idea: check
+  `WorkManager.getWorkInfosForUniqueWork` at startup.
 - **Account details are cached.** The email and name come from Drive's
   about endpoint and are stored in `backup-status.json`; a display-name
   change shows after the next Connect.
@@ -88,7 +109,10 @@ part of the change that touches them -- see `CLAUDE.md`.
   8 AM, Evening 8 PM); there is no free time picker. Times are
   formatted en-US (h:mm a).
 - **Photos are only on the device until backed up**: `allowBackup` is
-  false, so Android's own backup doesn't include them.
+  false, which turns off cloud backup. On Android 12+ a phone-to-phone
+  transfer still copies recipes, photos and settings. `backup-status.json`
+  is deliberately excluded (`data_extraction_rules.xml`), so a
+  transferred phone starts as "not connected" and the user connects once.
 
 ## Import
 
@@ -107,7 +131,11 @@ part of the change that touches them -- see `CLAUDE.md`.
 - **Only schema.org JSON-LD recipe cards are read.** Microdata/RDFa
   markup falls back to the page-text rules.
 - **http-only sites fail**: links and redirects are upgraded to https
-  because Android blocks cleartext traffic.
+  because Android blocks cleartext traffic. They now fail with "doesn't
+  seem to offer this page over a secure connection" (`HTTP_ONLY`, no Try
+  again) instead of a network or redirect error; a timeout while
+  connecting to an upgraded http link is still reported as a timeout.
+  A link fetch has an overall 45 s limit.
 - **Non-ASCII (IDN) host names are rejected** by `Links.normalize`.
 - **Pages are capped at 4 MB.** A recipe card after the cap is lost,
   though cards are almost always in `<head>`.
@@ -140,6 +168,12 @@ part of the change that touches them -- see `CLAUDE.md`.
 - **TalkBack labels** for the editor's fields come from
   `contentDescription` (Compose 1.7 has no placeholder/label semantics
   for these fields); needs a device check.
+- **The mini-timer pill still floats over the editor and Backup page**;
+  only bottom clearance was added.
+- **Accessibility semantics are untested on a real TalkBack** (names,
+  selected / checked states, the detail Timers button's description). The
+  hero image's tap target has only a click label ("View larger image"),
+  not a content description.
 - **Photos still copying from the detail page** are dropped if the
   editor for the same recipe is opened meanwhile and then saved; the
   files are cleaned up as unused.

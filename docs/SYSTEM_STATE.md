@@ -41,7 +41,9 @@ independent review, the user's device test).
   bar: the timers button (soonest countdown, count badge, Done state) and
   the flame **Start cooking** button. More menu: Edit recipe, Add photo,
   Add/Remove favorite, Delete (confirm sheet naming the photo count, then
-  Undo in a toast).
+  Undo in a toast). Items run hero, head, stats, photos, ingredients,
+  method, notes. `DetailPage` keeps `scrollIndex` / `scrollOffset` and
+  `DetailScreen` restores them after cook mode or the editor covered it.
 - **Amount sheet:** tap any amount, type or step a new value; the
   preview shows the factor, servings and total time; Scale recipe
   applies it. Quick chips for ½×, Original, 2×, 3×.
@@ -58,7 +60,17 @@ independent review, the user's device test).
   Notes. Save validates inline (title, amounts, amount-without-name,
   minutes), focuses the first problem, stores through
   `RecipeRepository.upsert` with a fresh `updatedAt`, and slides down
-  onto the recipe's detail page. The draft survives rotation.
+  onto the recipe's detail page. The draft survives rotation. Photos
+  picked in the editor are copied in `AppController.photoScope` and
+  merged by `EditorState.addPhotos` into the live draft;
+  `EditorState.photoAdding` holds the pending tiles and the error, so
+  they survive rotation. Saving a shared import (`saveImport`,
+  `saveLinkImport`) while an editor is open keeps the stack and pushes
+  the detail page over the editor (Back returns to the draft); `showTag`
+  over an open editor only toasts "Save or discard your draft first."
+  The mini-timer pill still floats over the editor and Backup page;
+  `pushedPageBottomPadding` (`ui/timers/TimerParts.kt`, sharing
+  `PushedPillOffset`, 84 dp, with `TimerOverlay`) gives them clearance.
 - **Timers and cook mode:** timers are process-wide (`TimerStore`), shown
   in the Timers sheet (ring, pause/resume, +1 min, cancel) and the
   mini-timer pill (above the tab bar, beside + on Recipes/Favorites,
@@ -108,8 +120,9 @@ independent review, the user's device test).
   mode and deeper stacks pop normally on release.
 - **Persistence:** recipes in one JSON file, photos in
   `filesDir/photos`, settings in DataStore, backup status in
-  `filesDir/backup-status.json`. The first launch seeds the 8 example
-  recipes.
+  `filesDir/backup-status.json`. The library starts empty: the app ships
+  no sample recipes, and `RecipeRepository.withoutExamples` strips any
+  old sample recipes (without photos) that earlier builds saved.
 - **Haptics** for every interaction, through one wrapper, with the
   in-app switch and the system Touch feedback setting (see
   `DESIGN.md`, "Haptics").
@@ -135,13 +148,14 @@ ExifInterface 1.3.7, play-services-auth 21.2.0, WorkManager 2.9.1.
 |---|---|
 | Language / UI | Kotlin, Jetpack Compose. Material 3 only as the base (sheets, menus); every visible color/type comes from the design tokens in `ui/theme` |
 | Navigation | A small hand-rolled stack in `AppController`: four tab roots (kept with `rememberSaveableStateHolder`), pages pushed over them with `AnimatedContent` (detail and Backup slide in from the right with the tab underneath shifting left and dimming; the editor and cook mode slide up). System back for pages goes through `PageBackHandler` (`platform/nav`, `PredictiveBackHandler`); on Android 14+ a sideways page over a tab follows the finger (`PageBackSwipe` in `ui/BackGesture.kt`); the manifest sets `enableOnBackInvokedCallback`. Page-level `BackHandler`s (editor, photo viewer) are registered later and take priority |
-| State | `AppController`: Compose snapshot state owned by the activity's `MainViewModel`, so it survives rotation. Each pushed `DetailPage` carries its own scale factor and checklists; each `EditorPage` its draft (`EditorState`); the link conversion (`LinkImport`) and the backup controller live there too. Module members sit in `// ---- <module> ----` sections at the end of the class |
-| Storage | `RecipeRepository`: all recipes in memory, saved to `filesDir/recipes.json` (`RecipeJson`, versioned, kotlinx.serialization) with an atomic temp-file-then-move write on a single-threaded dispatcher. An unreadable file is renamed aside, never overwritten. `replaceAll` for restore. Settings in DataStore Preferences (`DataStoreSettings`) |
-| Photos | `filesDir/photos/<uuid>.jpg`, written through a temp file then renamed (`PhotoStore`), decoded with a sample size, EXIF-uprighted, scaled to 2048 px max and saved as JPEG 88 (`PhotoImporter`). `Recipe.photos` holds the names, `coverIndex` the cover. Loaded with Coil at the drawn size. Unreferenced files are deleted once per launch after the recipes load, never when the recipe file was unreadable, never under an hour old, never names the app didn't write |
+| State | `AppController`: Compose snapshot state owned by the activity's `MainViewModel`, so it survives rotation (the recipes themselves are not owned there: see Storage). Each pushed `DetailPage` carries its own scale factor and checklists; each `EditorPage` its draft (`EditorState`); the link conversion (`LinkImport`) and the backup controller live there too. Module members sit in `// ---- <module> ----` sections at the end of the class |
+| Storage | `RecipeRepository`: all recipes in memory, saved to `filesDir/recipes.json` (`RecipeJson`, versioned, kotlinx.serialization) with an fsync'd temp-file-then-atomic-move write on a single-threaded dispatcher. **One repository per process:** `platform/storage/RecipeRuntime` holds it (like `BackupRuntime.jobs`), built lazily from the application context on a process-lifetime scope (`SupervisorJob` + `Dispatchers.Main.immediate`) with `Dispatchers.IO` as the writer, so queued saves outlive the activity and two ViewModels never hold two copies of the file. `MainViewModel` / `AppController` only view it; tests construct `RecipeRepository` directly. **Durable writes:** `core/Durable.kt` fsyncs before every rename into place (`recipes.json`, picked photos, restored photos, `backup-status.json`). An unreadable file is renamed aside, never overwritten. `replaceAll` for restore. Settings in DataStore Preferences (`DataStoreSettings`) |
+| Photos | `filesDir/photos/<uuid>.jpg`, written through a temp file then renamed (`PhotoStore`), decoded with a sample size, EXIF-uprighted, scaled to 2048 px max and saved as JPEG 88 (`PhotoImporter`). `Recipe.photos` holds the names, `coverIndex` the cover. Loaded with Coil at the drawn size. Unreferenced files are deleted once per process (`RecipeRepository.claimPhotoCleanUp`) after the recipes load, never when the recipe file was unreadable, never under an hour old, never names the app didn't write |
 | Timers | In memory and process-wide (`TimerStore.shared`, flows), kept alive by the `TimerService` foreground service (specialUse, partial wake lock only while a timer runs). Whoever ticks first (the on-screen ticker every 250 ms, or the service loop) finishes a due timer, and it is reported exactly once |
-| Link import | `WebPageFetcher` (java.net, in `:core` so it is unit-tested on the JVM; `platform/net/PageFetcher` runs it on `Dispatchers.IO` with a socket stats tag), then `PageRecipeReader`: the JSON-LD recipe card, else the page text through the text rules, else "no recipe" |
+| Link import | `WebPageFetcher` (java.net, in `:core` so it is unit-tested on the JVM; `platform/net/PageFetcher` runs it on `Dispatchers.IO` with a socket stats tag), with a 45 s overall deadline (a daemon watchdog disconnects the connection; `FetchAbort`, which `PageFetcher` triggers when the calling coroutine is cancelled), then `PageRecipeReader`: the JSON-LD recipe card, else the page text through the text rules, else "no recipe" |
 | Backup | One `.zip` per backup (`backup.json` + `photos/`), Drive REST v3 over `HttpURLConnection` with the `drive.file` scope, authorization through Play services' `AuthorizationClient` (no stored tokens), WorkManager periodic work for automatic backups. Details below |
-| DI | None; `MainViewModel` builds the repositories and attaches the backup runtime. Add Hilt only if the graph grows |
+| DI | None; `MainViewModel` gets the process-wide repository from `RecipeRuntime` and attaches the backup runtime. Add Hilt only if the graph grows |
+| Accessibility | `Modifier.tap` has `description` (the node's content description, the name TalkBack reads), `isSelected` and `isChecked`; `label` is only the click-action hint ("double-tap to ..."). Icon-only controls pass `description`; `IconButton` and `GlassButton` name themselves from their label. `Segmented` has `itemLabel`, `FilterChip` has `toggle` (false for plain buttons such as the quick scale amounts), `Cell` has `checked`; switch rows, ingredient rows and step buttons report checked, segmented items and tag chips report selected. Not yet checked with a real TalkBack |
 | Sheets | `ModalBottomSheet` wrapped in `RSheet` (grabber, title, close; drag down or scrim to dismiss; light haptic). The photo viewer is a full-screen overlay with its own back handler |
 | Haptics | `haptics/Haptics.kt` drives the `Vibrator` directly: tuned `VibrationEffect` compositions (API 30+, when the primitives are supported), predefined effects (API 29), `View.performHapticFeedback` fallback (API 26-28 or no vibrator). Touch usage, so the system's touch intensity applies; needs VIBRATE (declared); respects the in-app switch and the system Touch feedback setting. The tuning is data in `HapticPatterns.kt`. Compose's own `LocalHapticFeedback` is a no-op so nothing bypasses the switch |
 | Fonts | Bricolage Grotesque, Geist and Geist Mono bundled as variable fonts in `res/font` (OFL, licenses in `third_party/fonts/`), so they work offline from first launch |
@@ -178,16 +192,34 @@ ExifInterface 1.3.7, play-services-auth 21.2.0, WorkManager 2.9.1.
   WorkManager), `BackupConsentHost`, `BackupScheduler` (unique periodic
   work "recipai-automatic-backup" plus the one-time catch-up
   "recipai-catch-up-backup") and `BackupWorker`.
-- Restore downloads and checks the backup, saves a "Before restore"
-  backup (always with photos), extracts photos into `filesDir/photos`
+- Restore downloads and checks the backup, then reads the current
+  recipes and settings (after the download, so edits made while it
+  downloaded are kept), saves a "Before restore" backup (always with
+  photos; `BackupEngine.backUp(protect = ...)` never prunes the backup
+  being restored), extracts photos into `filesDir/photos`
   before replacing the recipes (so the photo clean-up never sees them as
   orphans), then applies the appearance and cooking settings. The phone
   keeps its own backup options.
+- `BackupFingerprint.of(recipes, includePhotos)`: photos on is the plain
+  recipe hash (stored fingerprints stay valid), photos off appends
+  `|no-photos`, so turning Include photos on counts as a change.
+  `BackupEngine` clears leftover `backup-*.zip` at the start of
+  `backUp` and `restore-*.zip` at the start of `download`;
+  `Photos.TEMP` also matches `.jpg.restore.tmp`.
 - Automatic backups skip the upload when the recipes haven't changed.
   When the app opens and a schedule is overdue by more than its period
   plus 2 hours, one catch-up backup is queued.
 - Network: `www.googleapis.com` and `oauth2.googleapis.com`, with the
   user's token only. Tokens never touch disk or logs.
+
+### Backup and device transfer
+
+`allowBackup="false"` turns off Android cloud backup.
+`res/xml/data_extraction_rules.xml` (manifest `dataExtractionRules`)
+excludes every domain from cloud backup and, for a phone-to-phone
+transfer, excludes `backup-status.json` (and its `.tmp`) only, so
+recipes, photos and settings move but the new phone starts as "not
+connected" to Drive.
 
 ### Permissions
 
@@ -219,7 +251,7 @@ by `./gradlew :core:test`.
   card reader plus `Durations` and `RecipeCardTags`),
   `PageRecipeReader.kt` (card, else page text, else none;
   `LinkMessages`), `WebPageFetcher.kt` (browser User-Agent, 15/20 s
-  timeouts, 4 MB cap, 6 redirects followed by hand, http upgraded to
+  timeouts, 45 s overall deadline, 4 MB cap, 6 redirects followed by hand, http upgraded to
   https, gzip, charset; `FetchResult` / `FetchFailure`), `Links.kt`
   (find, normalize and describe links).
 - `RecipeDraft.kt` -- the editor's draft as typed: validation,
@@ -236,6 +268,7 @@ by `./gradlew :core:test`.
 - Backup: `BackupSnapshot.kt`, `BackupArchive.kt`, `BackupEngine.kt`,
   `BackupStatus.kt`, `BackupText.kt`, `BackupTiming.kt`,
   `DriveClient.kt`, `HttpTransport.kt` (see "Backup in detail").
+- `Durable.kt` -- `Durable.sync` / `Durable.write`: fsync before a rename.
 - `Library.kt` -- filter / sort / tag counts / search ranking.
 - `Tags.kt` -- tag normalizing and stable colors.
 - `RecipeJson.kt` -- the versioned recipe file format.
@@ -251,8 +284,13 @@ Drive, so it can be unit-tested on the JVM; the plan had put fetching in
 `app/src/main/java/com/blackchapel/recipai/`
 
 - `MainActivity.kt` -- edge-to-edge, provides haptics, hosts
-  `RecipaiApp`, routes `ACTION_SEND` text to `handleSharedText`.
-  `MainViewModel.kt` -- owns `AppController`, attaches the backup
+  `RecipaiApp`, routes `ACTION_SEND` text to `handleSharedText`. It is
+  `launchMode="singleTask"`: shares and timer-notification taps reach
+  the one instance in `onNewIntent` (which calls `setIntent`); a SEND
+  intent with `FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY` (the root intent
+  re-delivered from Recents) is ignored, and `EXTRA_TEXT` is read as a
+  `CharSequence` (styled text). `MainViewModel.kt` -- owns
+  `AppController` over the shared repository, attaches the backup
   runtime.
 - `data/` -- `RecipeRepository` (JSON file), `Settings.kt`
   (`AppSettings`, `SettingsStore`), `DataStoreSettings`.
@@ -285,7 +323,7 @@ Drive, so it can be unit-tested on the JVM; the plan had put fetching in
   `nav/PageBackHandler`, `net/PageFetcher`, `timers/` (`TimerSystem` and
   `KeepScreenOn`, `TimerService`, `TimerNotifications`, `TimerChime`),
   `photos/` (`PhotoPicker`, `PhotoImporter`, `PhotoImage`,
-  `PhotoStorage`), `backup/` (`AndroidBackupPlatform` / `BackupRuntime`,
+  `PhotoStorage`), `storage/RecipeRuntime`, `backup/` (`AndroidBackupPlatform` / `BackupRuntime`,
   `BackupConsentHost`, `BackupScheduler`, `BackupWorker`).
 
 `tools/desktop-check/` -- compiles the shared code against Compose
@@ -301,7 +339,7 @@ local HTTP server, backup archive, engine, snapshot, timing, Drive
 client against a fake Drive) and `app/src/test` (`RecipeRepositoryTest`,
 `HapticPatternsTest`, `RowSwipeTest`, `EditorFlowTest`,
 `LinkImportTest`, `TimerStoreTest`, `BackupJobsTest`,
-`IntegrationFlowTest`).
+`IntegrationFlowTest`); the `:core` and `:ui` totals are 171 and 60.
 
 ## Roadmap
 

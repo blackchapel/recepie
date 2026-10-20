@@ -43,7 +43,11 @@ up to your own Google Drive.
   Recipai from any browser or app and it converts on its own. Recipai
   reads the page's schema.org recipe card when there is one, otherwise
   the page text. Review opens the result in the editor before saving;
-  saved recipes show where they came from.
+  saved recipes show where they came from. A shared page opens in
+  Recipai's own task, so Back afterwards goes to the home screen or
+  Recents rather than the sharing app. A site that only offers http
+  can't be imported ("doesn't seem to offer this page over a secure
+  connection"), and a link that takes over 45 seconds stops.
   Import is rule-based for now, with AI added later. That means no AI
   API key and no server, and the app works fully offline: it uses the
   network only to fetch a page you asked it to import and for Google

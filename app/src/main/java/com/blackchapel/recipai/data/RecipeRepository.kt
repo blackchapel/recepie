@@ -130,7 +130,7 @@ class RecipeRepository(
             // Never overwrite what we could not read: keep it for recovery.
             val kept = File(file.parentFile, "${file.name}.unreadable-${clock()}")
             file.renameTo(kept)
-            _loadError.value = "Couldn't read your saved recipes. A copy was kept, and the examples were loaded instead."
+            _loadError.value = "Couldn't read your saved recipes. Recipai kept a copy of the file and started with an empty library."
             null
         }
     }
